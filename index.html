@@ -43,9 +43,9 @@
   <script type="importmap">
 {
   "imports": {
-    "react": "https://aistudiocdn.com/react@^19.2.0",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
-    "react/": "https://aistudiocdn.com/react@^19.2.0/"
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/"
   }
 }
 </script>
@@ -53,5 +53,586 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
+    <script type="module">
+      import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+      import ReactDOM from 'react-dom/client';
+
+      // --- Start of Combined Code ---
+
+      // FROM: constants.ts
+      const contactData = [
+          { name: "YouTube", url: "https://www.youtube.com", icon: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" },
+          { name: "Instagram", url: "https://www.instagram.com/twoong_studio?igsh=MW5jcnE0MHFvODhtNQ==", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" },
+          { name: "Vimeo", url: "https://vimeo.com", icon: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Vimeo.svg" },
+          { name: "Email", url: "mailto:contact@example.com", icon: "https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg" },
+          { name: "LinkedIn", url: "https://www.linkedin.com", icon: "https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg"  }
+      ];
+      const initialAboutData = {
+          equipmentData: [
+              { name: "Sony", icon: "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg" },
+              { name: "Aputure", icon: "https://iconape.com/wp-content/files/yy/277008/png/aputure-logo.png" },
+              { name: "Nanlite", icon: "https://images.seeklogo.com/logo-png/61/1/nanlite-logo-png_seeklogo-616371.png" },
+              { name: "DJI", icon: "https://upload.wikimedia.org/wikipedia/commons/9/9a/DJI_Innovations_logo.svg" },
+              { name: "Amaran", icon: "https://cattscamera.com/img/cms/amaran-grande.jpg" }
+          ], 
+          toolData: [
+              { name: "DaVinci Resolve", proficiency: 'Proficient', icon: "https://upload.wikimedia.org/wikipedia/commons/9/90/DaVinci_Resolve_17_logo.svg" }, 
+              { name: "After Effects", proficiency: 'Proficient', icon: "https://upload.wikimedia.org/wikipedia/commons/c/cb/Adobe_After_Effects_CC_icon.svg" }, 
+              { name: "Premiere Pro", proficiency: 'Proficient', icon: "https://upload.wikimedia.org/wikipedia/commons/4/40/Adobe_Premiere_Pro_CC_icon.svg" }, 
+              { name: "AutoCAD", proficiency: 'Proficient', icon: "https://i.namu.wiki/i/zk1A0yo4P-Ds9oqvo6UHNRagrWtElHOJjBoqxoL1jMEWkQ4Vo3AYe4zWPtiEDEf98GNDzy5i_4HBKgWdk0TxMt1IVsVESuL1PtliJt0tNZdfqtidIMb10j5l2ljqMSBOkRDmd6iocAI86bK77A9YCw.webp" },
+              { name: "Nuke", proficiency: 'Familiar', icon: "https://upload.wikimedia.org/wikipedia/commons/a/ae/Nuclear_symbol.svg" },
+              { name: "Adobe Illustrator", proficiency: 'Familiar', icon: "https://upload.wikimedia.org/wikipedia/commons/f/fb/Adobe_Illustrator_CC_icon.svg" },
+              { name: "SketchUp", proficiency: 'Familiar', icon: "https://www.softfully.com/pics/sketchup-pro-150x150.webp" },
+              { name: "Photoshop", proficiency: 'Familiar', icon: "https://upload.wikimedia.org/wikipedia/commons/a/af/Adobe_Photoshop_CC_icon.svg" }
+          ], 
+          workStyleData: ['Creative', 'Detail-Oriented', 'Collaborative', 'Proactive', 'Efficient', 'Adaptable'] 
+      };
+
+      // FROM: services/googleSheetService.ts
+      const GOOGLE_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxJ4VI4bE5o7PXX7C4g_k_x8OO7tAnRYgGF0zGE9SCa5K6H9F1N6m78pEWldMa07sI7VqSDVlUgXb7/pub?output=csv';
+      const fallbackWorkData = {
+          '1': { id: '1', title: "Artist Name - Song Title", category: "Music Video", role: "연출, 촬영, 편집", setup: "Sony FX3 + 24-70mm f/2.8", runtime: "3:45", editTool: "DaVinci Resolve, After Effects", description: "뮤직비디오 프로젝트. 다이나믹한 카메라 무빙과 강렬한 조명 연출로 아티스트의 에너지를 표현했습니다.", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&q=80", videoUrl: "https://player.vimeo.com/video/137804996", categoryFilter: "mv", productionType: 'produced' },
+          '2': { id: '2', title: "Contemporary Dance Performance", category: "DANCE FILM", role: "연출, 촬영, 편집", setup: "BMPCC 6K PRO + Sigma 18-35mm", runtime: "4:20", editTool: "DaVinci Resolve", description: "현대 무용 퍼포먼스 영상. 자연광과 미니멀한 조명 설정으로 무용수의 움직임에 집중했습니다.", image: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=1200&q=80", videoUrl: "https://www.youtube.com/embed/Sj60-By_T50", categoryFilter: "dance-film", productionType: 'produced' },
+          '3': { id: '3', title: "K-Pop Cover Dance", category: "Dance Cover", role: "연출, 촬영, 편집", setup: "Sony FX3 + 16-35mm f/2.8", runtime: "3:15", editTool: "Premiere Pro, After Effects", description: "K-Pop 커버 댄스 영상. 슬로우 모션과 컬러풀한 조명으로 역동적인 안무를 강조했습니다.", image: "https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?w=1200&q=80", videoUrl: "https://player.vimeo.com/video/12915013", categoryFilter: "cover-dance", productionType: 'produced' },
+          '4': { id: '4', title: "Band Music Video", category: "Music Video", role: "촬영, 편집", client: "Indie Label 'Echo'", setup: "Sony FX3 + 85mm f/1.4", runtime: "4:05", editTool: "DaVinci Resolve", description: "밴드 뮤직비디오. 시네마틱한 톤과 실용 조명으로 감성적인 분위기를 연출했습니다.", image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200&q=80", videoUrl: "https://www.youtube.com/embed/9Auq9mYEE", categoryFilter: "mv", productionType: 'participated' },
+          '5': { id: '5', title: "Urban Dance Project", category: "DANCE FILM", role: "연출, 촬영, 편집", setup: "BMPCC 6K PRO + Canon 24-70mm", runtime: "2:50", editTool: "DaVinci Resolve", description: "어반 댄스 프로젝트. 거리의 조명을 활용하고 높은 대비로 도시적 무드를 표현했습니다.", image: "https://images.unsplash.com/photo-1485846234645-a62644f84728?w=1200&q=80", videoUrl: "https://player.vimeo.com/video/232018247", categoryFilter: "dance-film", productionType: 'produced' },
+          '6': { id: '6', title: "Dance Cover Series", category: "Dance Cover", role: "촬영, 편집", client: "1MILLION Dance Studio", setup: "Sony FX3 + Tamron 28-75mm", runtime: "3:30", editTool: "Premiere Pro", description: "댄스 커버 시리즈. 클린한 조명 설정과 안정적인 프레이밍으로 댄서의 퍼포먼스를 담았습니다.", image: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=1200&q=80", videoUrl: "https://www.youtube.com/embed/F9L9yCf-YxU", categoryFilter: "cover-dance", productionType: 'participated' }
+      };
+      const parseCSVtoWorkData = (csvText) => {
+          const workData = {};
+          const lines = csvText.trim().replace(/\r/g, '').split('\n');
+          if (lines.length < 2) return workData;
+
+          const parseLine = (line) => {
+              const result = [];
+              let current = '';
+              let inQuotes = false;
+              for (let i = 0; i < line.length; i++) {
+                  const char = line[i];
+                  if (char === '"' && (i === 0 || line[i - 1] !== '\\')) {
+                      inQuotes = !inQuotes;
+                  } else if (char === ',' && !inQuotes) {
+                      result.push(current);
+                      current = '';
+                  } else {
+                      current += char;
+                  }
+              }
+              result.push(current);
+              return result.map(v => v.trim().replace(/^"|"$/g, '').replace(/\\"/g, '"'));
+          };
+          
+          const headers = parseLine(lines[0]);
+          
+          for (let i = 1; i < lines.length; i++) {
+              if (!lines[i]) continue;
+              const values = parseLine(lines[i]);
+              if (values.length < headers.length) continue;
+              
+              const workItem = {};
+              headers.forEach((header, index) => {
+                  workItem[header] = values[index] || '';
+              });
+
+              const typedWorkItem = {
+                  id: workItem.id,
+                  title: workItem.title,
+                  category: workItem.category,
+                  role: workItem.role,
+                  setup: workItem.setup,
+                  runtime: workItem.runtime,
+                  editTool: workItem.editTool,
+                  description: workItem.description,
+                  image: workItem.thumbnail_url,
+                  videoUrl: workItem.videoUrl,
+                  categoryFilter: workItem.categoryFilter,
+                  productionType: workItem.productionType,
+                  client: workItem.client || undefined,
+              };
+
+              if (typedWorkItem.id && (typedWorkItem.productionType === 'produced' || typedWorkItem.productionType === 'participated')) {
+                  workData[typedWorkItem.id] = typedWorkItem;
+              }
+          }
+          return workData;
+      };
+      const fetchWorkData = async () => {
+          try {
+              const response = await fetch(GOOGLE_SHEET_URL);
+              if (!response.ok) {
+                  throw new Error(`Network response was not ok: ${response.statusText}`);
+              }
+              const csvText = await response.text();
+              const parsedData = parseCSVtoWorkData(csvText);
+              if (Object.keys(parsedData).length > 0) {
+                  return parsedData;
+              }
+              console.warn("CSV data was empty or failed to parse. Using fallback data.");
+              return fallbackWorkData;
+          } catch (error) {
+              console.error("Error fetching or parsing Google Sheet, falling back to mock data:", error);
+              return fallbackWorkData;
+          }
+      };
+      
+      // FROM: components/FadeInSection.tsx
+      const FadeInSection = ({ children }) => {
+          const [isVisible, setIsVisible] = useState(false);
+          const domRef = useRef(null);
+          useEffect(() => {
+              const observer = new IntersectionObserver(
+                  (entries) => {
+                      entries.forEach((entry) => {
+                          if (entry.isIntersecting) {
+                              setIsVisible(true);
+                              observer.unobserve(entry.target);
+                          }
+                      });
+                  },
+                  { threshold: 0.1 }
+              );
+              const currentElement = domRef.current;
+              if (currentElement) {
+                  observer.observe(currentElement);
+              }
+              return () => {
+                  if (currentElement) {
+                      observer.unobserve(currentElement);
+                  }
+              };
+          }, []);
+          return React.createElement('div', {
+              ref: domRef,
+              className: `transition-all duration-700 ease-out transform ${
+                  isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+              }`
+          }, children);
+      };
+
+      // FROM: components/Header.tsx
+      const Header = () => {
+          const navLinks = [
+              { href: '#home', label: 'Home' },
+              { href: '#works', label: 'Work' },
+              { href: '#about', label: 'About' },
+              { href: '#contact', label: 'Contact' },
+          ];
+          const handleScroll = (e, href) => {
+              e.preventDefault();
+              const targetElement = document.querySelector(href);
+              if (href === '#home' || !targetElement) {
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+              } else {
+                  targetElement.scrollIntoView({ behavior: 'smooth' });
+              }
+          };
+          return React.createElement('header', {
+              className: "fixed top-0 w-full px-4 sm:px-8 md:px-12 py-4 sm:py-5 md:py-7 flex justify-between items-center z-40 bg-white/90 backdrop-blur-md shadow-sm"
+          },
+              React.createElement('a', {
+                  href: "#home",
+                  onClick: (e) => handleScroll(e, '#home'),
+                  className: "text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tighter text-[#2a2a2a]"
+              }, "PORTFOLIO"),
+              React.createElement('nav', { className: "flex gap-4 sm:gap-5 md:gap-10" },
+                  navLinks.map((link) => React.createElement('a', {
+                      key: link.href,
+                      href: link.href,
+                      onClick: (e) => handleScroll(e, link.href),
+                      className: "text-xs sm:text-sm text-[#595959] font-semibold tracking-tight transition-colors duration-300 hover:text-[#2a2a2a]"
+                  }, link.label))
+              )
+          );
+      };
+      
+      // FROM: components/Hero.tsx
+      const Hero = () => {
+          const [textVisible, setTextVisible] = useState(false);
+          const handleTap = () => {
+              if (window.innerWidth < 640) {
+                  setTextVisible(prev => !prev);
+              }
+          };
+          return React.createElement('section', {
+              className: "h-screen relative flex items-center justify-center overflow-hidden cursor-pointer sm:cursor-default",
+              id: "home",
+              onClick: handleTap
+          },
+              React.createElement('video', {
+                  className: "absolute w-full h-full object-cover opacity-30",
+                  autoPlay: true,
+                  muted: true,
+                  loop: true,
+                  playsInline: true
+              },
+                  React.createElement('source', { src: "https://cdn.pixabay.com/video/2023/05/02/159943-823979941_large.mp4", type: "video/mp4" })
+              ),
+              React.createElement('div', { className: "relative z-10 p-8 group" },
+                  React.createElement('div', {
+                      className: `text-center transition-opacity duration-500 ease-in-out ${textVisible ? 'opacity-100' : 'opacity-0'} sm:opacity-0 sm:group-hover:opacity-100`
+                  },
+                      React.createElement('h1', { className: "text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-4 sm:mb-6 text-[#2a2a2a] leading-tight" }, "Performance Videographer"),
+                      React.createElement('p', { className: "text-sm sm:text-base md:text-lg font-medium text-[#7a7a7a] tracking-widest" }, "IDOL & DANCER PERFORMANCE FILMS")
+                  )
+              ),
+              React.createElement('div', {
+                  className: `absolute bottom-10 text-center z-10 p-4 text-[#2a2a2a]/60 font-semibold animate-pulse transition-opacity duration-500 ${textVisible ? 'opacity-0' : 'opacity-100'} sm:hidden`
+              }, "Tap to show title")
+          );
+      };
+
+      // FROM: components/WorkItem.tsx
+      const WorkItem = ({ work, index, onClick }) => {
+          return React.createElement('div', {
+              className: "relative aspect-video bg-[#e8e8e8] overflow-hidden cursor-pointer transition-transform duration-300 ease-in-out hover:-translate-y-2 group work-item-animate",
+              style: { '--stagger-delay': `${index * 80}ms` },
+              onClick: () => onClick(work.id)
+          },
+              React.createElement('img', {
+                  src: work.image,
+                  alt: work.title,
+                  className: "w-full h-full object-cover transition-all duration-400 ease-in-out group-hover:scale-105 group-hover:brightness-60"
+              }),
+              React.createElement('div', { className: "absolute bottom-0 left-0 right-0 p-4 sm:p-6 md:p-8 bg-gradient-to-t from-black/75 to-transparent transition-opacity duration-400 opacity-0 group-hover:opacity-100" },
+                  React.createElement('h3', { className: "text-base sm:text-lg md:text-xl font-bold text-white tracking-tight mb-1 sm:mb-2" }, work.title),
+                  React.createElement('p', { className: "text-xs font-medium text-gray-300 tracking-widest uppercase" }, work.category)
+              )
+          );
+      };
+
+      // FROM: components/Works.tsx
+      const Works = ({ workData, onOpenModal }) => {
+          const productionTypes = [
+              { label: 'Personal Projects', type: 'produced' },
+              { label: 'Project Participation', type: 'participated' },
+          ];
+          const filterButtons = [
+              { label: 'All', filter: 'all' },
+              { label: 'Music Video', filter: 'mv' },
+              { label: 'Dance Film', filter: 'dance-film' },
+              { label: 'Dance Cover', filter: 'cover-dance' },
+          ];
+          const [activeProductionType, setActiveProductionType] = useState('produced');
+          const [activeFilter, setActiveFilter] = useState('all');
+          const allWorks = useMemo(() => Object.values(workData), [workData]);
+          const filteredWorks = useMemo(() => {
+              const worksInProductionType = allWorks.filter(work => work.productionType === activeProductionType);
+              if (activeFilter === 'all') return worksInProductionType;
+              return worksInProductionType.filter(work => work.categoryFilter === activeFilter);
+          }, [activeFilter, activeProductionType, allWorks]);
+          const handleProductionTypeChange = (type) => {
+              setActiveProductionType(type);
+              setActiveFilter('all');
+          };
+          const handleItemClick = (workId) => {
+              const visibleIds = filteredWorks.map(w => w.id);
+              onOpenModal(workId, visibleIds);
+          };
+          return React.createElement('section', { className: "py-20 sm:py-28 md:py-36 px-4", id: "works" },
+              React.createElement('div', { className: "max-w-screen-xl mx-auto" },
+                  React.createElement('h2', { className: "text-3xl sm:text-4xl md:text-6xl font-extrabold mb-12 text-center tracking-tighter text-[#2a2a2a]" }, "Work"),
+                  React.createElement('div', { className: "flex flex-row justify-center items-center gap-3 sm:gap-4 mb-10 md:mb-12" },
+                      productionTypes.map(({ label, type }) => React.createElement('button', {
+                          key: type,
+                          onClick: () => handleProductionTypeChange(type),
+                          className: `py-3 px-6 text-sm sm:text-base sm:py-4 sm:px-10 font-bold tracking-tight transition-all duration-300 rounded-full ${activeProductionType === type ? 'bg-[#2a2a2a] text-[#F7F7F7]' : 'bg-transparent text-[#7a7a7a] hover:bg-[#e8e8e8]'}`
+                      }, label))
+                  ),
+                  React.createElement('div', { className: "flex flex-wrap justify-center gap-2 sm:gap-4 mb-10 md:mb-14" },
+                      filterButtons.map(({ label, filter }) => React.createElement('button', {
+                          key: filter,
+                          onClick: () => setActiveFilter(filter),
+                          className: `py-2 px-5 text-xs sm:py-3 sm:px-8 sm:text-sm font-semibold tracking-tight transition-all duration-300 border-2 ${activeFilter === filter ? 'bg-[#2a2a2a] text-[#F7F7F7] border-[#2a2a2a]' : 'bg-transparent border-[#d0d0d0] text-[#7a7a7a] hover:bg-[#2a2a2a] hover:text-[#F7F7F7] hover:border-[#2a2a2a]'}`
+                      }, label))
+                  ),
+                  React.createElement('div', { key: `${activeProductionType}-${activeFilter}`, className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8" },
+                      filteredWorks.map((work, index) => React.createElement(WorkItem, { key: work.id, work: work, index: index, onClick: handleItemClick }))
+                  )
+              )
+          );
+      };
+      
+      // FROM: components/About.tsx
+      const TextGridItem = ({ name }) => (
+          React.createElement('div', { className: "flex items-center justify-center p-3 sm:p-4 bg-[#F7F7F7] border-2 border-[#e8e8e8] text-center h-full" },
+              React.createElement('span', { className: "text-xs sm:text-sm font-semibold text-[#595959] tracking-tight" }, name)
+          )
+      );
+      const ToolLogoItem = ({ item }) => (
+          React.createElement('div', { className: "flex items-center justify-center p-2 aspect-square group transition-transform duration-300 hover:scale-110" },
+              React.createElement('img', { src: item.icon, alt: `${item.name} logo`, className: "h-12 w-12 object-contain", title: item.name })
+          )
+      );
+      const About = ({ aboutData }) => {
+          const { equipmentData, toolData, workStyleData } = aboutData;
+          const [toolFilter, setToolFilter] = useState('All');
+          const coreRoles = ['기획', '연출', '촬영', '편집'];
+          const filteredTools = useMemo(() => {
+              if (toolFilter === 'All') return toolData;
+              return toolData.filter((t) => t.proficiency === toolFilter);
+          }, [toolFilter, toolData]);
+          const toolFilterOptions = [
+              { value: 'All', label: 'All Tools' },
+              { value: 'Proficient', label: 'Proficient in' },
+              { value: 'Familiar', label: 'Familiar with' }
+          ];
+          return React.createElement('section', { className: "py-20 sm:py-28 md:py-32 px-4 sm:px-8 md:px-12 bg-white", id: "about" },
+              React.createElement('div', { className: "max-w-screen-xl mx-auto" },
+                  React.createElement('h2', { className: "text-3xl sm:text-4xl md:text-6xl font-extrabold mb-12 text-center sm:text-left tracking-tighter text-[#2a2a2a]" }, "About"),
+                  React.createElement('div', { className: "grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-20" },
+                      React.createElement('div', { className: "lg:col-span-3" },
+                          React.createElement('div', { className: "mb-12 sm:mb-16" },
+                              React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-4 tracking-tight" }, "Introduce"),
+                              React.createElement('p', { className: "text-base font-medium text-[#595959] leading-relaxed tracking-tight italic" }, "“퍼포먼스의 리듬과 카메라의 움직임으로 감정을 설계하는 비디오그래퍼.”")
+                          ),
+                          React.createElement('div', { className: "mb-12 sm:mb-16" },
+                              React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-4 tracking-tight" }, "Role Definition"),
+                              React.createElement('p', { className: "text-sm font-medium text-[#7a7a7a] leading-relaxed tracking-tight mb-6" }, "아이돌 및 댄서 퍼포먼스 영상 제작을 위해 기획부터 연출, 촬영, 편집까지 전 과정을 통합적으로 수행합니다."),
+                              React.createElement('div', { className: "grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4" },
+                                  coreRoles.map(item => React.createElement(TextGridItem, { key: item, name: item }))
+                              )
+                          ),
+                          React.createElement('div', null,
+                              React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-4 tracking-tight" }, "Collaboration"),
+                              React.createElement('p', { className: "text-sm font-medium text-[#7a7a7a] leading-relaxed tracking-tight mb-6" }, "유연한 소통과 효율적인 협업을 통해 최고의 결과물을 만들어냅니다."),
+                              React.createElement('div', { className: "grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-5" },
+                                  workStyleData.map((item) => React.createElement(TextGridItem, { key: item, name: item }))
+                              )
+                          )
+                      ),
+                      React.createElement('div', { className: "lg:col-span-2" },
+                          React.createElement('div', { className: "mb-12 sm:mb-16" },
+                              React.createElement('div', { className: "flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8" },
+                                  React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] tracking-tight mb-4 sm:mb-0" }, "Tools"),
+                                  React.createElement('select', {
+                                      value: toolFilter,
+                                      onChange: (e) => setToolFilter(e.target.value),
+                                      className: "py-2 px-4 text-sm font-semibold text-[#595959] bg-[#F7F7F7] border-2 border-[#d0d0d0] cursor-pointer focus:outline-none focus:border-[#2a2a2a] w-full sm:w-auto"
+                                  },
+                                      toolFilterOptions.map(opt => React.createElement('option', { key: opt.value, value: opt.value }, opt.label))
+                                  )
+                              ),
+                              React.createElement('div', { className: "grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 md:gap-5" },
+                                  filteredTools.map((item) => React.createElement(ToolLogoItem, { key: item.name, item: item }))
+                              )
+                          ),
+                          React.createElement('div', null,
+                              React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-8 tracking-tight" }, "Equipment"),
+                              React.createElement('div', { className: "grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 md:gap-5" },
+                                  equipmentData.map((item) => React.createElement(ToolLogoItem, { key: item.name, item: item }))
+                              )
+                          )
+                      )
+                  )
+              )
+          );
+      };
+      
+      // FROM: components/Contact.tsx
+      const Contact = () => {
+          return React.createElement('section', { className: "py-20 sm:py-28 md:py-32 px-4 text-center bg-[#F7F7F7]", id: "contact" },
+              React.createElement('h2', { className: "text-3xl sm:text-4xl md:text-6xl font-extrabold mb-6 sm:mb-8 tracking-tighter text-[#2a2a2a]" }, "Contact"),
+              React.createElement('p', { className: "text-base sm:text-lg font-medium text-[#7a7a7a] mb-10 sm:mb-12 tracking-tight max-w-md mx-auto" },
+                  "Available for collaborations & projects"
+              ),
+              React.createElement('div', { className: "flex gap-5 sm:gap-7 justify-center" },
+                  contactData.map(item => (
+                      React.createElement('a', {
+                          key: item.name,
+                          href: item.url,
+                          target: "_blank",
+                          rel: "noopener noreferrer",
+                          className: "w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center transition-transform duration-300 hover:scale-110 group",
+                          title: item.name
+                      },
+                          React.createElement('img', {
+                              src: item.icon,
+                              alt: `${item.name} icon`,
+                              className: "w-6 h-6 sm:w-7 sm:h-7 object-contain grayscale transition-all duration-300 group-hover:grayscale-0"
+                          })
+                      )
+                  ))
+              )
+          );
+      };
+
+      // FROM: components/Footer.tsx
+      const Footer = () => {
+          return React.createElement('footer', { className: "py-10 sm:py-12 px-4 sm:px-8 border-t border-gray-200 text-center text-gray-400 text-xs sm:text-sm font-medium bg-white" },
+              React.createElement('p', null, "© 2025 Performance Videographer. All rights reserved.")
+          );
+      };
+      
+      // FROM: components/Modal.tsx
+      const SpecItem = ({ title, value }) => (
+          React.createElement('div', null,
+              React.createElement('h4', { className: "text-xs font-bold text-gray-400 tracking-widest uppercase mb-1 sm:mb-2" }, title),
+              React.createElement('p', { className: "text-sm sm:text-base font-semibold text-[#2a2a2a] leading-relaxed tracking-tight" }, value)
+          )
+      );
+      const Modal = ({ work, onClose, onNavigate }) => {
+          const renderSpecs = () => {
+              if (work.productionType === 'produced') {
+                  return (
+                      React.createElement(React.Fragment, null,
+                          React.createElement(SpecItem, { title: "Role", value: work.role }),
+                          React.createElement(SpecItem, { title: "Set Up", value: work.setup }),
+                          React.createElement(SpecItem, { title: "Running Time", value: work.runtime }),
+                          React.createElement(SpecItem, { title: "Edit Tool", value: work.editTool })
+                      )
+                  );
+              } else if (work.productionType === 'participated') {
+                  return (
+                       React.createElement(React.Fragment, null,
+                          work.client && React.createElement(SpecItem, { title: "Client / Project By", value: work.client }),
+                          React.createElement(SpecItem, { title: "My Role", value: work.role }),
+                          React.createElement(SpecItem, { title: "Running Time", value: work.runtime })
+                      )
+                  )
+              }
+              return null;
+          }
+          return React.createElement('div', { className: "fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 sm:p-4", onClick: onClose },
+              React.createElement('button', {
+                  onClick: (e) => { e.stopPropagation(); onNavigate(-1); },
+                  className: "absolute top-1/2 -translate-y-1/2 left-2 md:left-8 lg:left-16 w-10 h-10 md:w-12 md:h-12 bg-white/20 text-white text-3xl md:text-4xl font-light cursor-pointer z-50 transition-colors hover:bg-white/40 flex items-center justify-center rounded-full",
+                  'aria-label': "Previous work"
+              }, "\u2039"),
+              React.createElement('div', {
+                  className: "bg-white w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] relative flex flex-col",
+                  style: { animation: 'modalSlideIn 0.4s ease-out both' },
+                  onClick: (e) => e.stopPropagation()
+              },
+                  React.createElement('div', { className: "relative w-full aspect-video bg-black flex-shrink-0" },
+                      React.createElement('iframe', {
+                          key: work.id,
+                          className: "w-full h-full border-none",
+                          src: work.videoUrl,
+                          title: work.title,
+                          allow: "autoplay; fullscreen; picture-in-picture",
+                          allowFullScreen: true
+                      })
+                  ),
+                  React.createElement('div', { className: "p-6 sm:p-8 md:p-12 lg:p-14 overflow-y-auto" },
+                      React.createElement('h2', { className: "text-xl sm:text-2xl md:text-4xl font-extrabold mb-1 sm:mb-2 text-[#2a2a2a] tracking-tighter" }, work.title),
+                      React.createElement('p', { className: "text-xs sm:text-sm font-semibold text-[#7a7a7a] tracking-widest uppercase mb-6 sm:mb-8" }, work.category),
+                      React.createElement('div', { className: "grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-6 sm:gap-x-14 sm:gap-y-8 mb-8 sm:mb-10" }, renderSpecs()),
+                      React.createElement('div', { className: "pt-6 sm:pt-8 border-t border-gray-200" },
+                          React.createElement('h4', { className: "text-xs font-bold text-gray-400 tracking-widest uppercase mb-3 sm:mb-4" }, "Description"),
+                          React.createElement('p', { className: "text-xs sm:text-sm font-medium text-[#595959] leading-relaxed sm:leading-loose tracking-tight" }, work.description)
+                      )
+                  ),
+                  React.createElement('button', {
+                      onClick: onClose,
+                      className: "absolute top-3 right-3 w-8 h-8 sm:top-4 sm:right-4 sm:w-10 sm:h-10 bg-[#2a2a2a] text-white text-xl sm:text-2xl cursor-pointer flex items-center justify-center z-20 transition-colors hover:bg-[#595959]",
+                      'aria-label': "Close modal"
+                  }, "\u00d7")
+              ),
+              React.createElement('button', {
+                  onClick: (e) => { e.stopPropagation(); onNavigate(1); },
+                  className: "absolute top-1/2 -translate-y-1/2 right-2 md:right-8 lg:right-16 w-10 h-10 md:w-12 md:h-12 bg-white/20 text-white text-3xl md:text-4xl font-light cursor-pointer z-50 transition-colors hover:bg-white/40 flex items-center justify-center rounded-full",
+                  'aria-label': "Next work"
+              }, "\u203a")
+          );
+      };
+
+      // FROM: App.tsx
+      const App = () => {
+          const [workData, setWorkData] = useState(null);
+          const [aboutData, setAboutData] = useState(null);
+          const [isLoading, setIsLoading] = useState(true);
+          const [modalState, setModalState] = useState({
+              isOpen: false,
+              currentWorkId: null,
+              visibleWorkIds: [],
+          });
+          useEffect(() => {
+              const loadData = async () => {
+                  try {
+                      const fetchedWorks = await fetchWorkData();
+                      setWorkData(fetchedWorks);
+                      setAboutData(initialAboutData);
+                  } catch (error) {
+                      console.error("Failed to load portfolio data:", error);
+                  } finally {
+                      setIsLoading(false);
+                  }
+              };
+              loadData();
+          }, []);
+          const openModal = useCallback((workId, visibleIds) => {
+              setModalState({ isOpen: true, currentWorkId: workId, visibleWorkIds: visibleIds });
+          }, []);
+          const closeModal = useCallback(() => {
+              setModalState(prevState => ({ ...prevState, isOpen: false, currentWorkId: null }));
+          }, []);
+          const navigateWork = useCallback((direction) => {
+              const { currentWorkId, visibleWorkIds } = modalState;
+              if (!currentWorkId || visibleWorkIds.length === 0) return;
+              const currentIndex = visibleWorkIds.indexOf(currentWorkId);
+              if (currentIndex === -1) return;
+              const nextIndex = (currentIndex + direction + visibleWorkIds.length) % visibleWorkIds.length;
+              setModalState(prevState => ({ ...prevState, currentWorkId: visibleWorkIds[nextIndex] }));
+          }, [modalState]);
+          useEffect(() => {
+              const handleKeyDown = (e) => {
+                  if (!modalState.isOpen) return;
+                  if (e.key === 'Escape') closeModal();
+                  if (e.key === 'ArrowLeft') navigateWork(-1);
+                  if (e.key === 'ArrowRight') navigateWork(1);
+              };
+              document.addEventListener('keydown', handleKeyDown);
+              return () => document.removeEventListener('keydown', handleKeyDown);
+          }, [modalState.isOpen, closeModal, navigateWork]);
+          useEffect(() => {
+              document.body.style.overflow = modalState.isOpen ? 'hidden' : 'auto';
+          }, [modalState.isOpen]);
+          const currentWork = modalState.currentWorkId && workData ? workData[modalState.currentWorkId] : null;
+          return React.createElement('div', { className: "bg-[#F7F7F7] text-[#595959] overflow-x-hidden" },
+              React.createElement(Header, null),
+              isLoading ? (
+                  React.createElement('div', { className: "h-screen flex items-center justify-center text-lg sm:text-xl font-semibold text-[#595959]" }, "Loading Portfolio...")
+              ) : workData && aboutData ? (
+                  React.createElement(React.Fragment, null,
+                      React.createElement('main', null,
+                          React.createElement(Hero, null),
+                          React.createElement(FadeInSection, null,
+                              React.createElement(Works, { workData: workData, onOpenModal: openModal })
+                          ),
+                          React.createElement(FadeInSection, null,
+                              React.createElement(About, { aboutData: aboutData })
+                          ),
+                          React.createElement(FadeInSection, null,
+                              React.createElement(Contact, null)
+                          )
+                      ),
+                      React.createElement(Footer, null),
+                      modalState.isOpen && currentWork && (
+                          React.createElement(Modal, {
+                              work: currentWork,
+                              onClose: closeModal,
+                              onNavigate: navigateWork
+                          })
+                      )
+                  )
+              ) : (
+                   React.createElement('div', { className: "h-screen flex items-center justify-center text-lg sm:text-xl font-semibold text-red-500" },
+                      "Failed to load portfolio data. Please try again later."
+                  )
+              )
+          );
+      };
+      
+      // FROM: index.tsx
+      const rootElement = document.getElementById('root');
+      if (!rootElement) {
+        throw new Error("Could not find root element to mount to");
+      }
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(
+        React.createElement(React.StrictMode, null, React.createElement(App, null))
+      );
+      // --- End of Combined Code ---
+    </script>
   </body>
 </html>
