@@ -1,5 +1,5 @@
 import React from 'react';
-import { contactData } from '../constants';
+import { contactData } from '../constants.js';
 
 const Contact = () => {
     return React.createElement('section', { className: "py-20 sm:py-28 md:py-32 px-4 text-center bg-[#F7F7F7]", id: "contact" },

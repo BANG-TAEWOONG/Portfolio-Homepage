@@ -1,23 +1,25 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { fetchWorkData } from './services/googleSheetService';
-import { initialAboutData } from './constants';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import Works from './components/Works';
-import About from './components/About';
-import Contact from './components/Contact';
-import Footer from './components/Footer';
-import Modal from './components/Modal';
-import FadeInSection from './components/FadeInSection';
+import { fetchWorkData } from './services/googleSheetService.js';
+import { initialAboutData } from './constants.js';
+import Header from './components/Header.js';
+import Hero from './components/Hero.js';
+import Works from './components/Works.js';
+import About from './components/About.js';
+import Contact from './components/Contact.js';
+import Footer from './components/Footer.js';
+import Modal from './components/Modal.js';
+import FadeInSection from './components/FadeInSection.js';
+import type { WorkData } from './types.js';
 
 const App = () => {
-    const [workData, setWorkData] = useState(null);
-    const [aboutData, setAboutData] = useState(null);
+    // Fix: Add type for workData state.
+    const [workData, setWorkData] = useState<WorkData | null>(null);
+    const [aboutData, setAboutData] = useState<typeof initialAboutData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [modalState, setModalState] = useState({
         isOpen: false,
-        currentWorkId: null,
-        visibleWorkIds: [],
+        currentWorkId: null as string | null,
+        visibleWorkIds: [] as string[],
     });
 
     useEffect(() => {
@@ -35,7 +37,8 @@ const App = () => {
         loadData();
     }, []);
 
-    const openModal = useCallback((workId, visibleIds) => {
+    // Fix: Add types for callback parameters.
+    const openModal = useCallback((workId: string, visibleIds: string[]) => {
         setModalState({ isOpen: true, currentWorkId: workId, visibleWorkIds: visibleIds });
     }, []);
 
@@ -43,7 +46,8 @@ const App = () => {
         setModalState(prevState => ({ ...prevState, isOpen: false, currentWorkId: null }));
     }, []);
 
-    const navigateWork = useCallback((direction) => {
+    // Fix: Add type for callback parameter.
+    const navigateWork = useCallback((direction: number) => {
         const { currentWorkId, visibleWorkIds } = modalState;
         if (!currentWorkId || visibleWorkIds.length === 0) return;
 
@@ -55,7 +59,7 @@ const App = () => {
     }, [modalState]);
 
     useEffect(() => {
-        const handleKeyDown = (e) => {
+        const handleKeyDown = (e: KeyboardEvent) => {
             if (!modalState.isOpen) return;
             if (e.key === 'Escape') closeModal();
             if (e.key === 'ArrowLeft') navigateWork(-1);

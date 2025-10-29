@@ -1,16 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 const Hero = () => {
-    const [scrollY, setScrollY] = useState(0);
     const [textVisible, setTextVisible] = useState(false);
-
-    useEffect(() => {
-        const handleScroll = () => setScrollY(window.pageYOffset);
-        window.addEventListener('scroll', handleScroll, { passive: true });
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    const transform = `translateY(${scrollY * 0.4}px)`;
 
     const handleTap = () => {
         if (window.innerWidth < 640) {
@@ -19,7 +10,7 @@ const Hero = () => {
     };
 
     return React.createElement('section', {
-        className: "h-screen relative flex items-center justify-center bg-[#e8e8e8] overflow-hidden cursor-pointer sm:cursor-default",
+        className: "h-screen relative flex items-center justify-center overflow-hidden cursor-pointer sm:cursor-default",
         id: "home",
         onClick: handleTap
     },
@@ -34,8 +25,7 @@ const Hero = () => {
         ),
         React.createElement('div', { className: "relative z-10 p-8 group" },
             React.createElement('div', {
-                className: `text-center transition-opacity duration-500 ease-in-out ${textVisible ? 'opacity-100' : 'opacity-0'} sm:opacity-0 sm:group-hover:opacity-100`,
-                style: { transform }
+                className: `text-center transition-opacity duration-500 ease-in-out ${textVisible ? 'opacity-100' : 'opacity-0'} sm:opacity-0 sm:group-hover:opacity-100`
             },
                 React.createElement('h1', { className: "text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-4 sm:mb-6 text-[#2a2a2a] leading-tight" }, "Performance Videographer"),
                 React.createElement('p', { className: "text-sm sm:text-base md:text-lg font-medium text-[#7a7a7a] tracking-widest" }, "IDOL & DANCER PERFORMANCE FILMS")

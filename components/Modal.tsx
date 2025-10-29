@@ -1,21 +1,14 @@
 import React from 'react';
-import { Work } from '../types';
+import type { Work } from '../types.js';
 
-const SpecItem = ({ title, value }: { title: string, value: string | undefined }) => (
+const SpecItem = ({ title, value }: { title: string, value: string }) => (
     React.createElement('div', null,
         React.createElement('h4', { className: "text-xs font-bold text-gray-400 tracking-widest uppercase mb-1 sm:mb-2" }, title),
         React.createElement('p', { className: "text-sm sm:text-base font-semibold text-[#2a2a2a] leading-relaxed tracking-tight" }, value)
     )
 );
 
-// FIX: Define and use a props interface to ensure type safety.
-interface ModalProps {
-    work: Work;
-    onClose: () => void;
-    onNavigate: (direction: number) => void;
-}
-
-const Modal = ({ work, onClose, onNavigate }: ModalProps) => {
+const Modal = ({ work, onClose, onNavigate }: { work: Work, onClose: () => void, onNavigate: (direction: number) => void }) => {
     const renderSpecs = () => {
         if (work.productionType === 'produced') {
             return (
@@ -40,13 +33,15 @@ const Modal = ({ work, onClose, onNavigate }: ModalProps) => {
 
     return React.createElement('div', { className: "fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-2 sm:p-4", onClick: onClose },
         React.createElement('button', {
-            onClick: (e) => { e.stopPropagation(); onNavigate(-1); },
+            // Fix: Add type for event parameter in onClick handler.
+            onClick: (e: React.MouseEvent) => { e.stopPropagation(); onNavigate(-1); },
             className: "absolute top-1/2 -translate-y-1/2 left-2 md:left-8 lg:left-16 w-10 h-10 md:w-12 md:h-12 bg-white/20 text-white text-3xl md:text-4xl font-light cursor-pointer z-50 transition-colors hover:bg-white/40 flex items-center justify-center rounded-full",
             'aria-label': "Previous work"
         }, "\u2039"),
         React.createElement('div', {
             className: "bg-white w-full max-w-5xl max-h-[95vh] sm:max-h-[90vh] relative flex flex-col",
             style: { animation: 'modalSlideIn 0.4s ease-out both' },
+            // Fix: Add type for event parameter in onClick handler.
             onClick: (e: React.MouseEvent) => e.stopPropagation()
         },
             React.createElement('div', { className: "relative w-full aspect-video bg-black flex-shrink-0" },
@@ -75,7 +70,8 @@ const Modal = ({ work, onClose, onNavigate }: ModalProps) => {
             }, "\u00d7")
         ),
         React.createElement('button', {
-            onClick: (e) => { e.stopPropagation(); onNavigate(1); },
+            // Fix: Add type for event parameter in onClick handler.
+            onClick: (e: React.MouseEvent) => { e.stopPropagation(); onNavigate(1); },
             className: "absolute top-1/2 -translate-y-1/2 right-2 md:right-8 lg:right-16 w-10 h-10 md:w-12 md:h-12 bg-white/20 text-white text-3xl md:text-4xl font-light cursor-pointer z-50 transition-colors hover:bg-white/40 flex items-center justify-center rounded-full",
             'aria-label': "Next work"
         }, "\u203a")

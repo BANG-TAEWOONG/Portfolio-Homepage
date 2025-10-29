@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { AboutData, Tool } from '../types';
 
 const TextGridItem = ({ name }: { name: string }) => (
     React.createElement('div', { className: "flex items-center justify-center p-3 sm:p-4 bg-[#F7F7F7] border-2 border-[#e8e8e8] text-center h-full" },
@@ -7,21 +6,20 @@ const TextGridItem = ({ name }: { name: string }) => (
     )
 );
 
-const ToolLogoItem = ({ item }: { item: { name: string, icon: string } }) => (
+const ToolLogoItem = ({ item }: { item: { name: string, icon: string }}) => (
     React.createElement('div', { className: "flex items-center justify-center p-2 aspect-square group transition-transform duration-300 hover:scale-110" },
         React.createElement('img', { src: item.icon, alt: `${item.name} logo`, className: "h-12 w-12 object-contain", title: item.name })
     )
 );
 
-// FIX: Add explicit types for component props.
-const About = ({ aboutData }: { aboutData: AboutData }) => {
+const About = ({ aboutData }: { aboutData: any }) => {
     const { equipmentData, toolData, workStyleData } = aboutData;
     const [toolFilter, setToolFilter] = useState('All');
     const coreRoles = ['기획', '연출', '촬영', '편집'];
 
     const filteredTools = useMemo(() => {
         if (toolFilter === 'All') return toolData;
-        return toolData.filter(t => t.proficiency === toolFilter);
+        return toolData.filter((t: any) => t.proficiency === toolFilter);
     }, [toolFilter, toolData]);
 
     const toolFilterOptions = [
@@ -50,7 +48,7 @@ const About = ({ aboutData }: { aboutData: AboutData }) => {
                         React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-4 tracking-tight" }, "Collaboration"),
                         React.createElement('p', { className: "text-sm font-medium text-[#7a7a7a] leading-relaxed tracking-tight mb-6" }, "유연한 소통과 효율적인 협업을 통해 최고의 결과물을 만들어냅니다."),
                         React.createElement('div', { className: "grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-5" },
-                            workStyleData.map(item => React.createElement(TextGridItem, { key: item, name: item }))
+                            workStyleData.map((item: string) => React.createElement(TextGridItem, { key: item, name: item }))
                         )
                     )
                 ),
@@ -60,20 +58,21 @@ const About = ({ aboutData }: { aboutData: AboutData }) => {
                             React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] tracking-tight mb-4 sm:mb-0" }, "Tools"),
                             React.createElement('select', {
                                 value: toolFilter,
-                                onChange: (e) => setToolFilter(e.target.value),
+                                // Fix: Add type for event parameter in onChange handler.
+                                onChange: (e: React.ChangeEvent<HTMLSelectElement>) => setToolFilter(e.target.value),
                                 className: "py-2 px-4 text-sm font-semibold text-[#595959] bg-[#F7F7F7] border-2 border-[#d0d0d0] cursor-pointer focus:outline-none focus:border-[#2a2a2a] w-full sm:w-auto"
                             },
                                 toolFilterOptions.map(opt => React.createElement('option', { key: opt.value, value: opt.value }, opt.label))
                             )
                         ),
                         React.createElement('div', { className: "grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 md:gap-5" },
-                            filteredTools.map(item => React.createElement(ToolLogoItem, { key: item.name, item: item }))
+                            filteredTools.map((item: any) => React.createElement(ToolLogoItem, { key: item.name, item: item }))
                         )
                     ),
                     React.createElement('div', null,
                         React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-8 tracking-tight" }, "Equipment"),
                         React.createElement('div', { className: "grid grid-cols-4 sm:grid-cols-5 gap-3 sm:gap-4 md:gap-5" },
-                            equipmentData.map(item => React.createElement(ToolLogoItem, { key: item.name, item: item }))
+                            equipmentData.map((item: any) => React.createElement(ToolLogoItem, { key: item.name, item: item }))
                         )
                     )
                 )

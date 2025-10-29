@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import WorkItem from './WorkItem';
-import { Work } from '../types';
+import WorkItem from './WorkItem.js';
+import type { Work, WorkData } from '../types.js';
 
-// FIX: Add explicit types for component props to ensure type safety.
-const Works = ({ workData, onOpenModal }: { workData: { [key: string]: Work }, onOpenModal: (workId: string, visibleIds: string[]) => void }) => {
+// Fix: Add types for component props.
+const Works = ({ workData, onOpenModal }: { workData: WorkData, onOpenModal: (workId: string, visibleIds: string[]) => void}) => {
     const productionTypes = [
         { label: 'Personal Projects', type: 'produced' },
         { label: 'Project Participation', type: 'participated' },
@@ -52,7 +52,7 @@ const Works = ({ workData, onOpenModal }: { workData: { [key: string]: Work }, o
                 }, label))
             ),
             React.createElement('div', { key: `${activeProductionType}-${activeFilter}`, className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8" },
-                filteredWorks.map((work, index) => React.createElement(WorkItem, { key: work.id, work: work, index: index, onClick: handleItemClick }))
+                filteredWorks.map((work: Work, index) => React.createElement(WorkItem, { key: work.id, work: work, index: index, onClick: handleItemClick }))
             )
         )
     );

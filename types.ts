@@ -1,8 +1,10 @@
+// Fix: Define Work and WorkData types for portfolio items.
 export interface Work {
     id: string;
     title: string;
     category: string;
     role: string;
+    client?: string;
     setup: string;
     runtime: string;
     editTool: string;
@@ -11,20 +13,6 @@ export interface Work {
     videoUrl: string;
     categoryFilter: string;
     productionType: 'produced' | 'participated';
-    client?: string;
 }
 
-export interface Equipment {
-    name: string;
-    icon: string;
-}
-export interface Tool {
-    name: string;
-    proficiency: 'Proficient' | 'Familiar';
-    icon: string;
-}
-export interface AboutData {
-    equipmentData: Equipment[];
-    toolData: Tool[];
-    workStyleData: string[];
-}
+export type WorkData = { [key: string]: Work };
