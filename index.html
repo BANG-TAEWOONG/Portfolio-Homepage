@@ -86,6 +86,12 @@
       ];
       // About 데이터 로드 실패 시 사용할 대체(fallback) 데이터
       const initialAboutData = {
+          textData: {
+              'introduce': "“퍼포먼스의 리듬과 카메라의 움직임으로 감정을 설계하는 비디오그래퍼.”",
+              'role_def': "아이돌 및 댄서 퍼포먼스 영상 제작을 위해 기획부터 연출, 촬영, 편집까지 전 과정을 통합적으로 수행합니다.",
+              'collab_def': "유연한 소통과 효율적인 협업을 통해 최고의 결과물을 만들어냅니다."
+          },
+          coreRoles: ['기획', '연출', '촬영', '편집'],
           equipmentData: [
               { name: "Sony", icon: "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg" },
               { name: "Aputure", icon: "https://iconape.com/wp-content/files/yy/277008/png/aputure-logo.png" },
@@ -115,8 +121,8 @@
       
       // 'Work' 데이터 로드 실패 시 사용할 대체(fallback) 데이터
       const fallbackWorkData = {
-          '1': { id: '1', title: "Artist Name - Song Title", category: "Music Video", role: "연출, 촬영, 편집", setup: "Sony FX3 + 24-70mm f/2.8", runtime: "3:45", editTool: "DaVinci Resolve, After Effects", description: "뮤직비디오 프로젝트. 다이나믹한 카메라 무빙과 강렬한 조명 연출로 아티스트의 에너지를 표현했습니다.", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&q=80", videoUrl: "https://player.vimeo.com/video/137804996", categoryFilter: "mv", productionType: 'produced' },
-          '2': { id: '2', title: "Contemporary Dance Performance", category: "DANCE FILM", role: "연출, 촬영, 편집", setup: "BMPCC 6K PRO + Sigma 18-35mm", runtime: "4:20", editTool: "DaVinci Resolve", description: "현대 무용 퍼포먼스 영상. 자연광과 미니멀한 조명 설정으로 무용수의 움직임에 집중했습니다.", image: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=1200&q=80", videoUrl: "https://www.youtube.com/embed/Sj60-By_T50", categoryFilter: "dance-film", productionType: 'produced' },
+          '1': { id: '1', title: "Artist Name - Song Title", category: "Music Video", role: "연출, 촬영, 편집", setup: "Sony FX3 + 24-70mm f/2.8", runtime: "3:45", editTool: "DaVinci Resolve, After Effects", description: "뮤직비디오 프로젝트. 다이나믹한 카메라 무빙과 강렬한 조명 연출로 아티스트의 에너지를 표현했습니다.", image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=1200&q=80", videoUrl: "https://player.vimeo.com/video/137804996", categoryFilter: "Music Video", productionType: 'Personal Projects' },
+          '2': { id: '2', title: "Contemporary Dance Performance", category: "DANCE FILM", role: "연출, 촬영, 편집", setup: "BMPCC 6K PRO + Sigma 18-35mm", runtime: "4:20", editTool: "DaVinci Resolve", description: "현대 무용 퍼포먼스 영상. 자연광과 미니멀한 조명 설정으로 무용수의 움직임에 집중했습니다.", image: "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?w=1200&q=80", videoUrl: "https://www.youtube.com/embed/Sj60-By_T50", categoryFilter: "Dance Film", productionType: 'Personal Projects' },
       };
 
       // --- 유틸리티 함수 ---
@@ -176,55 +182,82 @@
                   client: workItem.artist || workItem.client,
               };
 
-              if (typedWorkItem.id && (typedWorkItem.productionType === 'produced' || typedWorkItem.productionType === 'participated')) {
+              if (typedWorkItem.id && (typedWorkItem.productionType === 'Personal Projects' || typedWorkItem.productionType === 'Project Participation')) {
                 workData[typedWorkItem.id] = typedWorkItem;
               }
           }
           return workData;
       };
 
-      // 'About' CSV 텍스트를 파싱하여 데이터 객체로 변환하는 함수
+      // 'About' CSV 텍스트를 파싱하여 데이터 객체로 변환하는 함수 (가로 형식)
       const parseCSVtoAboutData = (csvText) => {
-        const aboutData = { equipmentData: [], toolData: [], workStyleData: [] };
+        const aboutData = {
+            textData: {},
+            toolData: [],
+            equipmentData: [],
+            coreRoles: [],
+            workStyleData: []
+        };
         const lines = csvText.trim().replace(/\r/g, '').split('\n');
-        if (lines.length < 2) return aboutData;
-
-        const headers = parseCSVLine(lines[0]);
-        const typeIndex = headers.indexOf('분류');
-        const nameIndex = headers.indexOf('이름');
-        const proficiencyIndex = headers.indexOf('숙련도');
-        const iconIndex = headers.indexOf('아이콘');
-
-        if (typeIndex === -1 || nameIndex === -1) {
-            console.error("CSV for About data is missing '분류' or '이름' column.");
-            return initialAboutData; // 필수 컬럼이 없으면 대체 데이터 반환
+        if (lines.length < 2) {
+            console.warn("About CSV is empty. Using fallback data.");
+            return initialAboutData;
         }
+
+        const headers = parseCSVLine(lines[0]).map(h => h.trim());
+        const textKeyIndex = headers.indexOf('text_key');
+        const textValueIndex = headers.indexOf('text_value');
+        const toolNameIndex = headers.indexOf('tool_name');
+        const toolIconIndex = headers.indexOf('tool_icon');
+        const toolProficiencyIndex = headers.indexOf('tool_proficiency');
+        const equipNameIndex = headers.indexOf('equip_name');
+        const equipIconIndex = headers.indexOf('equip_icon');
+        const roleIndex = headers.indexOf('role');
+        const styleIndex = headers.indexOf('style');
 
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i]) continue;
             const values = parseCSVLine(lines[i]);
             if (values.length < headers.length) continue;
 
-            const type = values[typeIndex];
-            const name = values[nameIndex];
-            const proficiency = values[proficiencyIndex] || '';
-            const icon = values[iconIndex] || '';
+            const textKey = values[textKeyIndex];
+            const textValue = values[textValueIndex];
+            if (textKey && textValue) {
+                aboutData.textData[textKey] = textValue;
+            }
 
-            if (type === 'equipment') {
-                aboutData.equipmentData.push({ name, icon });
-            } else if (type === 'tool') {
-                aboutData.toolData.push({ name, proficiency, icon });
-            } else if (type === 'workStyle') {
-                aboutData.workStyleData.push(name);
+            const toolName = values[toolNameIndex];
+            if (toolName) {
+                aboutData.toolData.push({
+                    name: toolName,
+                    icon: values[toolIconIndex] || '',
+                    proficiency: values[toolProficiencyIndex] || 'Familiar'
+                });
+            }
+            
+            const equipName = values[equipNameIndex];
+            if (equipName) {
+                aboutData.equipmentData.push({
+                    name: equipName,
+                    icon: values[equipIconIndex] || ''
+                });
+            }
+
+            const role = values[roleIndex];
+            if (role) {
+                aboutData.coreRoles.push(role);
+            }
+            
+            const style = values[styleIndex];
+            if (style) {
+                aboutData.workStyleData.push(style);
             }
         }
         
-        const hasDataRows = lines.length > 1;
-        const parsedSuccessfully = aboutData.equipmentData.length > 0 || aboutData.toolData.length > 0 || aboutData.workStyleData.length > 0;
-        
-        if (hasDataRows && !parsedSuccessfully) {
-            console.warn("About CSV data was not parsed correctly (check 'type' column values). Using fallback data.");
-            return initialAboutData;
+        const parsedSuccessfully = Object.keys(aboutData.textData).length > 0 || aboutData.toolData.length > 0 || aboutData.equipmentData.length > 0;
+        if (lines.length > 1 && !parsedSuccessfully) {
+             console.warn("About CSV data was not parsed correctly (check horizontal headers). Using fallback data.");
+             return initialAboutData;
         }
         
         return aboutData;
@@ -233,7 +266,7 @@
       // Google Sheet에서 'Work' 데이터를 비동기적으로 가져오는 함수
       const fetchWorkData = async () => {
           try {
-              const response = await fetch(WORKS_GOOGLE_SHEET_URL);
+              const response = await fetch(WORKS_GOOGLE_SHEET_URL, { cache: 'no-cache' });
               if (!response.ok) {
                   throw new Error(`Network response was not ok: ${response.statusText}`);
               }
@@ -253,17 +286,12 @@
       // Google Sheet에서 'About' 데이터를 비동기적으로 가져오는 함수
       const fetchAboutData = async () => {
           try {
-              const response = await fetch(ABOUT_GOOGLE_SHEET_URL);
+              const response = await fetch(ABOUT_GOOGLE_SHEET_URL, { cache: 'no-cache' });
               if (!response.ok) {
                   throw new Error(`Network response was not ok: ${response.statusText}`);
               }
               const csvText = await response.text();
-              const parsedData = parseCSVtoAboutData(csvText);
-              if (parsedData.equipmentData.length > 0 || parsedData.toolData.length > 0 || parsedData.workStyleData.length > 0) {
-                  return parsedData;
-              }
-              console.warn("About CSV data was empty or failed to parse. Using fallback data.");
-              return initialAboutData;
+              return parseCSVtoAboutData(csvText);
           } catch (error) {
               console.error("Error fetching or parsing About Google Sheet, falling back to initial data:", error);
               return initialAboutData;
@@ -367,7 +395,7 @@
                   loop: true,
                   playsInline: true // 모바일에서 전체화면 아닌 인라인 재생
               },
-                  React.createElement('source', { src: "https://cdn.pixabay.com/video/2023/05/02/159943-823979941_large.mp4", type: "video/mp4" })
+                  React.createElement('source', { src: "https://videos.pexels.com/video-files/3209194/3209194-hd.mp4", type: "video/mp4" })
               ),
               React.createElement('div', { className: "relative z-10 p-8 group" },
                   React.createElement('div', {
@@ -409,17 +437,17 @@
       // 포트폴리오 목록(Works) 섹션 컴포넌트
       const Works = ({ workData, onOpenModal }) => {
           const productionTypes = [ // 제작 유형 필터
-              { label: 'Personal Projects', type: 'produced' },
-              { label: 'Project Participation', type: 'participated' },
+              { label: 'Personal Projects', type: 'Personal Projects' },
+              { label: 'Project Participation', type: 'Project Participation' },
           ];
           const filterButtons = [ // 카테고리 필터
               { label: 'All', filter: 'all' },
-              { label: 'Music Video', filter: 'mv' },
-              { label: 'Dance Film', filter: 'dance-film' },
-              { label: 'Dance Cover', filter: 'cover-dance' },
+              { label: 'Music Video', filter: 'Music Video' },
+              { label: 'Dance Film', filter: 'Dance Film' },
+              { label: 'Dance Cover', filter: 'Dance Cover' },
           ];
           // 현재 활성화된 제작 유형과 카테고리 필터를 상태로 관리
-          const [activeProductionType, setActiveProductionType] = useState('produced');
+          const [activeProductionType, setActiveProductionType] = useState('Personal Projects');
           const [activeFilter, setActiveFilter] = useState('all');
           
           const allWorks = useMemo(() => Object.values(workData), [workData]);
@@ -484,9 +512,9 @@
       );
       // About 섹션 컴포넌트
       const About = ({ aboutData }) => {
-          const { equipmentData, toolData, workStyleData } = aboutData;
+          const { textData = {}, coreRoles = [], equipmentData, toolData, workStyleData } = aboutData;
           const [toolFilter, setToolFilter] = useState('All'); // 툴 필터 상태
-          const coreRoles = ['기획', '연출', '촬영', '편집'];
+          
           // 필터링된 툴 목록 계산 (useMemo로 성능 최적화)
           const filteredTools = useMemo(() => {
               if (toolFilter === 'All') return toolData;
@@ -504,18 +532,18 @@
                       React.createElement('div', { className: "lg:col-span-3" }, // 왼쪽 컬럼
                           React.createElement('div', { className: "mb-12 sm:mb-16" },
                               React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-4 tracking-tight" }, "Introduce"),
-                              React.createElement('p', { className: "text-base font-medium text-[#595959] leading-relaxed tracking-tight italic" }, "“퍼포먼스의 리듬과 카메라의 움직임으로 감정을 설계하는 비디오그래퍼.”")
+                              React.createElement('p', { className: "text-base font-medium text-[#595959] leading-relaxed tracking-tight italic" }, textData.introduce)
                           ),
                           React.createElement('div', { className: "mb-12 sm:mb-16" },
                               React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-4 tracking-tight" }, "Role Definition"),
-                              React.createElement('p', { className: "text-sm font-medium text-[#7a7a7a] leading-relaxed tracking-tight mb-6" }, "아이돌 및 댄서 퍼포먼스 영상 제작을 위해 기획부터 연출, 촬영, 편집까지 전 과정을 통합적으로 수행합니다."),
+                              React.createElement('p', { className: "text-sm font-medium text-[#7a7a7a] leading-relaxed tracking-tight mb-6" }, textData.role_def),
                               React.createElement('div', { className: "grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4" },
                                   coreRoles.map(item => React.createElement(TextGridItem, { key: item, name: item }))
                               )
                           ),
                           React.createElement('div', null,
                               React.createElement('h3', { className: "text-lg sm:text-xl font-bold text-[#2a2a2a] mb-4 tracking-tight" }, "Collaboration"),
-                              React.createElement('p', { className: "text-sm font-medium text-[#7a7a7a] leading-relaxed tracking-tight mb-6" }, "유연한 소통과 효율적인 협업을 통해 최고의 결과물을 만들어냅니다."),
+                              React.createElement('p', { className: "text-sm font-medium text-[#7a7a7a] leading-relaxed tracking-tight mb-6" }, textData.collab_def),
                               React.createElement('div', { className: "grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 md:gap-5" },
                                   workStyleData.map((item) => React.createElement(TextGridItem, { key: item, name: item }))
                               )
@@ -599,7 +627,7 @@
       const Modal = ({ work, onClose, onNavigate }) => {
           // 작업 유형(produced/participated)에 따라 다른 스펙을 렌더링
           const renderSpecs = () => {
-              if (work.productionType === 'produced') {
+              if (work.productionType === 'Personal Projects') {
                   return (
                       React.createElement(React.Fragment, null,
                           React.createElement(SpecItem, { title: "Role", value: work.role }),
@@ -608,7 +636,7 @@
                           React.createElement(SpecItem, { title: "Edit Tool", value: work.editTool })
                       )
                   );
-              } else if (work.productionType === 'participated') {
+              } else if (work.productionType === 'Project Participation') {
                   return (
                        React.createElement(React.Fragment, null,
                           work.client && React.createElement(SpecItem, { title: "Client / Project By", value: work.client }),
@@ -639,8 +667,7 @@
                           className: "w-full h-full border-none",
                           src: work.videoUrl,
                           title: work.title,
-                          allow: "autoplay; fullscreen; picture-in-picture",
-                          allowFullScreen: true
+                          allow: "autoplay; fullscreen; picture-in-picture"
                       })
                   ),
                   // 작업 상세 정보 영역
