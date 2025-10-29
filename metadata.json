@@ -1,0 +1,5 @@
+{
+  "name": "Videographer Portfolio",
+  "description": "A dynamic, professional portfolio website for a performance videographer, showcasing works, skills, and contact information. Data for the works section is managed via a Google Sheet, allowing for easy updates without touching the code.",
+  "requestFramePermissions": []
+}
