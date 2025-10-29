@@ -1,7 +1,4 @@
-
-import type { AboutData, ContactLink } from './types';
-
-export const contactData: ContactLink[] = [
+export const contactData = [
     { name: "YouTube", url: "https://www.youtube.com", icon: "https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" },
     { name: "Instagram", url: "https://www.instagram.com/twoong_studio?igsh=MW5jcnE0MHFvODhtNQ==", icon: "https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" },
     { name: "Vimeo", url: "https://vimeo.com", icon: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Vimeo.svg" },
@@ -9,7 +6,7 @@ export const contactData: ContactLink[] = [
     { name: "LinkedIn", url: "https://www.linkedin.com", icon: "https://upload.wikimedia.org/wikipedia/commons/8/81/LinkedIn_icon.svg"  }
 ];
 
-export const initialAboutData: AboutData = {
+export const initialAboutData = {
     equipmentData: [
         { name: "Sony", icon: "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sony_logo.svg" },
         { name: "Aputure", icon: "https://iconape.com/wp-content/files/yy/277008/png/aputure-logo.png" },

@@ -1,6 +1,4 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
-import type { WorkData, AboutData } from './types';
 import { fetchWorkData } from './services/googleSheetService';
 import { initialAboutData } from './constants';
 import Header from './components/Header';
@@ -12,15 +10,15 @@ import Footer from './components/Footer';
 import Modal from './components/Modal';
 import FadeInSection from './components/FadeInSection';
 
-const App: React.FC = () => {
-    const [workData, setWorkData] = useState<WorkData | null>(null);
-    const [aboutData, setAboutData] = useState<AboutData | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [modalState, setModalState] = useState<{
-        isOpen: boolean;
-        currentWorkId: string | null;
-        visibleWorkIds: string[];
-    }>({ isOpen: false, currentWorkId: null, visibleWorkIds: [] });
+const App = () => {
+    const [workData, setWorkData] = useState(null);
+    const [aboutData, setAboutData] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [modalState, setModalState] = useState({
+        isOpen: false,
+        currentWorkId: null,
+        visibleWorkIds: [],
+    });
 
     useEffect(() => {
         const loadData = async () => {
@@ -37,7 +35,7 @@ const App: React.FC = () => {
         loadData();
     }, []);
 
-    const openModal = useCallback((workId: string, visibleIds: string[]) => {
+    const openModal = useCallback((workId, visibleIds) => {
         setModalState({ isOpen: true, currentWorkId: workId, visibleWorkIds: visibleIds });
     }, []);
 
@@ -45,7 +43,7 @@ const App: React.FC = () => {
         setModalState(prevState => ({ ...prevState, isOpen: false, currentWorkId: null }));
     }, []);
 
-    const navigateWork = useCallback((direction: number) => {
+    const navigateWork = useCallback((direction) => {
         const { currentWorkId, visibleWorkIds } = modalState;
         if (!currentWorkId || visibleWorkIds.length === 0) return;
 
@@ -57,7 +55,7 @@ const App: React.FC = () => {
     }, [modalState]);
 
     useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
+        const handleKeyDown = (e) => {
             if (!modalState.isOpen) return;
             if (e.key === 'Escape') closeModal();
             if (e.key === 'ArrowLeft') navigateWork(-1);
@@ -73,42 +71,38 @@ const App: React.FC = () => {
 
     const currentWork = modalState.currentWorkId && workData ? workData[modalState.currentWorkId] : null;
 
-    return (
-        <div className="bg-[#F7F7F7] text-[#595959] overflow-x-hidden">
-            <Header />
-            {isLoading ? (
-                <div className="h-screen flex items-center justify-center text-lg sm:text-xl font-semibold text-[#595959]">
-                    Loading Portfolio...
-                </div>
-            ) : workData && aboutData ? (
-                <>
-                    <main>
-                        <Hero />
-                        <FadeInSection>
-                            <Works workData={workData} onOpenModal={openModal} />
-                        </FadeInSection>
-                        <FadeInSection>
-                            <About aboutData={aboutData} />
-                        </FadeInSection>
-                        <FadeInSection>
-                            <Contact />
-                        </FadeInSection>
-                    </main>
-                    <Footer />
-                    {modalState.isOpen && currentWork && (
-                        <Modal
-                            work={currentWork}
-                            onClose={closeModal}
-                            onNavigate={navigateWork}
-                        />
-                    )}
-                </>
-            ) : (
-                 <div className="h-screen flex items-center justify-center text-lg sm:text-xl font-semibold text-red-500">
-                    Failed to load portfolio data. Please try again later.
-                </div>
-            )}
-        </div>
+    return React.createElement('div', { className: "bg-[#F7F7F7] text-[#595959] overflow-x-hidden" },
+        React.createElement(Header, null),
+        isLoading ? (
+            React.createElement('div', { className: "h-screen flex items-center justify-center text-lg sm:text-xl font-semibold text-[#595959]" }, "Loading Portfolio...")
+        ) : workData && aboutData ? (
+            React.createElement(React.Fragment, null,
+                React.createElement('main', null,
+                    React.createElement(Hero, null),
+                    React.createElement(FadeInSection, null,
+                        React.createElement(Works, { workData: workData, onOpenModal: openModal })
+                    ),
+                    React.createElement(FadeInSection, null,
+                        React.createElement(About, { aboutData: aboutData })
+                    ),
+                    React.createElement(FadeInSection, null,
+                        React.createElement(Contact, null)
+                    )
+                ),
+                React.createElement(Footer, null),
+                modalState.isOpen && currentWork && (
+                    React.createElement(Modal, {
+                        work: currentWork,
+                        onClose: closeModal,
+                        onNavigate: navigateWork
+                    })
+                )
+            )
+        ) : (
+             React.createElement('div', { className: "h-screen flex items-center justify-center text-lg sm:text-xl font-semibold text-red-500" },
+                "Failed to load portfolio data. Please try again later."
+            )
+        )
     );
 };
 

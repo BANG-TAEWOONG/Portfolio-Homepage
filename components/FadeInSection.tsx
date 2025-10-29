@@ -1,13 +1,8 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 
-interface FadeInSectionProps {
-    children: React.ReactNode;
-}
-
-const FadeInSection: React.FC<FadeInSectionProps> = ({ children }) => {
+const FadeInSection = ({ children }) => {
     const [isVisible, setIsVisible] = useState(false);
-    const domRef = useRef<HTMLDivElement>(null);
+    const domRef = useRef(null);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -34,16 +29,12 @@ const FadeInSection: React.FC<FadeInSectionProps> = ({ children }) => {
         };
     }, []);
 
-    return (
-        <div
-            ref={domRef}
-            className={`transition-all duration-700 ease-out transform ${
-                isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-            }`}
-        >
-            {children}
-        </div>
-    );
+    return React.createElement('div', {
+        ref: domRef,
+        className: `transition-all duration-700 ease-out transform ${
+            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+        }`
+    }, children);
 };
 
 export default FadeInSection;
