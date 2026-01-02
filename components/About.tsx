@@ -21,146 +21,135 @@ const InteractiveSkillSection: React.FC = () => {
     Equipment: 'All'
   });
 
-  const About: React.FC = () => {
-    const [isVisible, setIsVisible] = useState(false);
-    const textRef = useRef<HTMLDivElement>(null);
-
-    useEffect(() => {
-      const loadSkills = async () => {
-        const data = await fetchSkillsData();
-        setSkills(data);
-        setLoading(false);
-      };
-      loadSkills();
-    }, []);
-
-    const categories = ['Capabilities', 'Tools', 'Equipment'];
-
-    const getFilters = (category: string) => {
-      const categorySkills = skills.filter(s => s.category === category);
-      const filters = Array.from(new Set(categorySkills.map(s => s.filter))).filter(f => f);
-      return ['All', ...filters];
+  useEffect(() => {
+    const loadSkills = async () => {
+      const data = await fetchSkillsData();
+      setSkills(data);
+      setLoading(false);
     };
+    loadSkills();
+  }, []);
 
-    const traverseFilters = (category: string, direction: 'next' | 'prev') => {
-      const filters = getFilters(category);
-      const currentIndex = filters.indexOf(activeFilters[category] || 'All');
-      let newIndex;
-      if (direction === 'next') {
-        newIndex = (currentIndex + 1) % filters.length;
-      } else {
-        newIndex = (currentIndex - 1 + filters.length) % filters.length;
-      }
-      setActiveFilters(prev => ({ ...prev, [category]: filters[newIndex] }));
-    };
+  const categories = ['Capabilities', 'Tools', 'Equipment'];
 
-    if (loading) {
-      return <div className="text-center py-20 text-slate-300 animate-pulse">Loading skills from database...</div>;
-    }
-
-    return (
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
-        {categories.map((category) => {
-          const categorySkills = skills.filter(s => s.category === category);
-          const currentFilter = activeFilters[category] || 'All';
-          const displaySkills = currentFilter === 'All'
-            ? categorySkills // Show all items if 'All', or maybe distinct filters if desired. User asked for specific initial vs filtered view. 
-            // Plan said: "Selected: specific items, Unselected (All): Representative items". 
-            // For 'All', let's show items that have 'All' as filter or maybe just unique filters as items?
-            // User said: "Capabilities (before filter): list items... (after filter): details".
-            // Let's interpret 'All' view as showing the list of representative skills (or just all skills if dataset is small, or distinct filter names as "Overview").
-            // Given the data schema, let's show all items for now, but grouped or just list.
-            // Actually, "Overview (All): Director, Cinematography..." -> These are the Filter names.
-            // So if All, show Filter names. If Specific Filter, show Items in that filter.
-            : categorySkills.filter(s => s.filter === currentFilter);
-
-          const isOverview = currentFilter === 'All';
-          const overviewItems = getFilters(category).filter(f => f !== 'All'); // These are the "Representative" items
-
-          return (
-            <div key={category} className="flex flex-col h-full">
-              <div className="flex justify-between items-baseline mb-8 md:mb-12">
-                <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 uppercase">
-                  {category}
-                </h4>
-
-                {/* Filter Controls */}
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => traverseFilters(category, 'prev')}
-                    className="text-slate-300 hover:text-slate-900 transition-colors"
-                  >
-                    ←
-                  </button>
-                  <span className="text-[9px] font-bold text-slate-900 uppercase min-w-[60px] text-center">
-                    {currentFilter}
-                  </span>
-                  <button
-                    onClick={() => traverseFilters(category, 'next')}
-                    className="text-slate-300 hover:text-slate-900 transition-colors"
-                  >
-                    →
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-4 flex-1">
-                {isOverview ? (
-                  // Overview Mode: Show Filter Categories as clickable items
-                  <div className="grid grid-cols-1 gap-2">
-                    {overviewItems.map(filterName => (
-                      <div
-                        key={filterName}
-                        onClick={() => setActiveFilters(prev => ({ ...prev, [category]: filterName }))}
-                        className="group cursor-pointer border-b border-slate-100 py-3 flex justify-between items-center hover:border-slate-900 transition-all duration-300"
-                      >
-                        <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
-                          {filterName}
-                        </span>
-                        <span className="text-[10px] text-slate-300 group-hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                          EXPLORE +
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  // Detail Mode: Show Skills in Filter
-                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
-                    {displaySkills.map((skill, i) => (
-                      <div key={`${skill.name}-${i}`} className="group">
-                        <div className="flex justify-between items-end mb-1">
-                          <span className="text-sm font-medium text-slate-800">{skill.name}</span>
-                          <span className="text-[9px] font-bold text-slate-400 tracking-wider">
-                            {renderLevel(skill.level)}
-                          </span>
-                        </div>
-                        <div className="h-[1px] w-full bg-slate-100">
-                          <div
-                            className="h-full bg-slate-900 transition-all duration-1000"
-                            style={{ width: `${(skill.level / 5) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                    {displaySkills.length === 0 && (
-                      <div className="text-xs text-slate-300 py-4">No items found in this category.</div>
-                    )}
-                    <button
-                      onClick={() => setActiveFilters(prev => ({ ...prev, [category]: 'All' }))}
-                      className="mt-4 text-[10px] font-bold text-slate-400 hover:text-slate-900 underline underline-offset-4 transition-colors"
-                    >
-                      BACK TO OVERVIEW
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    );
+  const getFilters = (category: string) => {
+    const categorySkills = skills.filter(s => s.category === category);
+    const filters = Array.from(new Set(categorySkills.map(s => s.filter))).filter(f => f);
+    return ['All', ...filters];
   };
 
+  const traverseFilters = (category: string, direction: 'next' | 'prev') => {
+    const filters = getFilters(category);
+    const currentIndex = filters.indexOf(activeFilters[category] || 'All');
+    let newIndex;
+    if (direction === 'next') {
+      newIndex = (currentIndex + 1) % filters.length;
+    } else {
+      newIndex = (currentIndex - 1 + filters.length) % filters.length;
+    }
+    setActiveFilters(prev => ({ ...prev, [category]: filters[newIndex] }));
+  };
+
+  if (loading) {
+    return <div className="text-center py-20 text-slate-300 animate-pulse">Loading skills from database...</div>;
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
+      {categories.map((category) => {
+        const categorySkills = skills.filter(s => s.category === category);
+        const currentFilter = activeFilters[category] || 'All';
+        const displaySkills = currentFilter === 'All'
+          ? categorySkills
+          : categorySkills.filter(s => s.filter === currentFilter);
+
+        const isOverview = currentFilter === 'All';
+        const overviewItems = getFilters(category).filter(f => f !== 'All');
+
+        return (
+          <div key={category} className="flex flex-col h-full">
+            <div className="flex justify-between items-baseline mb-8 md:mb-12">
+              <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 uppercase">
+                {category}
+              </h4>
+
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={() => traverseFilters(category, 'prev')}
+                  className="text-slate-300 hover:text-slate-900 transition-colors"
+                >
+                  ←
+                </button>
+                <span className="text-[9px] font-bold text-slate-900 uppercase min-w-[60px] text-center">
+                  {currentFilter}
+                </span>
+                <button
+                  onClick={() => traverseFilters(category, 'next')}
+                  className="text-slate-300 hover:text-slate-900 transition-colors"
+                >
+                  →
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4 flex-1">
+              {isOverview ? (
+                <div className="grid grid-cols-1 gap-2">
+                  {overviewItems.map(filterName => (
+                    <div
+                      key={filterName}
+                      onClick={() => setActiveFilters(prev => ({ ...prev, [category]: filterName }))}
+                      className="group cursor-pointer border-b border-slate-100 py-3 flex justify-between items-center hover:border-slate-900 transition-all duration-300"
+                    >
+                      <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
+                        {filterName}
+                      </span>
+                      <span className="text-[10px] text-slate-300 group-hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                        EXPLORE +
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
+                  {displaySkills.map((skill, i) => (
+                    <div key={`${skill.name}-${i}`} className="group">
+                      <div className="flex justify-between items-end mb-1">
+                        <span className="text-sm font-medium text-slate-800">{skill.name}</span>
+                        <span className="text-[9px] font-bold text-slate-400 tracking-wider">
+                          {renderLevel(skill.level)}
+                        </span>
+                      </div>
+                      <div className="h-[1px] w-full bg-slate-100">
+                        <div
+                          className="h-full bg-slate-900 transition-all duration-1000"
+                          style={{ width: `${(skill.level / 5) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))}
+                  {displaySkills.length === 0 && (
+                    <div className="text-xs text-slate-300 py-4">No items found in this category.</div>
+                  )}
+                  <button
+                    onClick={() => setActiveFilters(prev => ({ ...prev, [category]: 'All' }))}
+                    className="mt-4 text-[10px] font-bold text-slate-400 hover:text-slate-900 underline underline-offset-4 transition-colors"
+                  >
+                    BACK TO OVERVIEW
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+const About: React.FC = () => {
+  const [isVisible, setIsVisible] = useState(false);
+  const textRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -183,7 +172,7 @@ const InteractiveSkillSection: React.FC = () => {
         <div ref={textRef} className="py-8 md:py-16">
           <div className="flex flex-col space-y-12">
 
-            {/* Title Section (수정됨: 자연스러운 줄바꿈 및 잘림 방지) */}
+            {/* Title Section */}
             <div className="overflow-hidden">
               <h3
                 className={`
@@ -194,7 +183,6 @@ const InteractiveSkillSection: React.FC = () => {
                 `}
               >
                 <span className="text-slate-900 inline-block mr-4">I AM A</span>
-                {/* STORYTELLER에 그라데이션 적용 */}
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-500 to-slate-900 bg-[length:200%_auto] hover:bg-right transition-all duration-500 inline-block">
                   STORYTELLER.
                 </span>
