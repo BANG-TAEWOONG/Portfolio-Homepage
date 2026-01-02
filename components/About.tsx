@@ -50,6 +50,13 @@ const InteractiveSkillSection: React.FC = () => {
     setActiveFilters(prev => ({ ...prev, [category]: filters[newIndex] }));
   };
 
+  const getAverageLevel = (filterName: string, category: string) => {
+    const targetSkills = skills.filter(s => s.category === category && s.filter === filterName);
+    if (!targetSkills.length) return 0;
+    const total = targetSkills.reduce((acc, curr) => acc + curr.level, 0);
+    return total / targetSkills.length;
+  };
+
   if (loading) {
     return <div className="text-center py-20 text-slate-300 animate-pulse">Loading skills from database...</div>;
   }
@@ -77,6 +84,7 @@ const InteractiveSkillSection: React.FC = () => {
                 <button
                   onClick={() => traverseFilters(category, 'prev')}
                   className="text-slate-300 hover:text-slate-900 transition-colors"
+                  disabled={isOverview} // Disable when in overview if logic prefers
                 >
                   ←
                 </button>
@@ -86,44 +94,78 @@ const InteractiveSkillSection: React.FC = () => {
                 <button
                   onClick={() => traverseFilters(category, 'next')}
                   className="text-slate-300 hover:text-slate-900 transition-colors"
+                  disabled={isOverview}
                 >
                   →
                 </button>
               </div>
             </div>
 
-            <div className="space-y-4 flex-1">
+            <div className="space-y-4 flex-1 min-h-[320px] transition-all duration-500 ease-in-out">
               {isOverview ? (
-                <div className="grid grid-cols-1 gap-2">
-                  {overviewItems.map(filterName => (
-                    <div
-                      key={filterName}
-                      onClick={() => setActiveFilters(prev => ({ ...prev, [category]: filterName }))}
-                      className="group cursor-pointer border-b border-slate-100 py-3 flex justify-between items-center hover:border-slate-900 transition-all duration-300"
-                    >
-                      <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
-                        {filterName}
-                      </span>
-                      <span className="text-[10px] text-slate-300 group-hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                        EXPLORE +
-                      </span>
-                    </div>
-                  ))}
+                <div className="grid grid-cols-1 gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  {overviewItems.map((filterName: string, idx: number) => {
+                    const avgLevel = getAverageLevel(filterName, category);
+                    return (
+                      <div
+                        key={filterName}
+                        onClick={() => setActiveFilters(prev => ({ ...prev, [category]: filterName }))}
+                        className="group cursor-pointer border-b border-slate-100 py-4 flex justify-between items-center hover:border-slate-900 transition-all duration-500"
+                        style={{ animationDelay: `${idx * 100}ms` }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
+                            {filterName}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          {/* Proficiency Preview Bar */}
+                          <div className="flex flex-col items-end gap-1 group-hover:gap-0 transition-all duration-300">
+                            <div className="flex gap-[2px]">
+                              {[1, 2, 3, 4, 5].map((level) => (
+                                <div
+                                  key={level}
+                                  className={`h-[3px] w-[3px] rounded-full transition-all duration-500 ${avgLevel >= level ? 'bg-slate-400 group-hover:bg-slate-900' : 'bg-slate-100'}`}
+                                />
+                              ))}
+                            </div>
+                            <span className="text-[8px] text-slate-300 group-hover:text-slate-900 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
+                              {renderLevel(Math.round(avgLevel))} AVG.
+                            </span>
+                          </div>
+
+                          <span className="text-[10px] text-slate-300 group-hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                            +
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
+                <div key={currentFilter} className="space-y-6">
                   {displaySkills.map((skill, i) => (
-                    <div key={`${skill.name}-${i}`} className="group">
+                    <div
+                      key={`${skill.name}-${i}`}
+                      className="group animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both"
+                      style={{ animationDelay: `${i * 100}ms` }}
+                    >
                       <div className="flex justify-between items-end mb-1">
                         <span className="text-sm font-medium text-slate-800">{skill.name}</span>
-                        <span className="text-[9px] font-bold text-slate-400 tracking-wider">
+                        <span className="text-[9px] font-bold text-slate-400 tracking-wider group-hover:text-slate-900 transition-colors">
                           {renderLevel(skill.level)}
                         </span>
                       </div>
-                      <div className="h-[1px] w-full bg-slate-100">
+                      <div className="h-[1px] w-full bg-slate-100 relative overflow-hidden">
                         <div
-                          className="h-full bg-slate-900 transition-all duration-1000"
+                          className="absolute top-0 left-0 h-full bg-slate-900 transition-all duration-[1.5s] ease-out w-0 group-hover:w-full"
                           style={{ width: `${(skill.level / 5) * 100}%` }}
+                        />
+                        {/* Background track for subtle visibility */}
+                        <div
+                          className="h-full bg-slate-200 w-0 animate-[growWidth_1s_ease-out_forwards]"
+                          style={{ width: `${(skill.level / 5) * 100}%`, animationDelay: `${(i * 100) + 300}ms` }}
                         />
                       </div>
                     </div>
@@ -133,7 +175,7 @@ const InteractiveSkillSection: React.FC = () => {
                   )}
                   <button
                     onClick={() => setActiveFilters(prev => ({ ...prev, [category]: 'All' }))}
-                    className="mt-4 text-[10px] font-bold text-slate-400 hover:text-slate-900 underline underline-offset-4 transition-colors"
+                    className="mt-8 text-[10px] font-bold text-slate-400 hover:text-slate-900 underline underline-offset-4 transition-all hover:tracking-widest"
                   >
                     BACK TO OVERVIEW
                   </button>
