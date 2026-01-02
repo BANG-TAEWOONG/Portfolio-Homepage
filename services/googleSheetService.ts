@@ -1,13 +1,16 @@
 import Papa from 'papaparse';
-import { WorkItem, Category, WorkType } from '../types';
+import { WorkItem, Category, WorkType, SkillItem } from '../types';
 
-const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxJ4VI4bE5o7PXX7C4g_k_x8OO7tAnRYgGF0zGE9SCa5K6H9F1N6m78pEWldMa07sI7VqSDVlUgXb7/pub?output=csv';
+const GOOGLE_SHEET_BASE_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRxJ4VI4bE5o7PXX7C4g_k_x8OO7tAnRYgGF0zGE9SCa5K6H9F1N6m78pEWldMa07sI7VqSDVlUgXb7/pub';
+const GOOGLE_SHEET_CSV_URL = `${GOOGLE_SHEET_BASE_URL}?output=csv`;
+const SKILL_DB_GID = '865936350';
+const GOOGLE_SHEET_SKILLS_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${SKILL_DB_GID}&output=csv`;
 
 interface SheetRow {
     id: string;
     date: string;
-    participation_level: string; // Creates mapping to WorkType
-    project_type: string; // Creates mapping to Category
+    participation_level: string;
+    project_type: string;
     artist: string;
     running_time: string;
     title: string;
@@ -16,13 +19,22 @@ interface SheetRow {
     thumbnail_url: string;
     edit_tool: string;
     setup: string;
-    hidden: string; // New field for hiding logic
+    hidden: string;
     description: string;
 }
 
+interface SkillSheetRow {
+    Category: string;
+    Filter: string;
+    Name: string;
+    Level: string;
+    Order: string;
+}
+
+// ... (existing helper functions)
+
 const mapCategory = (type: string): Category => {
-    // Map Google Sheet values to Category type
-    // Example mappings based on observed data
+    // ... (existing implementation)
     if (type.includes('Music Video') || type.includes('MV')) return 'MV';
     if (type.includes('Dance Film')) return 'Dance Film';
     if (type.includes('Dance Cover')) return 'Dance Cover';
@@ -58,7 +70,7 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                     const rows = results.data as SheetRow[];
 
                     const workItems: WorkItem[] = rows
-                        .filter(row => row.id && row.title && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE')) // Filter out hidden rows
+                        .filter(row => row.id && row.title && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE'))
                         .map(row => ({
                             id: row.id,
                             title: row.title,
@@ -79,6 +91,39 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                 }
             },
             error: (err) => {
+                reject(err);
+            }
+        });
+    });
+};
+
+export const fetchSkillsData = async (): Promise<SkillItem[]> => {
+    return new Promise((resolve, reject) => {
+        Papa.parse(GOOGLE_SHEET_SKILLS_URL, {
+            download: true,
+            header: true,
+            complete: (results) => {
+                try {
+                    const rows = results.data as SkillSheetRow[];
+                    const skills: SkillItem[] = rows
+                        .filter(row => row.Category && row.Name) // Basic validation
+                        .map(row => ({
+                            category: row.Category,
+                            filter: row.Filter,
+                            name: row.Name,
+                            level: parseInt(row.Level) || 0,
+                            order: parseInt(row.Order) || 999
+                        }))
+                        .sort((a, b) => (a.order || 999) - (b.order || 999));
+
+                    resolve(skills);
+                } catch (err) {
+                    console.error('Error parsing skills:', err);
+                    resolve([]); // Return empty array on error to prevent crash
+                }
+            },
+            error: (err) => {
+                console.error('Fetch error:', err);
                 reject(err);
             }
         });
