@@ -16,6 +16,7 @@ interface SheetRow {
     thumbnail_url: string;
     edit_tool: string;
     setup: string;
+    hidden: string; // New field for hiding logic
     description: string;
 }
 
@@ -57,7 +58,7 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                     const rows = results.data as SheetRow[];
 
                     const workItems: WorkItem[] = rows
-                        .filter(row => row.id && row.title) // Filter out empty rows
+                        .filter(row => row.id && row.title && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE')) // Filter out hidden rows
                         .map(row => ({
                             id: row.id,
                             title: row.title,
