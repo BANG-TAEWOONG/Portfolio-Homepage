@@ -90,6 +90,20 @@ export const SKILLS: Skill[] = [
   { name: 'Sound Design', level: 70 }
 ];
 
+export const TOOLS_DATA: Skill[] = [
+  { name: 'Premiere Pro', level: 95 },
+  { name: 'After Effects', level: 85 },
+  { name: 'DaVinci Resolve', level: 80 },
+  { name: 'Final Cut Pro', level: 70 },
+];
+
+export const EQUIPMENT_DATA: Skill[] = [
+  { name: 'Sony A7SIII', level: 95 },
+  { name: 'Blackmagic 6K', level: 85 },
+  { name: 'RED Komodo', level: 70 },
+  { name: 'Aputure Light', level: 90 },
+];
+
 export const TOOLS: string[] = [
   'Adobe Premiere Pro',
   'DaVinci Resolve',
