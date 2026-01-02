@@ -1,74 +1,166 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../constants';
-import { Skill } from '../types';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../constants'; // Keeping for fallback if needed, or remove if fully replaced
+import { Skill, SkillItem as SkillItemType } from '../types';
+import { fetchSkillsData } from '../services/googleSheetService';
 
-const SkillItem: React.FC<{ skill: Skill; index: number }> = ({ skill, index }) => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const delayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
-
-          delayTimerRef.current = setTimeout(() => {
-            setIsVisible(true);
-            let start = 0;
-            const end = skill.level;
-
-            timerRef.current = setInterval(() => {
-              start += 1.5;
-              if (start >= end) {
-                setCount(end);
-                if (timerRef.current) clearInterval(timerRef.current);
-              } else {
-                setCount(Math.floor(start));
-              }
-            }, 16);
-          }, index * 150);
-        } else {
-          setIsVisible(false);
-          setCount(0);
-          if (timerRef.current) clearInterval(timerRef.current);
-          if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (ref.current) observer.observe(ref.current);
-
-    return () => {
-      observer.disconnect();
-      if (timerRef.current) clearInterval(timerRef.current);
-      if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
-    };
-  }, [skill.level, index]);
-
-  return (
-    <div ref={ref} className="mb-6 md:mb-10">
-      <div className="flex justify-between text-[9px] md:text-[11px] font-bold text-slate-800 mb-2 md:mb-3 tracking-widest uppercase">
-        <span>{skill.name}</span>
-        <span>{count}%</span>
-      </div>
-      <div className="h-[1px] md:h-[2px] w-full bg-slate-200 relative overflow-hidden">
-        <div
-          className="absolute top-0 left-0 h-full bg-black transition-all duration-[2000ms] cubic-bezier(0.22, 1, 0.36, 1)"
-          style={{ width: isVisible ? `${skill.level}%` : '0%' }}
-        ></div>
-      </div>
-    </div>
-  );
+// Level rendering helper
+const renderLevel = (level: number) => {
+  if (level >= 5) return 'MASTER';
+  if (level >= 4) return 'PROFESSIONAL';
+  if (level >= 3) return 'ADVANCED';
+  if (level >= 2) return 'INTERMEDIATE';
+  return 'BEGINNER';
 };
 
-const About: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const textRef = useRef<HTMLDivElement>(null);
+const InteractiveSkillSection: React.FC = () => {
+  const [skills, setSkills] = useState<SkillItemType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({
+    Capabilities: 'All',
+    Tools: 'All',
+    Equipment: 'All'
+  });
+
+  const About: React.FC = () => {
+    const [isVisible, setIsVisible] = useState(false);
+    const textRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const loadSkills = async () => {
+        const data = await fetchSkillsData();
+        setSkills(data);
+        setLoading(false);
+      };
+      loadSkills();
+    }, []);
+
+    const categories = ['Capabilities', 'Tools', 'Equipment'];
+
+    const getFilters = (category: string) => {
+      const categorySkills = skills.filter(s => s.category === category);
+      const filters = Array.from(new Set(categorySkills.map(s => s.filter))).filter(f => f);
+      return ['All', ...filters];
+    };
+
+    const traverseFilters = (category: string, direction: 'next' | 'prev') => {
+      const filters = getFilters(category);
+      const currentIndex = filters.indexOf(activeFilters[category] || 'All');
+      let newIndex;
+      if (direction === 'next') {
+        newIndex = (currentIndex + 1) % filters.length;
+      } else {
+        newIndex = (currentIndex - 1 + filters.length) % filters.length;
+      }
+      setActiveFilters(prev => ({ ...prev, [category]: filters[newIndex] }));
+    };
+
+    if (loading) {
+      return <div className="text-center py-20 text-slate-300 animate-pulse">Loading skills from database...</div>;
+    }
+
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
+        {categories.map((category) => {
+          const categorySkills = skills.filter(s => s.category === category);
+          const currentFilter = activeFilters[category] || 'All';
+          const displaySkills = currentFilter === 'All'
+            ? categorySkills // Show all items if 'All', or maybe distinct filters if desired. User asked for specific initial vs filtered view. 
+            // Plan said: "Selected: specific items, Unselected (All): Representative items". 
+            // For 'All', let's show items that have 'All' as filter or maybe just unique filters as items?
+            // User said: "Capabilities (before filter): list items... (after filter): details".
+            // Let's interpret 'All' view as showing the list of representative skills (or just all skills if dataset is small, or distinct filter names as "Overview").
+            // Given the data schema, let's show all items for now, but grouped or just list.
+            // Actually, "Overview (All): Director, Cinematography..." -> These are the Filter names.
+            // So if All, show Filter names. If Specific Filter, show Items in that filter.
+            : categorySkills.filter(s => s.filter === currentFilter);
+
+          const isOverview = currentFilter === 'All';
+          const overviewItems = getFilters(category).filter(f => f !== 'All'); // These are the "Representative" items
+
+          return (
+            <div key={category} className="flex flex-col h-full">
+              <div className="flex justify-between items-baseline mb-8 md:mb-12">
+                <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 uppercase">
+                  {category}
+                </h4>
+
+                {/* Filter Controls */}
+                <div className="flex items-center gap-4">
+                  <button
+                    onClick={() => traverseFilters(category, 'prev')}
+                    className="text-slate-300 hover:text-slate-900 transition-colors"
+                  >
+                    ←
+                  </button>
+                  <span className="text-[9px] font-bold text-slate-900 uppercase min-w-[60px] text-center">
+                    {currentFilter}
+                  </span>
+                  <button
+                    onClick={() => traverseFilters(category, 'next')}
+                    className="text-slate-300 hover:text-slate-900 transition-colors"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-4 flex-1">
+                {isOverview ? (
+                  // Overview Mode: Show Filter Categories as clickable items
+                  <div className="grid grid-cols-1 gap-2">
+                    {overviewItems.map(filterName => (
+                      <div
+                        key={filterName}
+                        onClick={() => setActiveFilters(prev => ({ ...prev, [category]: filterName }))}
+                        className="group cursor-pointer border-b border-slate-100 py-3 flex justify-between items-center hover:border-slate-900 transition-all duration-300"
+                      >
+                        <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
+                          {filterName}
+                        </span>
+                        <span className="text-[10px] text-slate-300 group-hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                          EXPLORE +
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  // Detail Mode: Show Skills in Filter
+                  <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 space-y-6">
+                    {displaySkills.map((skill, i) => (
+                      <div key={`${skill.name}-${i}`} className="group">
+                        <div className="flex justify-between items-end mb-1">
+                          <span className="text-sm font-medium text-slate-800">{skill.name}</span>
+                          <span className="text-[9px] font-bold text-slate-400 tracking-wider">
+                            {renderLevel(skill.level)}
+                          </span>
+                        </div>
+                        <div className="h-[1px] w-full bg-slate-100">
+                          <div
+                            className="h-full bg-slate-900 transition-all duration-1000"
+                            style={{ width: `${(skill.level / 5) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                    {displaySkills.length === 0 && (
+                      <div className="text-xs text-slate-300 py-4">No items found in this category.</div>
+                    )}
+                    <button
+                      onClick={() => setActiveFilters(prev => ({ ...prev, [category]: 'All' }))}
+                      className="mt-4 text-[10px] font-bold text-slate-400 hover:text-slate-900 underline underline-offset-4 transition-colors"
+                    >
+                      BACK TO OVERVIEW
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -131,46 +223,8 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Skills & Tools & Equipment Layout (수정됨: 3단 가로 배치) */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
-
-          {/* 1. Capabilities */}
-          <div>
-            <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 mb-8 md:mb-12 uppercase">
-              Capabilities
-            </h4>
-            <div className="space-y-1 md:space-y-2">
-              {SKILLS.map((skill, i) => (
-                <SkillItem key={skill.name} skill={skill} index={i} />
-              ))}
-            </div>
-          </div>
-
-          {/* 2. Tools */}
-          <div>
-            <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 mb-8 md:mb-12 uppercase">
-              Tools
-            </h4>
-            <div className="space-y-1 md:space-y-2">
-              {TOOLS_DATA.map((skill, i) => (
-                <SkillItem key={skill.name} skill={skill} index={i} />
-              ))}
-            </div>
-          </div>
-
-          {/* 3. Equipment */}
-          <div>
-            <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 mb-8 md:mb-12 uppercase">
-              Equipment
-            </h4>
-            <div className="space-y-1 md:space-y-2">
-              {EQUIPMENT_DATA.map((skill, i) => (
-                <SkillItem key={skill.name} skill={skill} index={i} />
-              ))}
-            </div>
-          </div>
-
-        </div>
+        {/* Skills & Tools & Equipment Layout (Interactive) */}
+        <InteractiveSkillSection />
 
         {/* Values Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 pb-20">
