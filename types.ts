@@ -30,3 +30,11 @@ export interface Equipment {
   category: string;
   items: string[];
 }
+
+export interface SkillItem {
+  category: string; // Capabilities, Tools, Equipment
+  filter: string;   // Director, Sony, Adobe...
+  name: string;     // Scenario, A7S3...
+  level: number;    // 1-5
+  order?: number;
+}
