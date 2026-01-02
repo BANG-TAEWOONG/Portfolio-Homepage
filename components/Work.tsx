@@ -103,7 +103,7 @@ const Work: React.FC = () => {
   return (
     <div className="w-full px-6 relative">
       <div ref={textRef} className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 gap-6 md:gap-8">
-        <div className="md:max-w-2xl">
+        <div className="w-full">
           <div className="overflow-hidden mb-6 md:mb-8">
             <h2 className={`text-3xl md:text-7xl font-bold tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
               SELECTED PROJECTS
