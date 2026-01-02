@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Category, WorkType, WorkItem } from '../types';
 import { useWorkItems } from '../hooks/useWorkItems';
 import ProjectModal from './ProjectModal';
@@ -76,6 +76,22 @@ const Work: React.FC = () => {
     setSelectedWork(item);
   };
 
+  const [isVisible, setIsVisible] = useState(false);
+  const textRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    if (textRef.current) observer.observe(textRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+
+
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-6 py-20 text-center text-red-500">
@@ -86,12 +102,19 @@ const Work: React.FC = () => {
 
   return (
     <div className="w-full px-6 relative">
-      <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 gap-6 md:gap-8">
-        <div>
-          <h2 className="text-3xl md:text-6xl font-bold tracking-tighter text-slate-900 mb-4 md:mb-6 leading-[0.9]">SELECTED<br />PROJECTS</h2>
-          <p className="text-slate-400 font-light max-w-sm text-xs md:text-sm leading-relaxed">
-            영상은 정지된 이미지가 아닌, 시간의 흐름을 조각하는 예술입니다. 저의 시선으로 담아낸 순간들을 만나보세요.
-          </p>
+      <div ref={textRef} className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 gap-6 md:gap-8">
+        <div className="md:max-w-2xl">
+          <div className="overflow-hidden mb-6 md:mb-8">
+            <h2 className={`text-3xl md:text-7xl font-bold tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+              SELECTED<br />PROJECTS
+            </h2>
+          </div>
+          <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+            <p className="text-slate-600 font-light text-sm md:text-xl leading-relaxed break-keep">
+              영상은 정지된 이미지가 아닌, 시간의 흐름을 조각하는 예술입니다.<br className="hidden md:block" />
+              저의 시선으로 담아낸 순간들을 만나보세요.
+            </p>
+          </div>
         </div>
 
         <div className="flex flex-col items-start md:items-end gap-4 md:gap-6">
@@ -157,8 +180,8 @@ const Work: React.FC = () => {
                 {/* Overlay: Custom behavior for Desktop (Hover) vs Mobile (Always Visible) */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6 md:p-8">
                   <div className="transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="text-[6px] md:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-1">{item.category}</span>
-                    <h3 className="text-sm md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
+                    <span className="text-[9px] md:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-2">{item.category}</span>
+                    <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
                     <div className="hidden md:flex items-center text-[10px] text-white/80 font-medium tracking-widest uppercase">
                       <span>View Project</span>
                     </div>
