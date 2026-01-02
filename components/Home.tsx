@@ -1,27 +1,37 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const VIDEO_PLAYLIST = [
-  '/2026Showreel01.mov',
-  '/2026Showreel02.mov',
-  '/2026Showreel03.mov'
-];
-
 const Home: React.FC = () => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
-  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [currentVideoNum, setCurrentVideoNum] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Effect to handle video source change when index updates
+  // Generate filename based on current number (e.g., 2026Showreel01.mov)
+  const getVideoSrc = (num: number) => {
+    const numStr = num.toString().padStart(2, '0');
+    return `/2026Showreel${numStr}`;
+  };
+
+  // Effect to reload video when number changes
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
       videoRef.current.play().catch(e => console.log('Autoplay prevented:', e));
     }
-  }, [currentVideoIndex]);
+  }, [currentVideoNum]);
 
   const handleVideoEnded = () => {
-    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % VIDEO_PLAYLIST.length);
+    // Try playing the next number
+    setCurrentVideoNum((prev) => prev + 1);
+  };
+
+  const handleVideoError = () => {
+    // If an error occurs (e.g., file not found), reset to the first video
+    // This acts as the loop mechanism
+    if (currentVideoNum > 1) {
+      console.log(`Video ${currentVideoNum} not found. looping back to 01.`);
+      setCurrentVideoNum(1);
+    }
   };
 
   const toggleMute = (e: React.MouseEvent) => {
@@ -58,13 +68,14 @@ const Home: React.FC = () => {
         <video
           ref={videoRef}
           autoPlay
-          muted={isMuted} // Controlled by state
+          muted={isMuted}
           playsInline
           onEnded={handleVideoEnded}
+          onError={handleVideoError}
           className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${isRevealed ? 'scale-105' : 'scale-100'}`}
         >
-          <source src={VIDEO_PLAYLIST[currentVideoIndex]} type="video/quicktime" />
-          <source src={VIDEO_PLAYLIST[currentVideoIndex].replace('.mov', '.mp4')} type="video/mp4" />
+          <source src={`${getVideoSrc(currentVideoNum)}.mov`} type="video/quicktime" />
+          <source src={`${getVideoSrc(currentVideoNum)}.mp4`} type="video/mp4" />
         </video>
         <div className={`absolute inset-0 bg-black/30 transition-all duration-1000 ${isRevealed ? 'bg-black/50 backdrop-blur-[2px]' : 'bg-black/20'}`}></div>
       </div>
