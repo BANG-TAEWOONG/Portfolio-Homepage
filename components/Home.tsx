@@ -1,16 +1,35 @@
+import React, { useState, useRef, useEffect } from 'react';
 
-import React, { useState, useRef } from 'react';
+const VIDEO_PLAYLIST = [
+  '/2026Showreel01.mov',
+  '/2026Showreel02.mov',
+  '/2026Showreel03.mov'
+];
 
 const Home: React.FC = () => {
   const [isRevealed, setIsRevealed] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
+  const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Effect to handle video source change when index updates
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.load();
+      videoRef.current.play().catch(e => console.log('Autoplay prevented:', e));
+    }
+  }, [currentVideoIndex]);
+
+  const handleVideoEnded = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % VIDEO_PLAYLIST.length);
+  };
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (videoRef.current) {
-      videoRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
+      const nextMutedState = !isMuted;
+      videoRef.current.muted = nextMutedState;
+      setIsMuted(nextMutedState);
     }
   };
 
@@ -39,13 +58,13 @@ const Home: React.FC = () => {
         <video
           ref={videoRef}
           autoPlay
-          muted
-          loop
+          muted={isMuted} // Controlled by state
           playsInline
+          onEnded={handleVideoEnded}
           className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${isRevealed ? 'scale-105' : 'scale-100'}`}
         >
-          <source src="/2026Showreel.mov" type="video/quicktime" />
-          <source src="/2026Showreel.mov" type="video/mp4" />
+          <source src={VIDEO_PLAYLIST[currentVideoIndex]} type="video/quicktime" />
+          <source src={VIDEO_PLAYLIST[currentVideoIndex].replace('.mov', '.mp4')} type="video/mp4" />
         </video>
         <div className={`absolute inset-0 bg-black/30 transition-all duration-1000 ${isRevealed ? 'bg-black/50 backdrop-blur-[2px]' : 'bg-black/20'}`}></div>
       </div>
