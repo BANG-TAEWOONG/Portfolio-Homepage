@@ -157,8 +157,8 @@ const Work: React.FC = () => {
                 {/* Overlay: Custom behavior for Desktop (Hover) vs Mobile (Always Visible) */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6 md:p-8">
                   <div className="transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="text-[7px] md:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-2">{item.category}</span>
-                    <h3 className="text-base md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
+                    <span className="text-[6px] md:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-1">{item.category}</span>
+                    <h3 className="text-sm md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
                     <div className="hidden md:flex items-center text-[10px] text-white/80 font-medium tracking-widest uppercase">
                       <span>View Project</span>
                     </div>
