@@ -93,7 +93,7 @@ const About: React.FC = () => {
 
             {/* Title Section (수정됨: 자연스러운 줄바꿈 및 잘림 방지) */}
             <div className="overflow-hidden">
-              <h3 
+              <h3
                 className={`
                   text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.9] 
                   break-words w-full
@@ -109,9 +109,9 @@ const About: React.FC = () => {
               </h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-8">
+            <div className="flex flex-col gap-10 pt-8">
               {/* Quote Section */}
-              <div className={`md:col-span-5 transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+              <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                 <div className="border-l-2 border-slate-900 pl-6 py-2">
                   <p className="text-lg md:text-2xl text-slate-500 font-light italic leading-relaxed">
                     "카메라는 도구일 뿐, 감동을 만드는 것은 그 프레임 안에 담긴 진심입니다."
@@ -120,7 +120,7 @@ const About: React.FC = () => {
               </div>
 
               {/* Description Section */}
-              <div className={`md:col-span-7 transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <div className={`transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <p className="text-sm md:text-lg text-slate-800 font-light leading-loose">
                   단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다.
                   다양한 댄스 필름과 뮤직비디오 프로젝트를 거치며 시각적 리듬감과 역동적인 연출력을 쌓아왔습니다.
@@ -133,7 +133,7 @@ const About: React.FC = () => {
 
         {/* Skills & Tools & Equipment Layout (수정됨: 3단 가로 배치) */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
-          
+
           {/* 1. Capabilities */}
           <div>
             <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 mb-8 md:mb-12 uppercase">
@@ -169,7 +169,7 @@ const About: React.FC = () => {
               ))}
             </div>
           </div>
-          
+
         </div>
 
         {/* Values Section */}
