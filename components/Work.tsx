@@ -129,28 +129,24 @@ const Work: React.FC = () => {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-y-12 min-h-[400px]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 min-h-[400px]">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="bg-slate-100 aspect-[16/10] rounded-sm mb-4"></div>
-              <div className="h-4 bg-slate-100 w-3/4 rounded mb-2"></div>
-              <div className="h-3 bg-slate-100 w-1/2 rounded"></div>
-            </div>
+            <div key={i} className="animate-pulse aspect-[16/10] bg-slate-100"></div>
           ))}
         </div>
       ) : (
         <div
           key={activeCategory + activeType}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-y-12 min-h-[500px]"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 min-h-[500px]"
         >
           {!isGridUpdating && filteredItems.map((item, index) => (
             <div
               key={`${item.id}-${activeType}-${activeCategory}`}
-              className="stagger-item group cursor-pointer"
+              className="stagger-item group cursor-pointer relative"
               style={{ animationDelay: `${index * 80}ms` }}
               onClick={() => openModal(item)}
             >
-              <div className="relative aspect-[16/10] overflow-hidden bg-slate-50 rounded-sm shadow-sm transition-all duration-700 hover:shadow-xl">
+              <div className="relative aspect-[16/10] overflow-hidden bg-slate-50 transition-all duration-700">
                 <img
                   src={item.thumbnail}
                   alt={item.title}
@@ -158,23 +154,16 @@ const Work: React.FC = () => {
                   className="w-full h-full object-cover transition-transform duration-[1.5s] cubic-bezier(0.22, 1, 0.36, 1) group-hover:scale-105"
                 />
 
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-4 md:p-5">
-                  <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="text-[7px] md:text-[8px] font-bold tracking-[0.3em] text-white/60 uppercase block mb-1">{item.category}</span>
-                    <h3 className="text-base md:text-lg font-bold text-white mb-2 md:mb-3">{item.title}</h3>
-                    <div className="flex items-center text-[8px] md:text-[9px] text-white/80 font-medium tracking-widest uppercase">
+                {/* Overlay: Custom behavior for Desktop (Hover) vs Mobile (Always Visible) */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6 md:p-8">
+                  <div className="transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500">
+                    <span className="text-[9px] md:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-2">{item.category}</span>
+                    <h3 className="text-xl md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
+                    <div className="hidden md:flex items-center text-[10px] text-white/80 font-medium tracking-widest uppercase">
                       <span>View Project</span>
                     </div>
                   </div>
                 </div>
-              </div>
-
-              <div className="mt-3 md:mt-4 flex justify-between items-start">
-                <div className="max-w-[80%]">
-                  <h4 className="text-[12px] md:text-[13px] font-bold text-slate-900 tracking-tight group-hover:text-slate-500 transition-colors truncate">{item.title}</h4>
-                  <p className="text-[9px] md:text-[10px] text-slate-400 mt-0.5 font-light tracking-wide">{item.role}</p>
-                </div>
-                <span className="text-[8px] md:text-[9px] font-bold text-slate-300 tracking-tighter mt-1">{item.runningTime}</span>
               </div>
             </div>
           ))}
