@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { SKILLS } from '../constants';
+import { SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../constants';
 import { Skill } from '../types';
 
 const SkillItem: React.FC<{ skill: Skill; index: number }> = ({ skill, index }) => {
@@ -21,7 +21,7 @@ const SkillItem: React.FC<{ skill: Skill; index: number }> = ({ skill, index }) 
             setIsVisible(true);
             let start = 0;
             const end = skill.level;
-            
+
             timerRef.current = setInterval(() => {
               start += 1.5;
               if (start >= end) {
@@ -44,7 +44,7 @@ const SkillItem: React.FC<{ skill: Skill; index: number }> = ({ skill, index }) 
     );
 
     if (ref.current) observer.observe(ref.current);
-    
+
     return () => {
       observer.disconnect();
       if (timerRef.current) clearInterval(timerRef.current);
@@ -59,7 +59,7 @@ const SkillItem: React.FC<{ skill: Skill; index: number }> = ({ skill, index }) 
         <span>{count}%</span>
       </div>
       <div className="h-[1px] md:h-[2px] w-full bg-slate-200 relative overflow-hidden">
-        <div 
+        <div
           className="absolute top-0 left-0 h-full bg-black transition-all duration-[2000ms] cubic-bezier(0.22, 1, 0.36, 1)"
           style={{ width: isVisible ? `${skill.level}%` : '0%' }}
         ></div>
@@ -84,27 +84,27 @@ const About: React.FC = () => {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto px-6">
+    <div className="w-full px-6">
       <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-slate-900 mb-10 md:mb-20">ABOUT</h2>
-      
+
       <div className="space-y-24 md:space-y-36">
-        
+
         {/* Intro Section: Text Only with Sensuous Interaction */}
         <div ref={textRef} className="py-8 md:py-16">
           <div className="flex flex-col space-y-12">
-            
+
             {/* Title with Staggered Reveal */}
             <div className="space-y-0">
-               <div className="overflow-hidden">
-                 <h3 className={`text-6xl md:text-8xl lg:text-9xl font-black text-slate-900 tracking-tighter leading-[0.8] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-                   I AM A
-                 </h3>
-               </div>
-               <div className="overflow-hidden pt-2">
-                 <h3 className={`text-6xl md:text-8xl lg:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-500 to-slate-900 bg-[length:200%_auto] tracking-tighter leading-[0.8] transition-all duration-[1.2s] delay-100 cubic-bezier(0.16, 1, 0.3, 1) hover:bg-right ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
-                   STORYTELLER.
-                 </h3>
-               </div>
+              <div className="overflow-hidden">
+                <h3 className={`text-6xl md:text-8xl lg:text-9xl font-black text-slate-900 tracking-tighter leading-[0.8] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+                  I AM A
+                </h3>
+              </div>
+              <div className="overflow-hidden pt-2">
+                <h3 className={`text-6xl md:text-8xl lg:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-500 to-slate-900 bg-[length:200%_auto] tracking-tighter leading-[0.8] transition-all duration-[1.2s] delay-100 cubic-bezier(0.16, 1, 0.3, 1) hover:bg-right ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
+                  STORYTELLER.
+                </h3>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-8">
@@ -120,8 +120,8 @@ const About: React.FC = () => {
               {/* Description Section */}
               <div className={`md:col-span-7 transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <p className="text-sm md:text-lg text-slate-800 font-light leading-loose">
-                  단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다. 
-                  다양한 댄스 필름과 뮤직비디오 프로젝트를 거치며 시각적 리듬감과 역동적인 연출력을 쌓아왔습니다. 
+                  단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다.
+                  다양한 댄스 필름과 뮤직비디오 프로젝트를 거치며 시각적 리듬감과 역동적인 연출력을 쌓아왔습니다.
                   빛과 그림자, 그리고 그 안의 움직임을 통해 당신의 이야기를 완성합니다.
                 </p>
               </div>
@@ -129,13 +129,39 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Capabilities */}
-        <div className="max-w-4xl">
-          <h4 className="text-[7px] md:text-[10px] font-bold tracking-[0.5em] text-slate-300 mb-8 md:mb-16 uppercase">Capabilities</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-20">
-            {SKILLS.map((skill, i) => (
-              <SkillItem key={skill.name} skill={skill} index={i} />
-            ))}
+        {/* Skills & Tools Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
+          {/* Left: Capabilities */}
+          <div>
+            <h4 className="text-[7px] md:text-[10px] font-bold tracking-[0.5em] text-slate-300 mb-8 md:mb-16 uppercase">Capabilities</h4>
+            <div className="space-y-1 md:space-y-2">
+              {SKILLS.map((skill, i) => (
+                <SkillItem key={skill.name} skill={skill} index={i} />
+              ))}
+            </div>
+          </div>
+
+          {/* Right: Tools & Equipment */}
+          <div className="space-y-16 md:space-y-24">
+            {/* Tools */}
+            <div>
+              <h4 className="text-[7px] md:text-[10px] font-bold tracking-[0.5em] text-slate-300 mb-8 md:mb-12 uppercase">Tools</h4>
+              <div className="space-y-1 md:space-y-2">
+                {TOOLS_DATA.map((skill, i) => (
+                  <SkillItem key={skill.name} skill={skill} index={i} />
+                ))}
+              </div>
+            </div>
+
+            {/* Equipment */}
+            <div>
+              <h4 className="text-[7px] md:text-[10px] font-bold tracking-[0.5em] text-slate-300 mb-8 md:mb-12 uppercase">Equipment</h4>
+              <div className="space-y-1 md:space-y-2">
+                {EQUIPMENT_DATA.map((skill, i) => (
+                  <SkillItem key={skill.name} skill={skill} index={i} />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
