@@ -95,8 +95,8 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
                             <section className="md:col-span-2">
-                                <h4 className="text-[7px] md:text-[8px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-2">Description</h4>
-                                <p className="text-xs text-slate-600 leading-relaxed font-light whitespace-pre-line">{selectedWork.description}</p>
+                                <h4 className="text-[7px] md:text-[8px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-1">Role</h4>
+                                <p className="text-[10px] md:text-xs font-semibold text-slate-900">{selectedWork.role}</p>
                             </section>
 
                             <div className="grid grid-cols-2 md:col-span-2 gap-4">
@@ -111,8 +111,8 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                             </div>
 
                             <section className="md:col-span-2">
-                                <h4 className="text-[7px] md:text-[8px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-1">Role</h4>
-                                <p className="text-[10px] md:text-xs font-semibold text-slate-900">{selectedWork.role}</p>
+                                <h4 className="text-[7px] md:text-[8px] font-bold text-slate-300 uppercase tracking-[0.2em] mb-2">Description</h4>
+                                <p className="text-xs text-slate-600 leading-relaxed font-light whitespace-pre-line">{selectedWork.description}</p>
                             </section>
                         </div>
 
