@@ -1,0 +1,88 @@
+
+import React, { useState } from 'react';
+
+const Home: React.FC = () => {
+  const [isRevealed, setIsRevealed] = useState(false);
+
+  const scrollToWork = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    const element = document.getElementById('work');
+    if (element) {
+      const headerOffset = 64;
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  return (
+    <div 
+      className="relative h-screen w-full overflow-hidden flex items-center justify-center cursor-default"
+      onClick={() => setIsRevealed(!isRevealed)}
+    >
+      {/* Background Video with extremely smooth slow zoom */}
+      <div className="absolute inset-0 z-0">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${isRevealed ? 'scale-105' : 'scale-100'}`}
+        >
+          <source src="https://assets.mixkit.co/videos/preview/mixkit-cinematic-view-of-a-man-with-a-camera-40285-large.mp4" type="video/mp4" />
+        </video>
+        <div className={`absolute inset-0 bg-black/30 transition-all duration-1000 ${isRevealed ? 'bg-black/50 backdrop-blur-[2px]' : 'bg-black/20'}`}></div>
+      </div>
+
+      {/* Detection Area */}
+      <div 
+        className="relative z-10 w-full max-w-5xl h-[70vh] flex items-center justify-center px-6"
+        onMouseEnter={() => setIsRevealed(true)}
+        onMouseLeave={() => setIsRevealed(false)}
+      >
+        <div className={`transition-all duration-[1500ms] cubic-bezier(0.22, 1, 0.36, 1) transform ${isRevealed ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} text-center`}>
+          <p className="text-lg md:text-2xl lg:text-3xl text-white font-light leading-relaxed mb-8 md:mb-10 tracking-tight transition-all duration-[2000ms]">
+            세상을 프레임 속에 담아내는 영상 제작자입니다. <br className="hidden md:block" />
+            감각적인 연출과 섬세한 편집으로 당신의 이야기를 시각화합니다.
+          </p>
+          <a 
+            href="#work" 
+            onClick={scrollToWork}
+            className="group relative inline-block px-10 py-4 md:px-12 md:py-5 overflow-hidden border border-white/30 text-white text-[10px] md:text-xs font-bold tracking-[0.3em] transition-all duration-500 uppercase"
+          >
+            <span className="relative z-10 transition-colors duration-500 group-hover:text-black">Explore Portfolio</span>
+            <div className="absolute inset-0 z-0 translate-y-full bg-white transition-transform duration-500 cubic-bezier(0.22, 1, 0.36, 1) group-hover:translate-y-0"></div>
+          </a>
+        </div>
+      </div>
+
+      {/* Scroll indicator with smoother bounce */}
+      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 animate-pulse cursor-pointer transition-opacity duration-1000" onClick={(e) => {
+          e.stopPropagation();
+          const workSec = document.getElementById('work');
+          if (workSec) window.scrollTo({ top: workSec.offsetTop - 64, behavior: 'smooth' });
+      }}>
+        <div className="flex flex-col items-center">
+            <span className="text-white/40 text-[8px] tracking-[0.4em] uppercase mb-4">Scroll</span>
+            <div className="w-[1px] h-12 md:h-16 bg-white/20 relative">
+                <div className="absolute top-0 left-0 w-full h-1/2 bg-white animate-[scroll-dot_2s_infinite]"></div>
+            </div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes scroll-dot {
+            0% { transform: translateY(-100%); opacity: 0; }
+            50% { transform: translateY(0%); opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default Home;
