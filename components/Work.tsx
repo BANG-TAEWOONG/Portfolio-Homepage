@@ -85,7 +85,7 @@ const Work: React.FC = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 relative">
+    <div className="w-full px-6 relative">
       <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 gap-6 md:gap-8">
         <div>
           <h2 className="text-3xl md:text-6xl font-bold tracking-tighter text-slate-900 mb-4 md:mb-6 leading-[0.9]">SELECTED<br />PROJECTS</h2>
@@ -117,8 +117,8 @@ const Work: React.FC = () => {
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={`px-2 py-1 md:px-3 md:py-1.5 text-[7px] md:text-[8px] font-bold tracking-widest transition-all duration-300 border-b-2 uppercase ${activeCategory === cat
-                    ? 'border-slate-900 text-slate-900'
-                    : 'border-transparent text-slate-300 hover:text-slate-500 hover:border-slate-200'
+                  ? 'border-slate-900 text-slate-900'
+                  : 'border-transparent text-slate-300 hover:text-slate-500 hover:border-slate-200'
                   }`}
               >
                 {cat}
@@ -139,12 +139,15 @@ const Work: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-y-12 min-h-[400px]">
+        <div
+          key={activeCategory + activeType}
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-y-12 min-h-[500px]"
+        >
           {!isGridUpdating && filteredItems.map((item, index) => (
             <div
               key={`${item.id}-${activeType}-${activeCategory}`}
               className="stagger-item group cursor-pointer"
-              style={{ animationDelay: `${index * 120}ms` }}
+              style={{ animationDelay: `${index * 80}ms` }}
               onClick={() => openModal(item)}
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-slate-50 rounded-sm shadow-sm transition-all duration-700 hover:shadow-xl">
