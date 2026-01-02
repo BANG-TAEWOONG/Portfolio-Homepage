@@ -13,7 +13,6 @@ const SkillItem: React.FC<{ skill: Skill; index: number }> = ({ skill, index }) 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          // Clear any existing timers
           if (timerRef.current) clearInterval(timerRef.current);
           if (delayTimerRef.current) clearTimeout(delayTimerRef.current);
 
@@ -33,7 +32,6 @@ const SkillItem: React.FC<{ skill: Skill; index: number }> = ({ skill, index }) 
             }, 16);
           }, index * 150);
         } else {
-          // Reset state when out of view
           setIsVisible(false);
           setCount(0);
           if (timerRef.current) clearInterval(timerRef.current);
@@ -89,22 +87,26 @@ const About: React.FC = () => {
 
       <div className="space-y-24 md:space-y-36">
 
-        {/* Intro Section: Text Only with Sensuous Interaction */}
+        {/* Intro Section */}
         <div ref={textRef} className="py-8 md:py-16">
           <div className="flex flex-col space-y-12">
 
-            {/* Title with Staggered Reveal */}
-            <div className="space-y-0">
-              <div className="overflow-hidden">
-                <h3 className={`text-6xl md:text-8xl lg:text-9xl font-black text-slate-900 tracking-tighter leading-[0.8] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-                  I AM A
-                </h3>
-              </div>
-              <div className="overflow-hidden pt-2">
-                <h3 className={`text-6xl md:text-8xl lg:text-9xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-500 to-slate-900 bg-[length:200%_auto] tracking-tighter leading-[0.8] transition-all duration-[1.2s] delay-100 cubic-bezier(0.16, 1, 0.3, 1) hover:bg-right ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}`}>
+            {/* Title Section (수정됨: 자연스러운 줄바꿈 및 잘림 방지) */}
+            <div className="overflow-hidden">
+              <h3 
+                className={`
+                  text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.9] 
+                  break-words w-full
+                  transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) 
+                  ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}
+                `}
+              >
+                <span className="text-slate-900 inline-block mr-4">I AM A</span>
+                {/* STORYTELLER에 그라데이션 적용 */}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-500 to-slate-900 bg-[length:200%_auto] hover:bg-right transition-all duration-500 inline-block">
                   STORYTELLER.
-                </h3>
-              </div>
+                </span>
+              </h3>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-12 gap-10 pt-8">
@@ -129,11 +131,14 @@ const About: React.FC = () => {
           </div>
         </div>
 
-        {/* Skills & Tools Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-24">
-          {/* Left: Capabilities */}
+        {/* Skills & Tools & Equipment Layout (수정됨: 3단 가로 배치) */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
+          
+          {/* 1. Capabilities */}
           <div>
-            <h4 className="text-[7px] md:text-[10px] font-bold tracking-[0.5em] text-slate-300 mb-8 md:mb-16 uppercase">Capabilities</h4>
+            <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 mb-8 md:mb-12 uppercase">
+              Capabilities
+            </h4>
             <div className="space-y-1 md:space-y-2">
               {SKILLS.map((skill, i) => (
                 <SkillItem key={skill.name} skill={skill} index={i} />
@@ -141,32 +146,34 @@ const About: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Tools & Equipment */}
-          <div className="space-y-16 md:space-y-24">
-            {/* Tools */}
-            <div>
-              <h4 className="text-[7px] md:text-[10px] font-bold tracking-[0.5em] text-slate-300 mb-8 md:mb-12 uppercase">Tools</h4>
-              <div className="space-y-1 md:space-y-2">
-                {TOOLS_DATA.map((skill, i) => (
-                  <SkillItem key={skill.name} skill={skill} index={i} />
-                ))}
-              </div>
-            </div>
-
-            {/* Equipment */}
-            <div>
-              <h4 className="text-[7px] md:text-[10px] font-bold tracking-[0.5em] text-slate-300 mb-8 md:mb-12 uppercase">Equipment</h4>
-              <div className="space-y-1 md:space-y-2">
-                {EQUIPMENT_DATA.map((skill, i) => (
-                  <SkillItem key={skill.name} skill={skill} index={i} />
-                ))}
-              </div>
+          {/* 2. Tools */}
+          <div>
+            <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 mb-8 md:mb-12 uppercase">
+              Tools
+            </h4>
+            <div className="space-y-1 md:space-y-2">
+              {TOOLS_DATA.map((skill, i) => (
+                <SkillItem key={skill.name} skill={skill} index={i} />
+              ))}
             </div>
           </div>
+
+          {/* 3. Equipment */}
+          <div>
+            <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 mb-8 md:mb-12 uppercase">
+              Equipment
+            </h4>
+            <div className="space-y-1 md:space-y-2">
+              {EQUIPMENT_DATA.map((skill, i) => (
+                <SkillItem key={skill.name} skill={skill} index={i} />
+              ))}
+            </div>
+          </div>
+          
         </div>
 
         {/* Values Section */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 pb-20">
           {[
             { n: '01', t: 'Clear Communication', d: '아이디어가 현실이 되는 과정에서 가장 중요한 것은 상호 이해입니다.' },
             { n: '02', t: 'On-time Delivery', d: '약속된 시간을 철저히 지켜 프로젝트의 완성을 보장합니다.' },
