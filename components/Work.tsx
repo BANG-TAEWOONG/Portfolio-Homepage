@@ -106,7 +106,7 @@ const Work: React.FC = () => {
         <div className="md:max-w-2xl">
           <div className="overflow-hidden mb-6 md:mb-8">
             <h2 className={`text-3xl md:text-7xl font-bold tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
-              SELECTED<br />PROJECTS
+              SELECTED PROJECTS
             </h2>
           </div>
           <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
