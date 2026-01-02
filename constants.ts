@@ -131,3 +131,12 @@ export const EQUIPMENTS: Equipment[] = [
     items: ['Aputure 600d Pro', 'Amaran T4c Tubes', 'Nanlite Forza 60']
   }
 ];
+
+export const LEVEL_MAPPING: { [key: number]: string } = {
+  0: 'BEGINNER',
+  1: 'BASIC',
+  2: 'INTERMEDIATE',
+  3: 'ADVANCED',
+  4: 'PROFESSIONAL',
+  5: 'MASTER'
+};
