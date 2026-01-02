@@ -1,8 +1,18 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 
 const Home: React.FC = () => {
   const [isRevealed, setIsRevealed] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   const scrollToWork = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
@@ -20,26 +30,28 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div 
-      className="relative h-screen w-full overflow-hidden flex items-center justify-center cursor-default"
+    <div
+      className="relative h-screen w-full overflow-hidden flex items-center justify-center cursor-default bg-black"
       onClick={() => setIsRevealed(!isRevealed)}
     >
-      {/* Background Video with extremely smooth slow zoom */}
+      {/* Background Video */}
       <div className="absolute inset-0 z-0">
         <video
+          ref={videoRef}
           autoPlay
           muted
           loop
           playsInline
           className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${isRevealed ? 'scale-105' : 'scale-100'}`}
         >
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-cinematic-view-of-a-man-with-a-camera-40285-large.mp4" type="video/mp4" />
+          <source src="/2026Showreel.mov" type="video/quicktime" />
+          <source src="/2026Showreel.mov" type="video/mp4" />
         </video>
         <div className={`absolute inset-0 bg-black/30 transition-all duration-1000 ${isRevealed ? 'bg-black/50 backdrop-blur-[2px]' : 'bg-black/20'}`}></div>
       </div>
 
       {/* Detection Area */}
-      <div 
+      <div
         className="relative z-10 w-full max-w-5xl h-[70vh] flex items-center justify-center px-6"
         onMouseEnter={() => setIsRevealed(true)}
         onMouseLeave={() => setIsRevealed(false)}
@@ -49,8 +61,8 @@ const Home: React.FC = () => {
             세상을 프레임 속에 담아내는 영상 제작자입니다. <br className="hidden md:block" />
             감각적인 연출과 섬세한 편집으로 당신의 이야기를 시각화합니다.
           </p>
-          <a 
-            href="#work" 
+          <a
+            href="#work"
             onClick={scrollToWork}
             className="group relative inline-block px-10 py-4 md:px-12 md:py-5 overflow-hidden border border-white/30 text-white text-[10px] md:text-xs font-bold tracking-[0.3em] transition-all duration-500 uppercase"
           >
@@ -60,17 +72,35 @@ const Home: React.FC = () => {
         </div>
       </div>
 
+      {/* Sound Toggle Button */}
+      <button
+        onClick={toggleMute}
+        className="absolute bottom-12 right-12 z-20 p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-300 group"
+        aria-label={isMuted ? "Unmute" : "Mute"}
+      >
+        {isMuted ? (
+          <svg className="w-5 h-5 text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9l2 2m0 0l2 2m-2-2l-2 2m2-2l2-2" />
+          </svg>
+        ) : (
+          <svg className="w-5 h-5 text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+        )}
+      </button>
+
       {/* Scroll indicator with smoother bounce */}
       <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-10 animate-pulse cursor-pointer transition-opacity duration-1000" onClick={(e) => {
-          e.stopPropagation();
-          const workSec = document.getElementById('work');
-          if (workSec) window.scrollTo({ top: workSec.offsetTop - 64, behavior: 'smooth' });
+        e.stopPropagation();
+        const workSec = document.getElementById('work');
+        if (workSec) window.scrollTo({ top: workSec.offsetTop - 64, behavior: 'smooth' });
       }}>
         <div className="flex flex-col items-center">
-            <span className="text-white/40 text-[8px] tracking-[0.4em] uppercase mb-4">Scroll</span>
-            <div className="w-[1px] h-12 md:h-16 bg-white/20 relative">
-                <div className="absolute top-0 left-0 w-full h-1/2 bg-white animate-[scroll-dot_2s_infinite]"></div>
-            </div>
+          <span className="text-white/40 text-[8px] tracking-[0.4em] uppercase mb-4">Scroll</span>
+          <div className="w-[1px] h-12 md:h-16 bg-white/20 relative">
+            <div className="absolute top-0 left-0 w-full h-1/2 bg-white animate-[scroll-dot_2s_infinite]"></div>
+          </div>
         </div>
       </div>
 
