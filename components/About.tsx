@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../constants'; // Keeping for fallback if needed, or remove if fully replaced
+import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../constants'; // Keeping for fallback if needed, or remove if fully replaced
 import { Skill, SkillItem as SkillItemType } from '../types';
 import { fetchSkillsData } from '../services/googleSheetService';
 
 // Level rendering helper
+// Level rendering helper
 const renderLevel = (level: number) => {
-  if (level >= 5) return 'MASTER';
-  if (level >= 4) return 'PROFESSIONAL';
-  if (level >= 3) return 'ADVANCED';
-  if (level >= 2) return 'INTERMEDIATE';
-  return 'BEGINNER';
+  // Ensure level is within 0-5 range and rounded
+  const safeLevel = Math.max(0, Math.min(5, Math.round(level)));
+  return LEVEL_MAPPING[safeLevel] || 'BEGINNER';
 };
 
 const InteractiveSkillSection: React.FC = () => {
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const [skills, setSkills] = useState<SkillItemType[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({
@@ -28,6 +29,15 @@ const InteractiveSkillSection: React.FC = () => {
       setLoading(false);
     };
     loadSkills();
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsVisible(entry.isIntersecting);
+      },
+      { threshold: 0.1 }
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
   }, []);
 
   const categories = ['Capabilities', 'Tools', 'Equipment'];
@@ -62,7 +72,11 @@ const InteractiveSkillSection: React.FC = () => {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20">
+    <div
+      ref={sectionRef}
+      className={`grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
+        }`}
+    >
       {categories.map((category) => {
         const categorySkills = skills.filter(s => s.category === category);
         const currentFilter = activeFilters[category] || 'All';
@@ -120,18 +134,10 @@ const InteractiveSkillSection: React.FC = () => {
                         </div>
 
                         <div className="flex items-center gap-4">
-                          {/* Proficiency Preview Bar */}
-                          <div className="flex flex-col items-end gap-1 group-hover:gap-0 transition-all duration-300">
-                            <div className="flex gap-[2px]">
-                              {[1, 2, 3, 4, 5].map((level) => (
-                                <div
-                                  key={level}
-                                  className={`h-[3px] w-[3px] rounded-full transition-all duration-500 ${avgLevel >= level ? 'bg-slate-400 group-hover:bg-slate-900' : 'bg-slate-100'}`}
-                                />
-                              ))}
-                            </div>
-                            <span className="text-[8px] text-slate-300 group-hover:text-slate-900 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-1 group-hover:translate-y-0">
-                              {renderLevel(Math.round(avgLevel))} AVG.
+                          {/* Proficiency Text Only */}
+                          <div className="flex flex-col items-end group-hover:transform group-hover:scale-105 transition-all duration-300">
+                            <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-900 transition-colors">
+                              AVG. {renderLevel(avgLevel)}
                             </span>
                           </div>
 
@@ -144,7 +150,10 @@ const InteractiveSkillSection: React.FC = () => {
                   })}
                 </div>
               ) : (
-                <div key={currentFilter} className="space-y-6">
+                <div
+                  key={currentFilter}
+                  className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 fill-mode-both"
+                >
                   {displaySkills.map((skill, i) => (
                     <div
                       key={`${skill.name}-${i}`}
