@@ -102,28 +102,22 @@ const Work: React.FC = () => {
 
   return (
     <div className="w-full px-6 relative">
-      <div ref={textRef} className="flex flex-col md:flex-row md:items-end justify-between mb-12 md:mb-20 gap-6 md:gap-8">
-        <div className="w-full">
-          <div className="overflow-hidden mb-6 md:mb-8">
-            <h2 className={`text-3xl md:text-7xl font-bold tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div ref={textRef} className="flex flex-col items-center justify-center mb-16 md:mb-24 gap-8 md:gap-12">
+        <div className="w-full text-center">
+          <div className="overflow-hidden mb-8 md:mb-12">
+            <h2 className={`text-4xl md:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
               SELECTED PROJECTS
             </h2>
           </div>
-          <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-            <p className="text-slate-600 font-light text-sm md:text-xl leading-relaxed break-keep">
-              영상은 정지된 이미지가 아닌, 시간의 흐름을 조각하는 예술입니다.<br className="hidden md:block" />
-              저의 시선으로 담아낸 순간들을 만나보세요.
-            </p>
-          </div>
         </div>
 
-        <div className="flex flex-col items-start md:items-end gap-4 md:gap-6">
-          <div className="relative flex bg-slate-50 p-1 rounded-full overflow-hidden border border-slate-100">
+        <div className="flex flex-col items-center gap-6 md:gap-8 w-full">
+          <div className="relative flex bg-slate-50 p-1.5 rounded-full overflow-hidden border border-slate-100 shadow-sm">
             {workTypes.map((type) => (
               <button
                 key={type}
                 onClick={() => setActiveType(type)}
-                className={`relative z-10 px-4 py-1.5 md:px-5 md:py-2 text-[8px] md:text-[9px] font-bold tracking-[0.2em] transition-all duration-300 uppercase rounded-full ${activeType === type ? 'text-white' : 'text-slate-400 hover:text-slate-600'
+                className={`relative z-10 px-6 py-2 md:px-8 md:py-2.5 text-[10px] md:text-xs font-bold tracking-[0.2em] transition-all duration-300 uppercase rounded-full whitespace-nowrap ${activeType === type ? 'text-white' : 'text-slate-400 hover:text-slate-600'
                   }`}
               >
                 {type === 'Created' ? 'Personal' : 'Participation'}
@@ -134,12 +128,12 @@ const Work: React.FC = () => {
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap justify-center gap-3 md:gap-4">
             {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-2 py-1 md:px-3 md:py-1.5 text-[7px] md:text-[8px] font-bold tracking-widest transition-all duration-300 border-b-2 uppercase ${activeCategory === cat
+                className={`px-3 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[10px] font-bold tracking-widest transition-all duration-300 border-b-2 uppercase whitespace-nowrap ${activeCategory === cat
                   ? 'border-slate-900 text-slate-900'
                   : 'border-transparent text-slate-300 hover:text-slate-500 hover:border-slate-200'
                   }`}
