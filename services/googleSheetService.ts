@@ -24,12 +24,12 @@ interface SheetRow {
 }
 
 interface SkillSheetRow {
-    Category: string;
-    Filter: string;
-    Name: string;
-    "Level (Optional)": string;
-    "Order (Optional)": string;
-    hidden?: string;
+    category: string;
+    filter: string;
+    mame: string;
+    level: string;
+    order: string;
+    hidden: string;
 }
 
 // ... (existing helper functions)
@@ -131,4 +131,5 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
         });
     });
 };
+
 
