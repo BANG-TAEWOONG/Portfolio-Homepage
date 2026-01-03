@@ -1,18 +1,21 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const Home: React.FC = () => {
+  // 상태 관리: 텍스트 공개 여부, 음소거 여부, 현재 비디오 번호
   const [isRevealed, setIsRevealed] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [currentVideoNum, setCurrentVideoNum] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  // Generate filename based on current number (e.g., 2026Showreel01.mov)
+  // 현재 번호에 기반하여 비디오 파일명 생성 (예: 2026Showreel01.mov)
+  // [수정] Vercel 배포 시 로컬 파일을 찾지 못하는 문제를 해결하기 위해 GitHub Raw URL을 사용
   const getVideoSrc = (num: number) => {
     const numStr = num.toString().padStart(2, '0');
-    return `https://raw.githubusercontent.com/BANG-TAEWOONG/Portfolio-Homepage/main/public/2026Showreel${numStr}`;
+    return `https://cdn.jsdelivr.net/gh/BANG-TAEWOONG/Portfolio-Homepage@main/public/2026Showreel${numStr}`;
   };
 
   // Effect to reload video when number changes
+  // 비디오 번호가 변경될 때마다 비디오를 새로 로드하고 재생
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.load();
@@ -21,13 +24,12 @@ const Home: React.FC = () => {
   }, [currentVideoNum]);
 
   const handleVideoEnded = () => {
-    // Try playing the next number
+    // 비디오가 끝나면 다음 번호의 비디오로 넘어감
     setCurrentVideoNum((prev) => prev + 1);
   };
 
   const handleVideoError = () => {
-    // If an error occurs (e.g., file not found), reset to the first video
-    // This acts as the loop mechanism
+    // 비디오 로드 에러 발생 시 (파일이 더 이상 없는 경우 등), 1번 비디오로 초기화하여 루프 구현
     if (currentVideoNum > 1) {
       console.log(`Video ${currentVideoNum} not found. looping back to 01.`);
       setCurrentVideoNum(1);
