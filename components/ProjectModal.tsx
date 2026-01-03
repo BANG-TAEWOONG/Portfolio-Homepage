@@ -150,9 +150,10 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                         </div>
                     </div>
                 </div>
-            </div>,
-            document.body
-            );
+            </div>
+        </div>,
+        document.body
+    );
 };
 
-            export default ProjectModal;
+export default ProjectModal;
