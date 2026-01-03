@@ -49,19 +49,19 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                 {/* Desktop Side Navigation Buttons */}
                 <button
                     onClick={(e) => { e.stopPropagation(); onPrev(); }}
-                    className="hidden md:flex absolute top-1/2 -left-24 -translate-y-1/2 z-[2030] p-4 text-slate-300 hover:text-white transition-all duration-300 hover:scale-110"
+                    className="hidden md:flex absolute top-1/2 -left-16 -translate-y-1/2 z-[2030] p-2 text-orange-500 hover:text-orange-600 transition-all duration-300 hover:scale-110"
                     aria-label="Previous Project"
                 >
-                    <svg className="w-16 h-16 drop-shadow-2xl filter" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }}>
+                    <svg className="w-16 h-16 drop-shadow-lg filter" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
                 <button
                     onClick={(e) => { e.stopPropagation(); onNext(); }}
-                    className="hidden md:flex absolute top-1/2 -right-24 -translate-y-1/2 z-[2030] p-4 text-slate-300 hover:text-white transition-all duration-300 hover:scale-110"
+                    className="hidden md:flex absolute top-1/2 -right-16 -translate-y-1/2 z-[2030] p-2 text-orange-500 hover:text-orange-600 transition-all duration-300 hover:scale-110"
                     aria-label="Next Project"
                 >
-                    <svg className="w-16 h-16 drop-shadow-2xl filter" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))' }}>
+                    <svg className="w-16 h-16 drop-shadow-lg filter" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
