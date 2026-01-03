@@ -73,18 +73,23 @@ const InteractiveSkillSection: React.FC = () => {
     return ['All', ...filters];
   };
 
+  // 이전/다음 필터로 이동
   const traverseFilters = (category: string, direction: 'next' | 'prev') => {
     const filters = getFilters(category);
-    // 'All'이 선택된 상태에서는 화살표 이동을 막거나, 첫 번째/마지막 필터로 이동
-    // 여기서는 'All' 다음은 첫 번째 필터, 'All' 이전은 마지막 필터로 순환
-    const currentIndex = filters.indexOf(activeFilters[category] || 'All');
+    // 현재 필터 찾기 (없으면 'All')
+    const currentFilter = activeFilters[category] || 'All';
+    const currentIndex = filters.indexOf(currentFilter);
+
     let newIndex;
     if (direction === 'next') {
       newIndex = (currentIndex + 1) % filters.length;
     } else {
       newIndex = (currentIndex - 1 + filters.length) % filters.length;
     }
-    setActiveFilters(prev => ({ ...prev, [category]: filters[newIndex] }));
+
+    // 상태 업데이트
+    const nextFilter = filters[newIndex];
+    setActiveFilters(prev => ({ ...prev, [category]: nextFilter }));
   };
 
   const getAverageLevel = (filterName: string, category: string) => {
@@ -118,27 +123,27 @@ const InteractiveSkillSection: React.FC = () => {
         return (
           <div key={category} className="flex flex-col h-full">
             <div className="flex justify-between items-baseline mb-8 md:mb-12">
-              <h4 className="text-[10px] md:text-[11px] font-bold tracking-[0.5em] text-slate-400 uppercase">
+              <h4 className="text-xs md:text-sm font-bold tracking-[0.5em] text-slate-400 uppercase">
                 {category}
               </h4>
 
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 md:gap-6">
                 <button
-                  onClick={() => traverseFilters(category, 'prev')}
-                  className="text-slate-300 hover:text-slate-900 transition-colors"
-                  disabled={isOverview} // Disable when in overview if logic prefers
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); traverseFilters(category, 'prev'); }}
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors group/btn"
                 >
-                  ←
+                  <span className="block text-lg group-hover/btn:-translate-x-0.5 transition-transform">←</span>
                 </button>
-                <span className="text-[9px] font-bold text-slate-900 uppercase min-w-[60px] text-center">
+                <span className="text-sm md:text-base font-bold tracking-[0.2em] uppercase min-w-[80px] text-center">
                   {currentFilter}
                 </span>
                 <button
-                  onClick={() => traverseFilters(category, 'next')}
-                  className="text-slate-300 hover:text-slate-900 transition-colors"
-                  disabled={isOverview}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); traverseFilters(category, 'next'); }}
+                  className="p-2 hover:bg-slate-100 rounded-full transition-colors group/btn"
                 >
-                  →
+                  <span className="block text-lg group-hover/btn:translate-x-0.5 transition-transform">→</span>
                 </button>
               </div>
             </div>
@@ -152,7 +157,7 @@ const InteractiveSkillSection: React.FC = () => {
                       <div
                         key={filterName}
                         onClick={() => setActiveFilters(prev => ({ ...prev, [category]: filterName }))}
-                        className="group cursor-pointer border-b border-slate-100 py-4 flex justify-between items-center hover:border-slate-900 transition-all duration-500"
+                        className="group cursor-pointer border-b border-slate-100 py-4 flex justify-between items-center hover:border-slate-900 transition-all duration-500 stagger-item"
                         style={{ animationDelay: `${idx * 100}ms` }}
                       >
                         <div className="flex items-center gap-3">
@@ -185,12 +190,12 @@ const InteractiveSkillSection: React.FC = () => {
                   {displaySkills.map((skill, i) => (
                     <div
                       key={`${skill.name}-${i}`}
-                      className="group animate-in fade-in slide-in-from-bottom-4 duration-700 fill-mode-both"
+                      className="group stagger-item relative"
                       style={{ animationDelay: `${i * 100}ms` }}
                     >
                       <div className="flex justify-between items-end mb-1">
                         <span className="text-sm font-medium text-slate-800">{skill.name}</span>
-                        <span className="text-[9px] font-bold text-slate-400 tracking-wider group-hover:text-slate-900 transition-colors">
+                        <span className="text-[10px] md:text-xs font-bold text-slate-400 tracking-wider group-hover:text-slate-900 transition-colors">
                           {renderLevel(skill.level)}
                         </span>
                       </div>
