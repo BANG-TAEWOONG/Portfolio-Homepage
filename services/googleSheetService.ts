@@ -26,21 +26,22 @@ interface SheetRow {
 interface SkillSheetRow {
     category: string;
     filter: string;
-    mame: string;
+    name: string;
     level: string;
     order: string;
-    hidden: string;
+    hidden?: string;
+    remark?: string;
 }
 
 // ... (existing helper functions)
 
-const mapCategory = (type: string): Category => {
+function mapCategory(type: string): Category {
     // ... (existing implementation)
     if (type.includes('Music Video') || type.includes('MV')) return 'MV';
     if (type.includes('Dance Film')) return 'Dance Film';
     if (type.includes('Dance Cover')) return 'Dance Cover';
     return 'All'; // Default fallback
-};
+}
 
 const mapWorkType = (level: string): WorkType => {
     if (level.includes('Personal')) return 'Created';
@@ -107,14 +108,14 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
                 try {
                     const rows = results.data as SkillSheetRow[];
                     const skills: SkillItem[] = rows
-                        .filter(row => row.Category && row.Name) // Basic validation
+                        .filter(row => row.category && row.name) // Basic validation
                         .map(row => ({
-                            category: row.Category,
-                            filter: row.Filter,
-                            name: row.Name,
-                            level: parseInt(row['Level (Optional)']) || 0,
-                            order: parseInt(row['Order (Optional)']) || 999,
-                            hidden: row.Hidden?.trim().toUpperCase() === 'TRUE'
+                            category: row.category,
+                            filter: row.filter,
+                            name: row.name,
+                            level: parseInt(row.level) || 0,
+                            order: parseInt(row.order) || 999,
+                            hidden: row.hidden?.trim().toUpperCase() === 'TRUE'
                         }))
                         .sort((a, b) => (a.order || 999) - (b.order || 999));
 
@@ -131,5 +132,3 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
         });
     });
 };
-
-
