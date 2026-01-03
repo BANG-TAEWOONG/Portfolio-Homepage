@@ -37,4 +37,5 @@ export interface SkillItem {
   name: string;     // Scenario, A7S3...
   level: number;    // 1-5
   order?: number;
+  hidden?: boolean;
 }
