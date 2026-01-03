@@ -12,11 +12,10 @@ const Home: React.FC = () => {
   // ----------------------------------------------------------------------
   // 2. 비디오 소스 관리
   // ----------------------------------------------------------------------
-  // [중요] Vercel 등 배포 환경에서 로컬 정적 파일을 찾지 못하는 문제를 해결하기 위해
-  // GitHub 저장소의 Raw 파일을 CDN처럼 사용하여 비디오를 로드합니다.
+  // [중요] 로컬 파일/Vercel 배포 환경 모두에서 동작하도록 public 폴더 기준 상대 경로 사용
   const getVideoSrc = (num: number) => {
     const numStr = num.toString().padStart(2, '0'); // 1 -> "01", 2 -> "02" 변환
-    return `https://cdn.jsdelivr.net/gh/BANG-TAEWOONG/Portfolio-Homepage@main/public/2026Showreel${numStr}`;
+    return `/2026Showreel${numStr}`;
   };
 
   // ----------------------------------------------------------------------
@@ -82,6 +81,7 @@ const Home: React.FC = () => {
       {/* ---------------------------------------------------------------------- */}
       <div className="absolute inset-0 z-0">
         <video
+          key={currentVideoNum}
           ref={videoRef}
           autoPlay
           muted={isMuted}
@@ -92,7 +92,6 @@ const Home: React.FC = () => {
           className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${isRevealed ? 'scale-105' : 'scale-100'}`}
         >
           {/* mov, mp4 포맷 지원 */}
-          <source src={`${getVideoSrc(currentVideoNum)}.mov`} type="video/quicktime" />
           <source src={`${getVideoSrc(currentVideoNum)}.mp4`} type="video/mp4" />
         </video>
 
