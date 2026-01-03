@@ -29,6 +29,7 @@ interface SkillSheetRow {
     Name: string;
     "Level (Optional)": string;
     "Order (Optional)": string;
+    Hidden?: string;
 }
 
 // ... (existing helper functions)
@@ -112,7 +113,8 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
                             filter: row.Filter,
                             name: row.Name,
                             level: parseInt(row['Level (Optional)']) || 0,
-                            order: parseInt(row['Order (Optional)']) || 999
+                            order: parseInt(row['Order (Optional)']) || 999,
+                            hidden: row.Hidden?.trim().toUpperCase() === 'TRUE'
                         }))
                         .sort((a, b) => (a.order || 999) - (b.order || 999));
 
