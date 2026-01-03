@@ -1,23 +1,33 @@
-
 import React from 'react';
 
 const Contact: React.FC = () => {
   return (
+    // 전체 컨테이너: 텍스트 중앙 정렬(text-center) 및 좌우 패딩(px-6)
     <div className="w-full px-6 text-center">
+      
+      {/* 1. 섹션 헤더 영역 */}
+      {/* 제목: CONTACT (반응형 폰트 크기 적용) */}
       <h2 className="text-3xl md:text-5xl font-bold tracking-tighter text-slate-900 mb-6 md:mb-8">CONTACT</h2>
+      {/* 서브 텍스트: 협업 제안 메시지 (연한 회색, 얇은 폰트) */}
       <p className="text-slate-400 text-xs md:text-sm font-light mb-12 md:mb-16 tracking-tight">함께 새로운 프로젝트를 시작해볼까요?</p>
 
+      {/* 2. 소셜 미디어 아이콘 링크 영역 */}
+      {/* 아이콘들을 가로로 정렬하고 간격을 띄움 (space-x-8) */}
       <div className="flex justify-center items-center space-x-8 md:space-x-16">
-        {/* Email */}
+        
+        {/* A. 이메일 (mailto 링크) */}
+        {/* group 클래스: 부모(a태그)에 마우스를 올렸을 때 자식(svg)의 스타일을 바꾸기 위해 사용 */}
         <a href="mailto:bangtis@gmail.com" className="group" aria-label="Email">
+          {/* 아이콘 래퍼: 호버 시 크기 확대 (scale-125) */}
           <div className="flex items-center justify-center transition-all duration-500 transform group-hover:scale-125">
+            {/* SVG 아이콘: 기본 회색(text-slate-300) -> 호버 시 검정색(text-slate-900)으로 변경 */}
             <svg className="w-6 h-6 md:w-8 md:h-8 text-slate-300 transition-colors duration-500 group-hover:text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
         </a>
 
-        {/* Instagram */}
+        {/* B. 인스타그램 (새 탭으로 열기) */}
         <a href="https://www.instagram.com/twoong_studio?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" rel="noopener noreferrer" className="group" aria-label="Instagram">
           <div className="flex items-center justify-center transition-all duration-500 transform group-hover:scale-125">
             <svg className="w-6 h-6 md:w-8 md:h-8 text-slate-300 transition-colors duration-500 group-hover:text-slate-900" fill="currentColor" viewBox="0 0 24 24">
@@ -26,7 +36,7 @@ const Contact: React.FC = () => {
           </div>
         </a>
 
-        {/* YouTube */}
+        {/* C. 유튜브 (새 탭으로 열기) */}
         <a href="https://youtube.com/@twoongstudio?si=cXvblSrN-XT7kDHx" target="_blank" rel="noopener noreferrer" className="group" aria-label="YouTube">
           <div className="flex items-center justify-center transition-all duration-500 transform group-hover:scale-125">
             <svg className="w-6 h-6 md:w-8 md:h-8 text-slate-300 transition-colors duration-500 group-hover:text-slate-900" fill="currentColor" viewBox="0 0 24 24">
@@ -35,7 +45,7 @@ const Contact: React.FC = () => {
           </div>
         </a>
 
-        {/* Vimeo */}
+        {/* D. 비메오 (현재 링크 없음 '#') */}
         <a href="#" className="group" aria-label="Vimeo">
           <div className="flex items-center justify-center transition-all duration-500 transform group-hover:scale-125">
             <svg className="w-6 h-6 md:w-8 md:h-8 text-slate-300 transition-colors duration-500 group-hover:text-slate-900" fill="currentColor" viewBox="0 0 24 24">
@@ -45,6 +55,8 @@ const Contact: React.FC = () => {
         </a>
       </div>
 
+      {/* 3. 하단 정보 섹션 */}
+      {/* 활동 지역 및 가능 여부 표시 */}
       <div className="mt-20 md:mt-32 pt-8 md:pt-12">
         <p className="text-[10px] md:text-xs font-bold text-slate-900 uppercase tracking-[0.4em]">Seoul, South Korea</p>
         <p className="text-[9px] md:text-[10px] text-slate-300 mt-2 md:mt-3 uppercase tracking-widest font-light">Available for worldwide projects</p>
