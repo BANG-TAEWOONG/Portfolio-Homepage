@@ -9,7 +9,7 @@ const Home: React.FC = () => {
   // Generate filename based on current number (e.g., 2026Showreel01.mov)
   const getVideoSrc = (num: number) => {
     const numStr = num.toString().padStart(2, '0');
-    return `/2026Showreel${numStr}`;
+    return `https://raw.githubusercontent.com/BANG-TAEWOONG/Portfolio-Homepage/main/public/2026Showreel${numStr}`;
   };
 
   // Effect to reload video when number changes
