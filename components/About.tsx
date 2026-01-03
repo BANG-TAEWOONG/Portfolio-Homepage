@@ -23,12 +23,15 @@ const InteractiveSkillSection: React.FC = () => {
   });
 
   useEffect(() => {
+    // 스킬 데이터 로드 함수
     const loadSkills = async () => {
       let data = await fetchSkillsData();
 
-      // Fallback if data is empty
+      // [수정] 데이터가 비어있거나 로드 실패 시 로컬 상수를 사용하여 폴백 처리
+      // constants.ts에 정의된 SKILLS, TOOLS_DATA, EQUIPMENT_DATA를 사용
       if (!data || data.length === 0) {
         console.log('Using fallback local data');
+        // 로컬 데이터 포맷을 컴포넌트 상태에 맞게 변환하는 헬퍼 함수
         const mapToSkillItem = (items: { name: string; level: number }[], category: string, filter: string): SkillItemType[] =>
           items.map((item, idx) => ({
             category,
@@ -56,12 +59,13 @@ const InteractiveSkillSection: React.FC = () => {
       },
       { threshold: 0.1 }
     );
-    if (sectionRef.current) observer.observe(sectionRef.current);
+    if (!loading && sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [loading]);
 
   const categories = ['Capabilities', 'Tools', 'Equipment'];
 
+  // 카테고리별 필터 목록 생성 (중복 제거)
   const getFilters = (category: string) => {
     const categorySkills = skills.filter(s => s.category === category);
     const filters = Array.from(new Set(categorySkills.map(s => s.filter))).filter(f => f);
