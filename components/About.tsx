@@ -65,15 +65,18 @@ const InteractiveSkillSection: React.FC = () => {
 
   const categories = ['Capabilities', 'Tools', 'Equipment'];
 
-  // 카테고리별 필터 목록 생성 (중복 제거)
+  // 카테고리별 필터 목록 생성 (중복 제거 & Hidden 필터링)
   const getFilters = (category: string) => {
-    const categorySkills = skills.filter(s => s.category === category);
+    // Hidden 아이템 제외
+    const categorySkills = skills.filter(s => s.category === category && !s.hidden);
     const filters = Array.from(new Set(categorySkills.map(s => s.filter))).filter(f => f);
     return ['All', ...filters];
   };
 
   const traverseFilters = (category: string, direction: 'next' | 'prev') => {
     const filters = getFilters(category);
+    // 'All'이 선택된 상태에서는 화살표 이동을 막거나, 첫 번째/마지막 필터로 이동
+    // 여기서는 'All' 다음은 첫 번째 필터, 'All' 이전은 마지막 필터로 순환
     const currentIndex = filters.indexOf(activeFilters[category] || 'All');
     let newIndex;
     if (direction === 'next') {
@@ -102,7 +105,8 @@ const InteractiveSkillSection: React.FC = () => {
         }`}
     >
       {categories.map((category) => {
-        const categorySkills = skills.filter(s => s.category === category);
+        // [수정] Hidden 항목 필터링
+        const categorySkills = skills.filter(s => s.category === category && !s.hidden);
         const currentFilter = activeFilters[category] || 'All';
         const displaySkills = currentFilter === 'All'
           ? categorySkills
@@ -160,7 +164,7 @@ const InteractiveSkillSection: React.FC = () => {
                         <div className="flex items-center gap-4">
                           {/* Proficiency Text Only */}
                           <div className="flex flex-col items-end group-hover:transform group-hover:scale-105 transition-all duration-300">
-                            <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-900 transition-colors">
+                            <span className="text-[10px] md:text-xs font-bold text-slate-400 group-hover:text-slate-900 transition-colors">
                               AVG. {renderLevel(avgLevel)}
                             </span>
                           </div>
@@ -276,10 +280,9 @@ const About: React.FC = () => {
 
               {/* Description Section */}
               <div className={`transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-                <p className="text-sm md:text-lg text-slate-800 font-light leading-loose">
-                  단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다.
+                <p className="text-sm md:text-lg text-slate-800 font-light leading-loose break-keep">
+                  단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다.<br className="hidden md:block" />
                   다양한 댄스 필름과 뮤직비디오 프로젝트를 거치며 시각적 리듬감과 역동적인 연출력을 쌓아왔습니다.
-                  빛과 그림자, 그리고 그 안의 움직임을 통해 당신의 이야기를 완성합니다.
                 </p>
               </div>
             </div>
