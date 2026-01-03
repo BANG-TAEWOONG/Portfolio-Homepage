@@ -29,7 +29,7 @@ interface SkillSheetRow {
     Name: string;
     "Level (Optional)": string;
     "Order (Optional)": string;
-    Hidden?: string;
+    hidden?: string;
 }
 
 // ... (existing helper functions)
@@ -131,3 +131,4 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
         });
     });
 };
+
