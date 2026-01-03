@@ -24,7 +24,27 @@ const InteractiveSkillSection: React.FC = () => {
 
   useEffect(() => {
     const loadSkills = async () => {
-      const data = await fetchSkillsData();
+      let data = await fetchSkillsData();
+
+      // Fallback if data is empty
+      if (!data || data.length === 0) {
+        console.log('Using fallback local data');
+        const mapToSkillItem = (items: { name: string; level: number }[], category: string, filter: string): SkillItemType[] =>
+          items.map((item, idx) => ({
+            category,
+            filter,
+            name: item.name,
+            level: item.level,
+            order: idx
+          }));
+
+        data = [
+          ...mapToSkillItem(SKILLS, 'Capabilities', 'Main'),
+          ...mapToSkillItem(TOOLS_DATA, 'Tools', 'Main'),
+          ...mapToSkillItem(EQUIPMENT_DATA, 'Equipment', 'Main')
+        ];
+      }
+
       setSkills(data);
       setLoading(false);
     };
