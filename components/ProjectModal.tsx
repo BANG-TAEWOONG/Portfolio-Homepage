@@ -127,9 +127,9 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
 
                             {/* 헤더: 카테고리 및 제목 */}
                             <div>
-                                <span className="text-[8px] md:text-[9px] font-bold tracking-[0.4em] text-slate-300 uppercase block mb-2">{selectedWork.category}</span>
+                                <span className="text-[7px] md:text-[9px] font-bold tracking-[0.4em] text-slate-300 uppercase block mb-2">{selectedWork.category}</span>
                                 <div className="flex items-center justify-between gap-4">
-                                    <h3 className="text-xl md:text-2xl font-bold text-slate-900 tracking-tighter leading-tight">{selectedWork.title}</h3>
+                                    <h3 className="text-[12px] md:text-2xl font-bold text-slate-900 tracking-tighter leading-tight">{selectedWork.title}</h3>
 
                                     {/* 모바일용 네비게이션 버튼 (제목 옆에 작게 표시됨) */}
                                     <div className="flex items-center space-x-2 md:hidden text-slate-300 shrink-0">
