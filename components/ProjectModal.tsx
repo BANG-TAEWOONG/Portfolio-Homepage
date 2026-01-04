@@ -48,7 +48,8 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
     const handlers = useSwipeable({
         onSwipedLeft: () => onNext(),
         onSwipedRight: () => onPrev(),
-        preventScrollOnSwipe: true
+        preventScrollOnSwipe: true,
+        trackMouse: true // 마우스 및 터치 모두 지원
     });
 
     // 선택된 작업물이 없으면 렌더링하지 않음
