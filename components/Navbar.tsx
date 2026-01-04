@@ -67,7 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
           onClick={(e) => scrollToSection(e, 'home')}
           className="text-lg md:text-xl font-bold tracking-tighter text-slate-900"
         >
-          PORTFOLIO.
+          TWOONG STUDIO
         </a>
 
         {/* 우측 메뉴 리스트 - 모바일/데스크탑 모두 표시 */}
