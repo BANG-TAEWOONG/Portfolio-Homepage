@@ -151,12 +151,12 @@ const InteractiveSkillSection: React.FC = () => {
                 className={`flex items-center gap-2 ${!isOverview ? 'cursor-pointer group/title' : ''}`}
                 onClick={() => !isOverview && setActiveFilters(prev => ({ ...prev, [category]: 'All' }))}
               >
-                <h4 className="text-[9px] md:text-sm font-bold tracking-[0.5em] text-slate-400 uppercase transition-colors group-hover/title:text-slate-900">
+                <h4 className="text-xs md:text-sm font-bold tracking-[0.5em] text-slate-400 uppercase transition-colors group-hover/title:text-slate-900">
                   {category}
                 </h4>
                 {/* 필터 활성화 시 홈으로 돌아가기 표시 */}
                 {!isOverview && (
-                  <span className="text-[7px] text-slate-400 opacity-0 md:opacity-100 md:animate-in md:fade-in md:slide-in-from-right-2 font-medium tracking-normal animate-pulse">
+                  <span className="text-[10px] text-slate-400 opacity-0 md:opacity-100 md:animate-in md:fade-in md:slide-in-from-right-2 font-medium tracking-normal animate-pulse">
                     ◀ Click home
                   </span>
                 )}
