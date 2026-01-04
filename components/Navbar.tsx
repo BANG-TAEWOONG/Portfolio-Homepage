@@ -54,8 +54,8 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
       // 조건부 로직: 스크롤을 내렸거나(isScrolled) 마우스를 올렸을 때(isHovered)만 보임
       // 그렇지 않으면(맨 위 + 마우스 밖) 위로 숨겨짐(-translate-y-full)
       className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 backdrop-blur-md bg-white/80 border-b border-slate-100 ${isScrolled || isHovered
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 -translate-y-full hover:opacity-100 hover:translate-y-0'
+        ? 'opacity-100 translate-y-0'
+        : 'opacity-0 -translate-y-full hover:opacity-100 hover:translate-y-0'
         }`}
       onMouseEnter={() => setIsHovered(true)} // 마우스 올리면 강제로 표시
       onMouseLeave={() => setIsHovered(false)} // 마우스 치우면 스크롤 상태에 따라 결정
@@ -65,13 +65,13 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
         <a
           href="#home"
           onClick={(e) => scrollToSection(e, 'home')}
-          className="text-lg md:text-xl font-bold tracking-tighter text-slate-900"
+          className="text-[15px] md:text-xl font-bold tracking-tighter text-slate-900 whitespace-nowrap"
         >
           TWOONG STUDIO
         </a>
 
         {/* 우측 메뉴 리스트 - 모바일/데스크탑 모두 표시 */}
-        <div className="flex space-x-4 md:space-x-12">
+        <div className="flex space-x-3 md:space-x-12">
           {navItems.map((item) => (
             <a
               key={item.id}
@@ -81,8 +81,8 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
               // 활성: 진한 검정색(text-slate-900) + 밑줄(border-b-2)
               // 비활성: 연한 회색(text-slate-400)
               className={`text-[10px] md:text-xs font-semibold tracking-widest transition-colors duration-300 hover:text-slate-900 ${activeSection === item.id
-                  ? 'text-slate-900 border-b-2 border-slate-900 pb-1'
-                  : 'text-slate-400'
+                ? 'text-slate-900 border-b-2 border-slate-900 pb-1'
+                : 'text-slate-400'
                 }`}
             >
               {item.label}
