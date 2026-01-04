@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSwipeable } from 'react-swipeable';
 import { createPortal } from 'react-dom';
 import { WorkItem } from '../types';
 
@@ -43,6 +44,13 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
         else setTransitionClass('animate-modal-container'); // 기본 페이드인
     }, [navDirection, selectedWork?.id]);
 
+    // 스와이프 핸들러 정의 (터치 스와이프 감지)
+    const handlers = useSwipeable({
+        onSwipedLeft: () => onNext(),
+        onSwipedRight: () => onPrev(),
+        preventScrollOnSwipe: true
+    });
+
     // 선택된 작업물이 없으면 렌더링하지 않음
     if (!selectedWork) return null;
 
@@ -59,6 +67,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
 
             {/* 2. 모달 메인 컨텐츠 래퍼 */}
             <div
+                {...handlers}
                 key={selectedWork.id}
                 // transitionClass에 따라 슬라이드 애니메이션 적용
                 className={`relative w-full max-w-xl z-[2010] my-4 md:my-8 pointer-events-auto ${transitionClass} flex-shrink-0`}
