@@ -169,7 +169,7 @@ const InteractiveSkillSection: React.FC = () => {
                     Click each item
                   </span>
                 ) : (
-                  <span className="text-sm md:text-base font-bold tracking-[0.2em] uppercase text-slate-900 min-w-[80px] text-right">
+                  <span className="text-[9px] md:text-base font-bold tracking-[0.2em] uppercase text-slate-900 min-w-[80px] text-right">
                     {currentFilter}
                   </span>
                 )}
