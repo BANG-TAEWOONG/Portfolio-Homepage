@@ -147,33 +147,32 @@ const InteractiveSkillSection: React.FC = () => {
           <div key={category} className="flex flex-col h-full">
             {/* 카테고리 헤더 및 네비게이션 */}
             <div className="flex justify-between items-baseline mb-8 md:mb-12">
-              <h4 className="text-xs md:text-sm font-bold tracking-[0.5em] text-slate-400 uppercase">
-                {category}
-              </h4>
+              <div
+                className={`flex items-center gap-2 ${!isOverview ? 'cursor-pointer group/title' : ''}`}
+                onClick={() => !isOverview && setActiveFilters(prev => ({ ...prev, [category]: 'All' }))}
+              >
+                <h4 className="text-xs md:text-sm font-bold tracking-[0.5em] text-slate-400 uppercase transition-colors group-hover/title:text-slate-900">
+                  {category}
+                </h4>
+                {/* 필터 활성화 시 홈으로 돌아가기 표시 */}
+                {!isOverview && (
+                  <span className="text-[10px] text-slate-400 opacity-0 md:opacity-100 md:animate-in md:fade-in md:slide-in-from-right-2 font-medium tracking-normal animate-pulse">
+                    ◀ Click home
+                  </span>
+                )}
+              </div>
 
               <div className="flex items-center gap-4 md:gap-6">
-                {/* 이전 필터 버튼 */}
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); traverseFilters(category, 'prev'); }}
-                  className="p-2 hover:bg-slate-100 rounded-full transition-colors group/btn"
-                >
-                  <span className="block text-lg group-hover/btn:-translate-x-0.5 transition-transform">←</span>
-                </button>
-
-                {/* 현재 보고 있는 필터 이름 */}
-                <span className="text-sm md:text-base font-bold tracking-[0.2em] uppercase min-w-[80px] text-center">
-                  {currentFilter}
-                </span>
-
-                {/* 다음 필터 버튼 */}
-                <button
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); traverseFilters(category, 'next'); }}
-                  className="p-2 hover:bg-slate-100 rounded-full transition-colors group/btn"
-                >
-                  <span className="block text-lg group-hover/btn:translate-x-0.5 transition-transform">→</span>
-                </button>
+                {/* 현재 보고 있는 필터 이름 또는 안내 문구 */}
+                {isOverview ? (
+                  <span className="text-[9px] md:text-[10px] font-medium text-slate-300 tracking-widest uppercase">
+                    Click each item
+                  </span>
+                ) : (
+                  <span className="text-sm md:text-base font-bold tracking-[0.2em] uppercase text-slate-900 min-w-[80px] text-right">
+                    {currentFilter}
+                  </span>
+                )}
               </div>
             </div>
 
