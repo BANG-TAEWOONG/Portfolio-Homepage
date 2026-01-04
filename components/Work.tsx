@@ -124,7 +124,7 @@ const Work: React.FC = () => {
         <div className="w-full text-center">
           <div className="overflow-hidden mb-8 md:mb-12">
             {/* 스크롤 시 아래에서 위로 올라오는 제목 애니메이션 */}
-            <h2 className={`text-4xl md:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+            <h2 className={`text-[20px] md:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
               SELECTED PROJECTS
             </h2>
           </div>
