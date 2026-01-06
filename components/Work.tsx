@@ -1,7 +1,8 @@
-import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Category, WorkType, WorkItem } from '../types';
 import { useWorkItems } from '../hooks/useWorkItems';
 import ProjectModal from './ProjectModal';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
 const Work: React.FC = () => {
   // 1. 커스텀 훅을 통해 전체 작업물 데이터 가져오기
@@ -93,20 +94,7 @@ const Work: React.FC = () => {
   };
 
   // 7. 스크롤 감지 (제목 애니메이션용)
-  const [isVisible, setIsVisible] = useState(false);
-  const textRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    // IntersectionObserver: 요소가 화면에 보이는지 감지
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      { threshold: 0.1 } // 요소가 10% 보이면 트리거
-    );
-    if (textRef.current) observer.observe(textRef.current);
-    return () => observer.disconnect();
-  }, []);
+  const [textRef, isVisible] = useIntersectionObserver({ threshold: 0.1 });
 
   // 에러 발생 시 UI 처리
   if (error) {

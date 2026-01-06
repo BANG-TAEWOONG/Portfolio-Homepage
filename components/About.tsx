@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../constants'; // 데이터 로드 실패 시 사용할 로컬 상수 데이터
+import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../constants';
 import { Skill, SkillItem as SkillItemType } from '../types';
 import { fetchSkillsData } from '../services/googleSheetService';
+import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
 
 // ----------------------------------------------------------------------
 // 1. 헬퍼 함수
@@ -24,12 +25,10 @@ const renderLevel = (level: number) => {
 // ----------------------------------------------------------------------
 
 const InteractiveSkillSection: React.FC = () => {
-  const sectionRef = useRef<HTMLDivElement>(null);
-
   // 상태 관리
-  const [isVisible, setIsVisible] = useState(false); // 스크롤 감지 시 애니메이션 트리거
   const [skills, setSkills] = useState<SkillItemType[]>([]); // 불러온 스킬 데이터 저장
   const [loading, setLoading] = useState(true); // 데이터 로딩 상태
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.1 });
 
   // 각 카테고리별 현재 선택된 필터 상태 저장 (예: Tools 카테고리는 'Editing' 필터 선택 등)
   const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({
@@ -38,16 +37,12 @@ const InteractiveSkillSection: React.FC = () => {
     Equipment: 'All'
   });
 
-  // 데이터 로드 및 스크롤 감지 효과
+  // 데이터 로드 효과
   useEffect(() => {
-    // 1) 스킬 데이터 비동기 로드 함수
     const loadSkills = async () => {
-      let data = await fetchSkillsData(); // Google Sheets 등에서 데이터 가져오기
+      let data = await fetchSkillsData();
 
-      // [중요] 데이터가 없거나 에러 발생 시 로컬 상수 데이터(fallback) 사용
       if (!data || data.length === 0) {
-        console.log('Using fallback local data');
-
         // 로컬 데이터를 컴포넌트 상태 포맷에 맞게 변환하는 내부 헬퍼 함수
         const mapToSkillItem = (items: { name: string; level: number }[], category: string, filter: string): SkillItemType[] =>
           items.map((item, idx) => ({
@@ -58,7 +53,6 @@ const InteractiveSkillSection: React.FC = () => {
             order: idx
           }));
 
-        // 세 가지 카테고리 데이터를 합쳐서 상태에 저장
         data = [
           ...mapToSkillItem(SKILLS, 'Capabilities', 'Main'),
           ...mapToSkillItem(TOOLS_DATA, 'Tools', 'Main'),
@@ -70,29 +64,18 @@ const InteractiveSkillSection: React.FC = () => {
       setLoading(false);
     };
     loadSkills();
-
-    // 2) IntersectionObserver: 화면에 섹션이 보이면 isVisible을 true로 변경 (애니메이션 용)
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-    if (!loading && sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, [loading]);
+  }, []);
 
   const categories = ['Capabilities', 'Tools', 'Equipment'];
 
   // 특정 카테고리의 유니크한 필터 목록 추출 (예: All, Editing, Color Grading...)
   const getFilters = (category: string) => {
-    // Hidden 속성이 있는 아이템은 제외
     const categorySkills = skills.filter(s => s.category === category && !s.hidden);
     const filters = Array.from(new Set(categorySkills.map(s => s.filter))).filter(f => f);
-    return ['All', ...filters]; // 항상 'All'을 포함하여 반환
+    return ['All', ...filters];
   };
 
-  // 화살표 버튼 클릭 시 필터 순환 이동 (All -> Filter1 -> Filter2 -> All ...)
+  // 화살표 버튼 클릭 시 필터 순환 이동
   const traverseFilters = (category: string, direction: 'next' | 'prev') => {
     const filters = getFilters(category);
     const currentFilter = activeFilters[category] || 'All';
@@ -100,14 +83,13 @@ const InteractiveSkillSection: React.FC = () => {
 
     let newIndex;
     if (direction === 'next') {
-      newIndex = (currentIndex + 1) % filters.length; // 끝에 도달하면 처음으로
+      newIndex = (currentIndex + 1) % filters.length;
     } else {
-      newIndex = (currentIndex - 1 + filters.length) % filters.length; // 처음에서 뒤로 가면 끝으로
+      newIndex = (currentIndex - 1 + filters.length) % filters.length;
     }
 
-    // 변경된 필터 적용
-    setActiveFilters(prev => ({ ...prev, [category]: nextFilter }));
     const nextFilter = filters[newIndex];
+    setActiveFilters(prev => ({ ...prev, [category]: nextFilter }));
   };
 
   // 'All' 뷰(개요)에서 보여줄 해당 필터 그룹의 평균 숙련도 계산
@@ -125,8 +107,7 @@ const InteractiveSkillSection: React.FC = () => {
 
   return (
     <div
-      ref={sectionRef}
-      // 화면에 보이면 위로 올라오면서 투명도 100% (fade-in-up)
+      ref={ref}
       className={`grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
         }`}
     >
@@ -273,20 +254,7 @@ const InteractiveSkillSection: React.FC = () => {
 // ----------------------------------------------------------------------
 
 const About: React.FC = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const textRef = useRef<HTMLDivElement>(null);
-
-  // 메인 타이틀("I AM A STORYTELLER") 스크롤 감지 애니메이션
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsVisible(entry.isIntersecting);
-      },
-      { threshold: 0.15 }
-    );
-    if (textRef.current) observer.observe(textRef.current);
-    return () => observer.disconnect();
-  }, []);
+  const [textRef, isTextVisible] = useIntersectionObserver({ threshold: 0.15 });
 
   return (
     <div className="w-full px-6">
@@ -305,7 +273,7 @@ const About: React.FC = () => {
                   text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter leading-[0.9] 
                   break-words w-full
                   transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) 
-                  ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}
+                  ${isTextVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}
                 `}
               >
                 <span className="text-slate-900 inline-block mr-4">I AM A</span>
@@ -317,7 +285,7 @@ const About: React.FC = () => {
 
             <div className="flex flex-col gap-10 pt-8">
               {/* 인용구 섹션 (Quote) - 왼쪽에서 등장 애니메이션 */}
-              <div className={`transition-all duration-1000 delay-300 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+              <div className={`transition-all duration-1000 delay-300 ${isTextVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                 <div className="border-l-2 border-slate-900 pl-6 py-2">
                   <p className="text-lg md:text-2xl text-slate-500 font-light italic leading-relaxed">
                     "카메라는 도구일 뿐, 감동을 만드는 것은 그 프레임 안에 담긴 진심입니다."
@@ -326,7 +294,7 @@ const About: React.FC = () => {
               </div>
 
               {/* 설명 본문 (Description) - 아래에서 위로 등장 애니메이션 */}
-              <div className={`transition-all duration-1000 delay-500 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+              <div className={`transition-all duration-1000 delay-500 ${isTextVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <p className="text-sm md:text-lg text-slate-800 font-light leading-loose break-keep">
                   단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다.<br className="hidden md:block" />
                   다양한 댄스 필름과 뮤직비디오 프로젝트를 거치며 시각적 리듬감과 역동적인 연출력을 쌓아왔습니다.
