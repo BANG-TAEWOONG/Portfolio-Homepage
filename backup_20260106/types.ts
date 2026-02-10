@@ -14,7 +14,6 @@ export interface WorkItem {
   releaseDate: string;
   role: string;
   setup: string;
-  contributionRate?: string;
 }
 
 export interface Skill {

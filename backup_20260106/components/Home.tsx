@@ -169,6 +169,14 @@ const Home: React.FC = () => {
         </div>
       </div>
 
+      {/* 스크롤 애니메이션 키프레임 정의 */}
+      <style>{`
+        @keyframes scroll-dot {
+            0% { transform: translateY(-100%); opacity: 0; }
+            50% { transform: translateY(0%); opacity: 1; }
+            100% { transform: translateY(100%); opacity: 0; }
+        }
+      `}</style>
     </div>
   );
 };

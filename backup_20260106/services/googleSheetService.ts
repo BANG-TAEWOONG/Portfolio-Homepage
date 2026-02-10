@@ -1,6 +1,5 @@
 import Papa from 'papaparse';
 import { WorkItem, Category, WorkType, SkillItem } from '../types';
-import { getYouTubeId, getYouTubeThumbnail } from '../utils/youtube';
 
 // ----------------------------------------------------------------------
 // 1. 구글 시트 설정 및 상수 정의
@@ -16,14 +15,6 @@ const GOOGLE_SHEET_CSV_URL = `${GOOGLE_SHEET_BASE_URL}?output=csv`;
 const SKILL_DB_GID = '865936350';
 const GOOGLE_SHEET_SKILLS_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${SKILL_DB_GID}&output=csv`;
 
-// Tools 데이터가 있는 시트의 GID
-const TOOLS_GID = '2121398315';
-const GOOGLE_SHEET_TOOLS_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${TOOLS_GID}&output=csv`;
-
-// Equipment 데이터가 있는 시트의 GID
-const EQUIPMENT_GID = '1277913603';
-const GOOGLE_SHEET_EQUIPMENT_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${EQUIPMENT_GID}&output=csv`;
-
 // ----------------------------------------------------------------------
 // 2. 데이터 인터페이스 (구글 시트 헤더와 1:1 매핑)
 // ----------------------------------------------------------------------
@@ -32,18 +23,17 @@ const GOOGLE_SHEET_EQUIPMENT_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${EQUIPMENT_GID
 interface SheetRow {
     id: string;
     date: string;
-    hidden: string;
     participation_level: string;
     project_type: string;
-    client: string;
     artist: string;
     running_time: string;
     title: string;
-    contribution_rate: string;
-    my_role: string;
-    use_tools: string;
-    set_up: string;
+    role: string;
     video_url: string;
+    thumbnail_url: string;
+    edit_tool: string;
+    setup: string;
+    hidden: string;
     description: string;
 }
 
@@ -56,30 +46,6 @@ interface SkillSheetRow {
     order: string;
     hidden?: string;
     remark?: string;
-}
-
-// Tools 시트의 행 데이터 타입 (Raw Data)
-interface ToolSheetRow {
-    id: string;
-    hidden: string;
-    source_table: string;
-    group: string;
-    vendor: string;
-    tool_name: string;
-    level: string;
-    remark: string;
-}
-
-// Equipment 시트의 행 데이터 타입 (Raw Data)
-interface EquipmentSheetRow {
-    id: string;
-    hidden: string;
-    source_table: string;
-    group: string;
-    brand: string;
-    name: string;
-    level: string;
-    remark: string;
 }
 
 // ----------------------------------------------------------------------
@@ -103,6 +69,28 @@ function mapCategory(type: string): Category {
 const mapWorkType = (level: string): WorkType => {
     if (level.includes('Personal')) return 'Created';
     return 'Participated';
+};
+
+/**
+ * 유튜브 URL에서 Video ID 추출 (정규식 사용)
+ */
+const getYouTubeId = (url: string): string | null => {
+    if (!url) return null;
+    // 다양한 유튜브 URL 포맷 지원 (youtu.be, watch?v=, embed 등)
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+};
+
+/**
+ * 썸네일 URL이 없을 경우 유튜브 ID를 기반으로 기본 썸네일 생성
+ * 유튜브 링크도 없으면 Unsplash 랜덤 이미지 반환
+ */
+const getYouTubeThumbnail = (url: string): string => {
+    const videoId = getYouTubeId(url);
+    return videoId
+        ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`
+        : 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=1470&auto=format&fit=crop';
 };
 
 // ----------------------------------------------------------------------
@@ -130,28 +118,25 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                         .map(row => ({
                             id: row.id,
                             title: row.title,
-                            // 썸네일 컬럼 삭제됨 -> 유튜브 썸네일 항상 자동 생성
-                            thumbnail: getYouTubeThumbnail(row.video_url),
+                            // 썸네일이 비어있으면 유튜브 썸네일 자동 생성
+                            thumbnail: row.thumbnail_url || getYouTubeThumbnail(row.video_url),
                             videoUrl: row.video_url,
                             category: mapCategory(row.project_type),
                             type: mapWorkType(row.participation_level),
                             runningTime: row.running_time,
                             releaseDate: row.date,
-                            role: row.my_role, // role -> my_role
-                            setup: row.set_up, // setup -> set_up
-                            description: row.description,
-                            contributionRate: row.contribution_rate // 추가됨
+                            role: row.role,
+                            setup: row.setup,
+                            description: row.description
                         }));
 
                     resolve(workItems);
                 } catch (err) {
-                    console.error('Error parsing work items:', err);
-                    resolve([]);
+                    reject(err);
                 }
             },
             error: (err) => {
-                console.error('Fetch error (work items):', err);
-                resolve([]);
+                reject(err);
             }
         });
     });
@@ -178,8 +163,8 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
                             category: row.category,
                             filter: row.filter,
                             name: row.name,
-                            level: parseInt(row.level, 10) || 0, // 숫자로 변환, 실패 시 0
-                            order: parseInt(row.order, 10) || 999, // 정렬 순서
+                            level: parseInt(row.level) || 0, // 숫자로 변환, 실패 시 0
+                            order: parseInt(row.order) || 999, // 정렬 순서
                             hidden: row.hidden?.trim().toUpperCase() === 'TRUE'
                         }))
                         // 3. 정렬: order 값이 낮은 순서대로 (오름차순)
@@ -194,83 +179,6 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
             error: (err) => {
                 console.error('Fetch error:', err);
                 reject(err);
-            }
-        });
-    });
-};
-
-/**
- * Tools 목록 가져오기
- * - group -> filter, tool_name -> name 매핑
- * - category: 'Tools'
- */
-export const fetchToolsData = async (): Promise<SkillItem[]> => {
-    return new Promise((resolve, reject) => {
-        Papa.parse(GOOGLE_SHEET_TOOLS_URL, {
-            download: true,
-            header: true,
-            complete: (results) => {
-                try {
-                    const rows = results.data as ToolSheetRow[];
-                    const tools: SkillItem[] = rows
-                        .filter(row => row.tool_name && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE'))
-                        .map(row => ({
-                            category: 'Tools',
-                            filter: row.group,
-                            name: row.tool_name,
-                            level: parseInt(row.level, 10) || 0,
-                            hidden: false
-                        }));
-                    resolve(tools);
-                } catch (err) {
-                    console.error('Error parsing tools:', err);
-                    resolve([]);
-                }
-            },
-            error: (err) => {
-                console.error('Fetch error (tools):', err);
-                resolve([]);
-            }
-        });
-    });
-};
-
-/**
- * Equipment 목록 가져오기
- * - group -> filter 매핑
- * - category: 'Equipment'
- * - level > 0 필터링 (핵심 비즈니스 로직)
- */
-export const fetchEquipmentData = async (): Promise<SkillItem[]> => {
-    return new Promise((resolve, reject) => {
-        Papa.parse(GOOGLE_SHEET_EQUIPMENT_URL, {
-            download: true,
-            header: true,
-            complete: (results) => {
-                try {
-                    const rows = results.data as EquipmentSheetRow[];
-                    const equipment: SkillItem[] = rows
-                        .filter(row => {
-                            const level = parseInt(row.level, 10) || 0;
-                            // Level > 0이고 숨김처리 안 된 항목만 표시
-                            return level > 0 && row.name && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE');
-                        })
-                        .map(row => ({
-                            category: 'Equipment',
-                            filter: row.group,
-                            name: row.name,
-                            level: parseInt(row.level, 10) || 0,
-                            hidden: false
-                        }));
-                    resolve(equipment);
-                } catch (err) {
-                    console.error('Error parsing equipment:', err);
-                    resolve([]);
-                }
-            },
-            error: (err) => {
-                console.error('Fetch error (equipment):', err);
-                resolve([]);
             }
         });
     });

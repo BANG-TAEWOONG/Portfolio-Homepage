@@ -36,7 +36,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
     if (element) {
       const headerOffset = 64; // 고정된 헤더 높이(64px)만큼 위치를 보정해줌
       const elementPosition = element.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.scrollY - headerOffset;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
       // 계산된 위치로 부드럽게 스크롤 이동
       window.scrollTo({
@@ -95,4 +95,4 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
   );
 };
 
-export default React.memo(Navbar);
+export default Navbar;

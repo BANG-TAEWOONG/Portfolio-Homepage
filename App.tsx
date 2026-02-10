@@ -9,6 +9,8 @@ const Work = lazy(() => import('./components/Work'));
 const About = lazy(() => import('./components/About'));
 const Contact = lazy(() => import('./components/Contact'));
 
+const Admin = lazy(() => import('./components/Admin'));
+
 // 섹션 스켈레톤 (로딩 중 표시)
 const SectionLoader = () => (
   <div className="w-full h-[60vh] flex items-center justify-center bg-white">
@@ -28,6 +30,27 @@ const RevealSection: React.FC<{ id: string; children: React.ReactNode; className
 
 const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setIsAdmin(window.location.hash === '#admin');
+    };
+
+    // Check initial hash
+    handleHashChange();
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  if (isAdmin) {
+    return (
+      <Suspense fallback={<SectionLoader />}>
+        <Admin />
+      </Suspense>
+    );
+  }
 
   useEffect(() => {
     // IntersectionObserver를 사용한 효율적인 Scroll Spy 구현

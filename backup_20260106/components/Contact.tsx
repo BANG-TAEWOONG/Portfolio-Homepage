@@ -1,9 +1,6 @@
 import React from 'react';
-import { useSiteTexts } from '../hooks/useSiteTexts';
 
 const Contact: React.FC = () => {
-  const { texts } = useSiteTexts();
-
   return (
     // 전체 컨테이너: 텍스트 중앙 정렬(text-center) 및 좌우 패딩(px-6)
     <div className="w-full px-6 text-center">
@@ -48,25 +45,13 @@ const Contact: React.FC = () => {
           </div>
         </a>
 
-        {/* D. 비메오 (비활성 — 실제 URL 설정 시 활성화) */}
-        <span className="group cursor-not-allowed opacity-40" aria-label="Vimeo (준비 중)">
-          <div className="flex items-center justify-center">
-            <svg className="w-6 h-6 md:w-8 md:h-8 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
+        {/* D. 비메오 (현재 링크 없음 '#') */}
+        <a href="#" className="group" aria-label="Vimeo">
+          <div className="flex items-center justify-center transition-all duration-500 transform group-hover:scale-125">
+            <svg className="w-6 h-6 md:w-8 md:h-8 text-slate-300 transition-colors duration-500 group-hover:text-slate-900" fill="currentColor" viewBox="0 0 24 24">
               <path d="M22.396 7.158c-.093 2.026-1.507 4.799-4.245 8.32C15.477 18.961 13.028 20.71 10.9 20.71c-1.314 0-2.424-1.213-3.33-3.64l-1.81-6.623c-.682-2.5-1.414-3.75-2.193-3.75-.155 0-.696.325-1.62.977l-.971-1.254c1.022-.898 2.019-1.799 2.99-2.701 1.362-1.208 2.383-1.854 3.064-1.938 1.612-.185 2.6 1.05 2.962 3.704.417 3.061.696 4.962.835 5.7.325 1.701.682 2.551 1.066 2.551.278 0 .898-.588 1.855-1.764.958-1.176 1.477-2.072 1.554-2.689.154-1.237-.356-1.855-1.53-1.855-.541 0-1.1.123-1.67.37 1.114-3.649 3.232-5.419 6.355-5.311 2.321.077 3.404 1.562 3.25 4.456z" />
             </svg>
           </div>
-        </span>
-      </div>
-
-      {/* 2-B. 촬영 문의하기 (CTA Button) */}
-      <div className="mt-12 md:mt-16">
-        <a
-          href={texts.contactFormUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-block px-8 py-3 md:px-10 md:py-4 border border-slate-200 text-[10px] md:text-xs font-bold tracking-[0.2em] uppercase text-slate-500 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-300"
-        >
-          Project Inquiry
         </a>
       </div>
 
