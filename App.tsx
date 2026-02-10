@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import Navbar from './components/Navbar';
 import { useIntersectionObserver } from './hooks/useIntersectionObserver';
+import { useSiteTexts } from './hooks/useSiteTexts';
 
 // 컴포넌트 레이지 로딩 (초기 로딩 속도 향상)
 const Home = lazy(() => import('./components/Home'));
@@ -30,27 +31,28 @@ const RevealSection: React.FC<{ id: string; children: React.ReactNode; className
 
 const App: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const { texts } = useSiteTexts();
 
-  useEffect(() => {
-    const handleHashChange = () => {
-      setIsAdmin(window.location.hash === '#admin');
-    };
+  // ── 개발자 모드: 푸터 5번 탭 감지 ──
+  const tapCountRef = useRef(0);
+  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // Check initial hash
-    handleHashChange();
+  const handleFooterTap = useCallback(() => {
+    tapCountRef.current += 1;
 
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    // 이전 타이머 리셋 (2초 이내에 5번 클릭해야 함)
+    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
+
+    if (tapCountRef.current >= 5) {
+      tapCountRef.current = 0;
+      setShowAdmin(true);
+    } else {
+      tapTimerRef.current = setTimeout(() => {
+        tapCountRef.current = 0;
+      }, 2000);
+    }
   }, []);
-
-  if (isAdmin) {
-    return (
-      <Suspense fallback={<SectionLoader />}>
-        <Admin />
-      </Suspense>
-    );
-  }
 
   useEffect(() => {
     // IntersectionObserver를 사용한 효율적인 Scroll Spy 구현
@@ -107,9 +109,22 @@ const App: React.FC = () => {
         </RevealSection>
       </main>
 
+      {/* 푸터 — copyright를 5번 빠르게 클릭하면 Admin 모달 활성화 */}
       <footer className="py-12 text-center border-t border-slate-100 text-slate-300 text-[10px] tracking-[0.2em] uppercase">
-        <p>&copy; {new Date().getFullYear()} Video Producer. All rights reserved.</p>
+        <p
+          onClick={handleFooterTap}
+          className="cursor-default select-none"
+        >
+          &copy; {new Date().getFullYear()} {texts.footerCopyright}. All rights reserved.
+        </p>
       </footer>
+
+      {/* Admin 모달 오버레이 */}
+      {showAdmin && (
+        <Suspense fallback={null}>
+          <Admin onClose={() => setShowAdmin(false)} />
+        </Suspense>
+      )}
     </div>
   );
 };

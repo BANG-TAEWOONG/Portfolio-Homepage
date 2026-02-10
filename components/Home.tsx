@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useSiteTexts } from '../hooks/useSiteTexts';
 
 const Home: React.FC = () => {
+  const { texts } = useSiteTexts();
   // ----------------------------------------------------------------------
   // 1. 상태 관리 (State Management)
   // ----------------------------------------------------------------------
@@ -112,8 +114,12 @@ const Home: React.FC = () => {
         <div className={`transition-all duration-[1500ms] cubic-bezier(0.22, 1, 0.36, 1) transform ${isRevealed ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} text-center`}>
           {/* 메인 카피 문구 */}
           <p className="text-lg md:text-2xl lg:text-3xl text-white font-light leading-relaxed mb-8 md:mb-10 tracking-tight transition-all duration-[2000ms]">
-            세상을 프레임 속에 담아내는 영상 제작자입니다. <br className="hidden md:block" />
-            감각적인 연출과 섬세한 편집으로 당신의 이야기를 시각화합니다.
+            {texts.homeDescription.split('\n').map((line, i) => (
+              <React.Fragment key={i}>
+                {i > 0 && <br className="hidden md:block" />}
+                {line}
+              </React.Fragment>
+            ))}
           </p>
 
           {/* 포트폴리오 바로가기 버튼 */}
@@ -123,7 +129,7 @@ const Home: React.FC = () => {
             className="group relative inline-block px-10 py-4 md:px-12 md:py-5 overflow-hidden border border-white/30 text-white text-[10px] md:text-xs font-bold tracking-[0.3em] transition-all duration-500 uppercase"
           >
             {/* 버튼 텍스트 */}
-            <span className="relative z-10 transition-colors duration-500 group-hover:text-black">Explore Portfolio</span>
+            <span className="relative z-10 transition-colors duration-500 group-hover:text-black">{texts.homeButtonText}</span>
             {/* 호버 시 아래에서 올라오는 흰색 배경 애니메이션 */}
             <div className="absolute inset-0 z-0 translate-y-full bg-white transition-transform duration-500 cubic-bezier(0.22, 1, 0.36, 1) group-hover:translate-y-0"></div>
           </a>

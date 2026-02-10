@@ -47,14 +47,15 @@ interface SheetRow {
     description: string;
 }
 
-// 스킬 시트의 행 데이터 타입 (Raw Data)
+// 스킬(Capabilities) 시트의 행 데이터 타입 (Raw Data)
+// 실제 시트 컬럼: id, hidden, source_table, group, skill_name, level, remark
 interface SkillSheetRow {
-    category: string;
-    filter: string;
-    name: string;
+    id: string;
+    hidden: string;
+    source_table: string;
+    group: string;
+    skill_name: string;
     level: string;
-    order: string;
-    hidden?: string;
     remark?: string;
 }
 
@@ -119,6 +120,7 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
         Papa.parse(GOOGLE_SHEET_CSV_URL, {
             download: true, // URL에서 직접 다운로드
             header: true,   // 첫 번째 줄을 키(Key)로 사용
+            transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
             complete: (results) => {
                 try {
                     const rows = results.data as SheetRow[];
@@ -163,27 +165,25 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
  * - 정렬 순서(order)에 따라 데이터 정렬
  */
 export const fetchSkillsData = async (): Promise<SkillItem[]> => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         Papa.parse(GOOGLE_SHEET_SKILLS_URL, {
             download: true,
             header: true,
+            transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
             complete: (results) => {
                 try {
                     const rows = results.data as SkillSheetRow[];
                     const skills: SkillItem[] = rows
-                        // 1. 필수값 체크
-                        .filter(row => row.category && row.name)
-                        // 2. 데이터 매핑 및 타입 변환
+                        // 1. 필수값 체크: skill_name 존재 + hidden이 아닌 것
+                        .filter(row => row.skill_name && row.skill_name.trim() && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE'))
+                        // 2. 데이터 매핑: 시트 컬럼 → 앱 내부 SkillItem 구조
                         .map(row => ({
-                            category: row.category,
-                            filter: row.filter,
-                            name: row.name,
-                            level: parseInt(row.level, 10) || 0, // 숫자로 변환, 실패 시 0
-                            order: parseInt(row.order, 10) || 999, // 정렬 순서
-                            hidden: row.hidden?.trim().toUpperCase() === 'TRUE'
-                        }))
-                        // 3. 정렬: order 값이 낮은 순서대로 (오름차순)
-                        .sort((a, b) => (a.order || 999) - (b.order || 999));
+                            category: 'Capabilities',      // source_table 대신 고정값 사용
+                            filter: row.group,              // group → filter
+                            name: row.skill_name,           // skill_name → name
+                            level: parseInt(row.level, 10) || 0,
+                            hidden: false                   // 이미 필터링 완료
+                        }));
 
                     resolve(skills);
                 } catch (err) {
@@ -192,8 +192,8 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
                 }
             },
             error: (err) => {
-                console.error('Fetch error:', err);
-                reject(err);
+                console.error('Fetch error (skills):', err);
+                resolve([]); // reject 대신 resolve([])로 변경 — 다른 fetch 실패 방지
             }
         });
     });
@@ -209,6 +209,7 @@ export const fetchToolsData = async (): Promise<SkillItem[]> => {
         Papa.parse(GOOGLE_SHEET_TOOLS_URL, {
             download: true,
             header: true,
+            transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
             complete: (results) => {
                 try {
                     const rows = results.data as ToolSheetRow[];
@@ -246,14 +247,14 @@ export const fetchEquipmentData = async (): Promise<SkillItem[]> => {
         Papa.parse(GOOGLE_SHEET_EQUIPMENT_URL, {
             download: true,
             header: true,
+            transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
             complete: (results) => {
                 try {
                     const rows = results.data as EquipmentSheetRow[];
                     const equipment: SkillItem[] = rows
                         .filter(row => {
-                            const level = parseInt(row.level, 10) || 0;
-                            // Level > 0이고 숨김처리 안 된 항목만 표시
-                            return level > 0 && row.name && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE');
+                            // hidden 처리된 항목만 제외 (level 필터 제거 — 시트에서 hidden으로 관리)
+                            return row.name && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE');
                         })
                         .map(row => ({
                             category: 'Equipment',

@@ -3,6 +3,7 @@ import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../constants'
 import { Skill, SkillItem as SkillItemType } from '../types';
 import { fetchSkillsData, fetchToolsData, fetchEquipmentData } from '../services/googleSheetService';
 import { useIntersectionObserver } from '../hooks/useIntersectionObserver';
+import { useSiteTexts } from '../hooks/useSiteTexts';
 
 // ----------------------------------------------------------------------
 // 1. 헬퍼 함수
@@ -143,8 +144,7 @@ const InteractiveSkillSection: React.FC = () => {
   return (
     <div
       ref={ref}
-      className={`grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
-        }`}
+      className={`grid grid-cols-1 lg:grid-cols-3 gap-12 md:gap-16 lg:gap-20 transition-all duration-1000 ease-out ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'}`}
     >
       {categories.map((category) => {
         // 현재 카테고리에 해당하는 스킬 필터링
@@ -290,6 +290,7 @@ const InteractiveSkillSection: React.FC = () => {
 
 const About: React.FC = () => {
   const [textRef, isTextVisible] = useIntersectionObserver({ threshold: 0.15 });
+  const { texts } = useSiteTexts();
 
   return (
     <div className="w-full px-6">
@@ -311,9 +312,9 @@ const About: React.FC = () => {
                   ${isTextVisible ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'}
                 `}
               >
-                <span className="text-slate-900 inline-block mr-4">I AM A</span>
+                <span className="text-slate-900 inline-block mr-4">{texts.aboutTitle.split(' ').slice(0, -1).join(' ')}</span>
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-500 to-slate-900 bg-[length:200%_auto] hover:bg-right transition-all duration-500 inline-block">
-                  STORYTELLER.
+                  {texts.aboutTitle.split(' ').slice(-1)[0]}
                 </span>
               </h3>
             </div>
@@ -323,7 +324,7 @@ const About: React.FC = () => {
               <div className={`transition-all duration-1000 delay-300 ${isTextVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
                 <div className="border-l-2 border-slate-900 pl-6 py-2">
                   <p className="text-lg md:text-2xl text-slate-500 font-light italic leading-relaxed">
-                    "카메라는 도구일 뿐, 감동을 만드는 것은 그 프레임 안에 담긴 진심입니다."
+                    "{texts.aboutQuote}"
                   </p>
                 </div>
               </div>
@@ -331,8 +332,12 @@ const About: React.FC = () => {
               {/* 설명 본문 (Description) - 아래에서 위로 등장 애니메이션 */}
               <div className={`transition-all duration-1000 delay-500 ${isTextVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
                 <p className="text-sm md:text-lg text-slate-800 font-light leading-loose break-keep">
-                  단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다.<br className="hidden md:block" />
-                  다양한 댄스 필름과 뮤직비디오 프로젝트를 거치며 시각적 리듬감과 역동적인 연출력을 쌓아왔습니다.
+                  {texts.aboutDescription.split('\n').map((line, i) => (
+                    <React.Fragment key={i}>
+                      {i > 0 && <br className="hidden md:block" />}
+                      {line}
+                    </React.Fragment>
+                  ))}
                 </p>
               </div>
             </div>
@@ -345,10 +350,10 @@ const About: React.FC = () => {
         {/* 3. 핵심 가치 섹션 (Values Section) - 4개의 카드 그리드 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 pb-20">
           {[
-            { n: '01', t: 'Clear Communication', d: '아이디어가 현실이 되는 과정에서 가장 중요한 것은 상호 이해입니다.' },
-            { n: '02', t: 'On-time Delivery', d: '약속된 시간을 철저히 지켜 프로젝트의 완성을 보장합니다.' },
-            { n: '03', t: 'Extreme Detail', d: '프레임 한 장, 색감 한 스탑의 차이가 영상의 본질을 결정합니다.' },
-            { n: '04', t: 'Flexible Solution', d: '현장의 변수 속에서도 최선의 결과를 위한 대안을 신속하게 찾습니다.' }
+            { n: '01', t: texts.aboutValue1Title, d: texts.aboutValue1Desc },
+            { n: '02', t: texts.aboutValue2Title, d: texts.aboutValue2Desc },
+            { n: '03', t: texts.aboutValue3Title, d: texts.aboutValue3Desc },
+            { n: '04', t: texts.aboutValue4Title, d: texts.aboutValue4Desc }
           ].map((v) => (
             <div key={v.n} className="group p-6 md:p-10 bg-white border border-slate-100 transition-all duration-700 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:-translate-y-1 cursor-default">
               <span className="text-[9px] font-bold text-slate-200 group-hover:text-black transition-colors duration-500 mb-2 block tracking-widest">{v.n}</span>
