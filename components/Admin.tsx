@@ -54,6 +54,7 @@ const SECTIONS: { title: string; fields: FieldConfig[] }[] = [
             { key: 'contactLocation', label: '활동 지역', type: 'text', placeholder: 'Seoul, South Korea' },
             { key: 'contactAvailability', label: '가용성 메시지', type: 'text', placeholder: 'Available for worldwide projects' },
             { key: 'contactFormUrl', label: 'Google Form URL', type: 'url', placeholder: 'https://forms.google.com/...' },
+            { key: 'contactCalendarUrl', label: '캘린더 임베드 URL', type: 'url', placeholder: 'Google Calendar 임베드 URL (src="..." 안의 주소)' },
         ]
     },
     {

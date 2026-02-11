@@ -26,6 +26,7 @@ export const DEFAULT_SITE_TEXTS = {
     contactLocation: "Seoul, South Korea",
     contactAvailability: "Available for worldwide projects",
     contactFormUrl: "https://forms.google.com/YOUR_FORM_ID",
+    contactCalendarUrl: "",
 
     // ── Footer ──
     footerCopyright: "Video Producer",

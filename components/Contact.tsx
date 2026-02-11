@@ -58,6 +58,22 @@ const Contact: React.FC = () => {
         </span>
       </div>
 
+      {/* 2-A. 캘린더 임베드 섹션 (URL이 있을 경우에만 표시) */}
+      {texts.contactCalendarUrl && (
+        <div className="mt-16 md:mt-20 w-full max-w-4xl mx-auto">
+          <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-2">Schedule</h3>
+          <p className="text-slate-500 text-[10px] md:text-xs font-light mb-6 tracking-wide">촬영 가능 일정을 확인하고 문의해주세요</p>
+          <div className="w-full h-[400px] md:h-[500px] bg-slate-50 rounded-lg overflow-hidden border border-slate-100 shadow-sm relative">
+            <iframe
+              src={texts.contactCalendarUrl}
+              className="w-full h-full border-0 rounded-lg"
+              loading="lazy"
+              title="Schedule Calendar"
+            />
+          </div>
+        </div>
+      )}
+
       {/* 2-B. 촬영 문의하기 (CTA Button) */}
       <div className="mt-12 md:mt-16">
         <a
