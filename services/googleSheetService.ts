@@ -1,6 +1,7 @@
 import Papa from 'papaparse';
 import { WorkItem, Category, WorkType, SkillItem } from '../types';
 import { getYouTubeId, getYouTubeThumbnail } from '../utils/youtube';
+import { SiteTexts, DEFAULT_SITE_TEXTS } from '../constants/siteTexts';
 
 // ----------------------------------------------------------------------
 // 1. 구글 시트 설정 및 상수 정의
@@ -23,6 +24,9 @@ const GOOGLE_SHEET_TOOLS_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${TOOLS_GID}&output
 // Equipment 데이터가 있는 시트의 GID
 const EQUIPMENT_GID = '1277913603';
 const GOOGLE_SHEET_EQUIPMENT_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${EQUIPMENT_GID}&output=csv`;
+
+// 사이트 텍스트 시트 (별도 스프레드시트)
+const SITE_TEXTS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQS8u7I2fzhfrogdXqEptSCalEY1revbT9OpnlTleQMpISMwezEEInp8EBoE2lEFMZuKkEmWAtc8zXh/pub?output=csv';
 
 // ----------------------------------------------------------------------
 // 2. 데이터 인터페이스 (구글 시트 헤더와 1:1 매핑)
@@ -272,6 +276,52 @@ export const fetchEquipmentData = async (): Promise<SkillItem[]> => {
             error: (err) => {
                 console.error('Fetch error (equipment):', err);
                 resolve([]);
+            }
+        });
+    });
+};
+
+// ----------------------------------------------------------------------
+// 사이트 텍스트 시트 행 타입 (key | value)
+// ----------------------------------------------------------------------
+interface SiteTextRow {
+    key: string;
+    value: string;
+}
+
+/**
+ * 사이트 텍스트 가져오기 (Google Sheets CMS)
+ * - key/value 2열 구조의 CSV를 SiteTexts 객체로 변환
+ * - \n 문자열을 실제 줄바꿈으로 치환
+ */
+export const fetchSiteTexts = async (): Promise<Partial<SiteTexts>> => {
+    return new Promise((resolve) => {
+        Papa.parse(SITE_TEXTS_SHEET_URL, {
+            download: true,
+            header: true,
+            transformHeader: (h: string) => h.trim(),
+            complete: (results) => {
+                try {
+                    const rows = results.data as SiteTextRow[];
+                    const validKeys = Object.keys(DEFAULT_SITE_TEXTS);
+                    const texts: Partial<SiteTexts> = {};
+
+                    for (const row of rows) {
+                        const key = row.key?.trim();
+                        if (key && validKeys.includes(key) && row.value != null) {
+                            (texts as Record<string, string>)[key] = row.value.replace(/\\n/g, '\n');
+                        }
+                    }
+
+                    resolve(texts);
+                } catch (err) {
+                    console.error('Error parsing site texts:', err);
+                    resolve({});
+                }
+            },
+            error: (err) => {
+                console.error('Fetch error (site texts):', err);
+                resolve({});
             }
         });
     });

@@ -26,10 +26,10 @@ export const DEFAULT_SITE_TEXTS = {
     contactLocation: "Seoul, South Korea",
     contactAvailability: "Available for worldwide projects",
     contactFormUrl: "https://forms.google.com/YOUR_FORM_ID",
-    contactCalendarUrl: "",
+    contactCalendarUrl: "https://calendar.google.com/calendar/embed?src=d83273c5b0943375ee59b11179d4c555b62660043cc16173e988a8972081b012%40group.calendar.google.com&ctz=Asia%2FSeoul",
 
     // ── Footer ──
-    footerCopyright: "Video Producer",
+    footerCopyright: "TEST",
 };
 
 export type SiteTexts = typeof DEFAULT_SITE_TEXTS;

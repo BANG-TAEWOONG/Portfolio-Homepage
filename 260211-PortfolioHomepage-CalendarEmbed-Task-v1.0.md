@@ -13,8 +13,8 @@
 
 ## 4. 빌드 & 배포
 - [x] `npx vite build` 실행 → Verify: 터미널에 빌드 성공 메시지 확인
-- [ ] Git commit & push (`feat: add google calendar embed`) → Verify: GitHub 리포지토리에 반영 확인
-- [ ] `npx vercel --prod` (또는 자동 배포) → Verify: Vercel 대시보드에서 배포 성공 확인
+- [x] Git commit & push (`feat: add google calendar embed`) → Verify: GitHub 리포지토리에 반영 확인
+- [x] `npx vercel --prod` (또는 자동 배포) → Verify: Vercel 대시보드에서 배포 성공 확인
 
 ## 5. 최종 검증
 - [ ] 배포된 사이트 접속 후 Contact 섹션 확인 (URL 미입력 시) → Verify: 캘린더 미표시 확인
