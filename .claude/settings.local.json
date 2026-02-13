@@ -1,7 +1,15 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "WebFetch(domain:docs.google.com)",
+      "WebFetch(domain:doc-14-bo-sheets.googleusercontent.com)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat: site texts를 localStorage에서 Google Sheets CMS로 전환\n\nAdmin에서 수정한 텍스트가 같은 브라우저에서만 반영되는 문제 해결.\nGoogle Sheets CSV를 통해 모든 기기에서 동일한 텍스트 표시.\n\nCo-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "WebFetch(domain:twoongstudio.vercel.app)",
+      "Bash(npx vercel:*)",
+      "Bash(git commit:*)"
     ]
   }
 }

@@ -113,7 +113,8 @@ const Home: React.FC = () => {
         {/* 텍스트 컨테이너: isRevealed 상태에 따라 아래에서 위로 올라오며 페이드인 */}
         <div className={`transition-all duration-[1500ms] cubic-bezier(0.22, 1, 0.36, 1) transform ${isRevealed ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} text-center`}>
           {/* 메인 카피 문구 */}
-          <p className="text-lg md:text-2xl lg:text-3xl text-white font-light leading-relaxed mb-8 md:mb-10 tracking-tight transition-all duration-[2000ms]">
+          {/* 메인 카피 문구 */}
+          <p className="text-sm sm:text-base md:text-xl lg:text-2xl text-white font-light leading-relaxed mb-8 md:mb-10 tracking-tight transition-all duration-[2000ms]">
             {texts.homeDescription.split('\n').map((line, i) => (
               <React.Fragment key={i}>
                 {i > 0 && <br className="hidden md:block" />}
@@ -126,7 +127,7 @@ const Home: React.FC = () => {
           <a
             href="#work"
             onClick={scrollToWork}
-            className="group relative inline-block px-10 py-4 md:px-12 md:py-5 overflow-hidden border border-white/30 text-white text-[10px] md:text-xs font-bold tracking-[0.3em] transition-all duration-500 uppercase"
+            className="group relative inline-block px-8 py-3.5 sm:px-10 sm:py-4 md:px-12 md:py-5 overflow-hidden border border-white/30 text-white text-[10px] sm:text-xs font-bold tracking-[0.3em] transition-all duration-500 uppercase"
           >
             {/* 버튼 텍스트 */}
             <span className="relative z-10 transition-colors duration-500 group-hover:text-black">{texts.homeButtonText}</span>
@@ -141,18 +142,18 @@ const Home: React.FC = () => {
       {/* ---------------------------------------------------------------------- */}
       <button
         onClick={toggleMute}
-        className="absolute bottom-12 right-12 z-20 p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-300 group"
+        className="absolute bottom-6 right-6 md:bottom-12 md:right-12 z-20 p-3 md:p-4 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-300 group"
         aria-label={isMuted ? "Unmute" : "Mute"}
       >
         {isMuted ? (
           // 음소거 아이콘 (Speaker X)
-          <svg className="w-5 h-5 text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 md:w-5 md:h-5 text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 9l2 2m0 0l2 2m-2-2l-2 2m2-2l2-2" />
           </svg>
         ) : (
           // 소리 켜짐 아이콘 (Speaker Wave)
-          <svg className="w-5 h-5 text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="w-6 h-6 md:w-5 md:h-5 text-white/70 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
           </svg>
         )}
@@ -167,7 +168,7 @@ const Home: React.FC = () => {
         if (workSec) window.scrollTo({ top: workSec.offsetTop - 64, behavior: 'smooth' });
       }}>
         <div className="flex flex-col items-center">
-          <span className="text-white/40 text-[8px] tracking-[0.4em] uppercase mb-4">Scroll</span>
+          <span className="text-white/40 text-[10px] sm:text-xs tracking-[0.4em] uppercase mb-4">Scroll</span>
           <div className="w-[1px] h-12 md:h-16 bg-white/20 relative">
             {/* 위에서 아래로 흐르는 하얀 점 애니메이션 */}
             <div className="absolute top-0 left-0 w-full h-1/2 bg-white animate-[scroll-dot_2s_infinite]"></div>

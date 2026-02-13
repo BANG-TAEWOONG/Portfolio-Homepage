@@ -112,7 +112,7 @@ const Work: React.FC = () => {
         <div className="w-full text-center">
           <div className="overflow-hidden mb-8 md:mb-12">
             {/* 스크롤 시 아래에서 위로 올라오는 제목 애니메이션 */}
-            <h2 className={`text-[20px] md:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
+            <h2 className={`text-3xl sm:text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-black tracking-tighter text-slate-900 leading-[0.9] transition-transform duration-[1.2s] cubic-bezier(0.16, 1, 0.3, 1) ${isVisible ? 'translate-y-0' : 'translate-y-full'}`}>
               SELECTED PROJECTS
             </h2>
           </div>
@@ -126,7 +126,7 @@ const Work: React.FC = () => {
               <button
                 key={type}
                 onClick={() => setActiveType(type)}
-                className={`relative z-10 px-6 py-2 md:px-8 md:py-2.5 text-[10px] md:text-xs font-bold tracking-[0.2em] transition-all duration-300 uppercase rounded-full whitespace-nowrap ${activeType === type ? 'text-white' : 'text-slate-400 hover:text-slate-600'
+                className={`relative z-10 px-6 py-2 md:px-8 md:py-2.5 text-[10px] sm:text-xs font-bold tracking-[0.2em] transition-all duration-300 uppercase rounded-full whitespace-nowrap ${activeType === type ? 'text-white' : 'text-slate-400 hover:text-slate-600'
                   }`}
               >
                 {type === 'Created' ? 'Personal' : 'Participation'}
@@ -144,7 +144,7 @@ const Work: React.FC = () => {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`px-3 py-1.5 md:px-4 md:py-2 text-[9px] md:text-[10px] font-bold tracking-widest transition-all duration-300 border-b-2 uppercase whitespace-nowrap ${activeCategory === cat
+                className={`px-3 py-1.5 sm:px-4 sm:py-2 text-[10px] sm:text-xs font-bold tracking-widest transition-all duration-300 border-b-2 uppercase whitespace-nowrap ${activeCategory === cat
                   ? 'border-slate-900 text-slate-900' // 선택됨: 진한 글씨 + 밑줄
                   : 'border-transparent text-slate-300 hover:text-slate-500 hover:border-slate-200' // 미선택: 연한 글씨
                   }`}
@@ -168,7 +168,7 @@ const Work: React.FC = () => {
         // 데이터 로드 완료 시 실제 그리드 렌더링
         <div
           key={activeCategory + activeType} // 키값이 바뀌면 컴포넌트가 새로 그려지며 애니메이션 리셋됨
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 min-h-[500px]"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0 min-h-[500px]"
         >
           {!isGridUpdating && filteredItems.map((item, index) => (
             <div
@@ -189,8 +189,8 @@ const Work: React.FC = () => {
                 {/* 호버 오버레이 (모바일: 항상 보임 / 데스크탑: 호버 시 보임) */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6 md:p-8">
                   <div className="transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="text-[7px] md:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-2">{item.category}</span>
-                    <h3 className="text-[12px] md:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
+                    <span className="text-[8px] sm:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-2">{item.category}</span>
+                    <h3 className="text-sm sm:text-base md:text-lg lg:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
                     <div className="hidden md:flex items-center text-[10px] text-white/80 font-medium tracking-widest uppercase">
                       <span>View Project</span>
                     </div>
