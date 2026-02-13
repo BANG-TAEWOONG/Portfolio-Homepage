@@ -51,7 +51,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                 {...handlers}
                 key={selectedWork.id}
                 // transitionClass에 따라 슬라이드 애니메이션 적용
-                className={`relative w-full max-w-xl md:max-w-5xl z-[2010] my-4 md:my-8 pointer-events-auto ${transitionClass} flex-shrink-0`}
+                className={`relative w-full max-w-xl md:max-w-[85vw] lg:max-w-[80vw] xl:max-w-7xl z-[2010] my-4 md:my-8 pointer-events-auto ${transitionClass} flex-shrink-0`}
             >
                 {/* 3. 데스크탑용 사이드 네비게이션 버튼 (화살표) */}
                 <button
@@ -101,7 +101,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                     </div>
 
                     {/* B. 텍스트 컨텐츠 섹션 (PC: 우측 40%, 스크롤 가능) */}
-                    <div className="w-full md:w-2/5 p-6 md:p-10 bg-white max-h-[60vh] md:max-h-[600px] overflow-y-auto no-scrollbar relative">
+                    <div className="w-full md:w-2/5 p-6 md:p-10 bg-white max-h-[60vh] md:max-h-[70vh] overflow-y-auto no-scrollbar relative">
                         {/* PC용 닫기 버튼 */}
                         <button
                             onClick={onClose}
