@@ -51,12 +51,12 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                 {...handlers}
                 key={selectedWork.id}
                 // transitionClass에 따라 슬라이드 애니메이션 적용
-                className={`relative w-full max-w-[95vw] md:max-w-[90vw] lg:max-w-[88vw] xl:max-w-[85vw] z-[2010] my-4 md:my-8 pointer-events-auto ${transitionClass} flex-shrink-0`}
+                className={`relative w-full max-w-[95vw] lg:max-w-[90vw] xl:max-w-[85vw] z-[2010] my-4 lg:my-8 pointer-events-auto ${transitionClass} flex-shrink-0`}
             >
                 {/* 3. 데스크탑용 사이드 네비게이션 버튼 (화살표) */}
                 <button
                     onClick={(e) => { e.stopPropagation(); onPrev(); }}
-                    className="hidden md:flex absolute top-1/2 -left-12 lg:-left-20 -translate-y-1/2 z-[2030] p-2 text-slate-300 hover:text-slate-600 transition-all duration-300 hover:scale-110"
+                    className="hidden lg:flex absolute top-1/2 -left-12 xl:-left-20 -translate-y-1/2 z-[2030] p-2 text-slate-300 hover:text-slate-600 transition-all duration-300 hover:scale-110"
                     aria-label="Previous Project"
                 >
                     <svg className="w-12 h-12 drop-shadow-lg filter" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
@@ -65,7 +65,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                 </button>
                 <button
                     onClick={(e) => { e.stopPropagation(); onNext(); }}
-                    className="hidden md:flex absolute top-1/2 -right-12 lg:-right-20 -translate-y-1/2 z-[2030] p-2 text-slate-300 hover:text-slate-600 transition-all duration-300 hover:scale-110"
+                    className="hidden lg:flex absolute top-1/2 -right-12 xl:-right-20 -translate-y-1/2 z-[2030] p-2 text-slate-300 hover:text-slate-600 transition-all duration-300 hover:scale-110"
                     aria-label="Next Project"
                 >
                     <svg className="w-12 h-12 drop-shadow-lg filter" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
@@ -74,15 +74,15 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                 </button>
 
                 {/* 4. 내부 카드 컨테이너 (흰색 배경) - PC에선 가로 배치 */}
-                <div className="w-full bg-white rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col md:flex-row md:min-h-[75vh] md:max-h-[85vh]">
+                <div className="w-full bg-white rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col lg:flex-row lg:min-h-[75vh] lg:max-h-[85vh]">
 
                     {/* A. 비디오 섹션 (PC: 좌측 60%) */}
-                    <div className="w-full md:w-2/3 bg-black relative aspect-video md:aspect-auto md:h-auto shrink-0 self-stretch">
+                    <div className="w-full lg:w-2/3 bg-black relative aspect-video lg:aspect-auto lg:h-auto shrink-0 self-stretch">
                         {selectedWork.videoUrl && (
                             <iframe
                                 key={`${selectedWork.id}-iframe`}
                                 src={getYouTubeEmbedUrl(selectedWork.videoUrl)}
-                                className="w-full h-full absolute inset-0 md:static"
+                                className="w-full h-full absolute inset-0 lg:static"
                                 title={selectedWork.title}
                                 frameBorder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -92,7 +92,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                         {/* 영상 우상단 닫기 버튼 (X 아이콘) - 모바일에서만 노출하거나 PC에서도 유지? PC는 우측 텍스트 영역에 넣는게 나을수도 있으나 일단 유지 */}
                         <button
                             onClick={onClose}
-                            className="absolute top-3 right-3 z-[2030] p-1.5 text-white/50 hover:text-white transition-all duration-300 md:hidden"
+                            className="absolute top-3 right-3 z-[2030] p-1.5 text-white/50 hover:text-white transition-all duration-300 lg:hidden"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -101,11 +101,11 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                     </div>
 
                     {/* B. 텍스트 컨텐츠 섹션 (PC: 우측 40%, 스크롤 가능) */}
-                    <div className="w-full md:w-1/3 p-6 md:p-10 bg-white max-h-[60vh] md:max-h-[85vh] overflow-y-auto no-scrollbar relative">
+                    <div className="w-full lg:w-1/3 p-6 lg:p-10 bg-white max-h-[60vh] lg:max-h-[85vh] overflow-y-auto no-scrollbar relative">
                         {/* PC용 닫기 버튼 */}
                         <button
                             onClick={onClose}
-                            className="hidden md:block absolute top-4 right-4 text-slate-300 hover:text-slate-900 transition-colors"
+                            className="hidden lg:block absolute top-4 right-4 text-slate-300 hover:text-slate-900 transition-colors"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
@@ -121,7 +121,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                                     <h3 className="text-[12px] md:text-2xl font-bold text-slate-900 tracking-tighter leading-tight">{selectedWork.title}</h3>
 
                                     {/* 모바일용 네비게이션 버튼 (제목 옆에 작게 표시됨) */}
-                                    <div className="flex items-center space-x-2 md:hidden text-slate-300 shrink-0">
+                                    <div className="flex items-center space-x-2 lg:hidden text-slate-300 shrink-0">
                                         <button onClick={onPrev} className="hover:text-slate-900 transition-colors p-1">
                                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
