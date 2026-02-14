@@ -67,97 +67,93 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
   };
 
   return (
-    <nav
-      // 4. 네비게이션 컨테이너 스타일링 (동적 클래스 적용)
-      // fixed top-0: 화면 상단에 고정
-      // backdrop-blur-md bg-white/80: 배경을 반투명한 흰색 유리처럼 처리
-      // 조건부 로직: 스크롤을 내렸거나(isScrolled) 마우스를 올렸을 때(isHovered)만 보임
-      // 그렇지 않으면(맨 위 + 마우스 밖) 위로 숨겨짐(-translate-y-full)
-      className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 backdrop-blur-md bg-white/80 border-b border-slate-100 ${isScrolled || isHovered
-        ? 'opacity-100 translate-y-0'
-        : 'opacity-0 -translate-y-full hover:opacity-100 hover:translate-y-0'
-        }`}
-      onMouseEnter={() => setIsHovered(true)} // 마우
-      // 스 올리면 강제로 표시
-      onMouseLeave={() => setIsHovered(false)} // 마우스 치우면 스크롤 상태에 따라 결정
-    >
-      <div className="w-full px-6 h-16 md:h-20 flex items-center justify-between">
-        {/* 좌측 로고 (클릭 시 최상단 Home으로 이동) */}
-        <a
-          href="#home"
-          onClick={(e) => scrollToSection(e, 'home')}
-          className="text-[15px] md:text-xl font-bold tracking-tighter text-slate-900 whitespace-nowrap"
-        >
-          TWOONG STUDIO
-        </a>
+    <>
+      <nav
+        className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 backdrop-blur-md bg-white/80 border-b border-slate-100 ${isScrolled || isHovered
+          ? 'opacity-100 translate-y-0'
+          : 'opacity-0 -translate-y-full hover:opacity-100 hover:translate-y-0'
+          }`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <div className="w-full px-6 h-16 md:h-20 flex items-center justify-between">
+          {/* 좌측 로고 */}
+          <a
+            href="#home"
+            onClick={(e) => scrollToSection(e, 'home')}
+            className="text-[15px] md:text-xl font-bold tracking-tighter text-slate-900 whitespace-nowrap"
+          >
+            TWOONG STUDIO
+          </a>
 
-        {/* 우측 메뉴 리스트 - 데스크탑 (md 이상) */}
-        <div className="hidden md:flex md:space-x-12">
-          {navItems.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              onClick={(e) => scrollToSection(e, item.id)}
-              className={`text-xs font-semibold tracking-widest transition-colors duration-300 hover:text-slate-900 ${activeSection === item.id
-                ? 'text-slate-900 border-b-2 border-slate-900 pb-1'
-                : 'text-slate-400'
-                }`}
-            >
-              {item.label}
-            </a>
-          ))}
-        </div>
-
-        {/* 햄버거 아이콘 (모바일) */}
-        <button
-          className="md:hidden w-10 h-10 flex items-center justify-center text-slate-900 z-[201] relative cursor-pointer"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-          aria-label="Toggle menu"
-        >
-          {isSidebarOpen ? (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          ) : (
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          )}
-        </button>
-
-        {/* 모바일 사이드바 드로어 */}
-        <div
-          className={`fixed top-0 right-0 h-full w-[280px] bg-white z-[200] shadow-2xl transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
-            }`}
-        >
-          <div className="flex flex-col pt-24 px-6 space-y-2">
+          {/* 우측 메뉴 리스트 - 데스크탑 (md 이상) */}
+          <div className="hidden md:flex md:space-x-12">
             {navItems.map((item) => (
               <a
                 key={item.id}
                 href={`#${item.id}`}
-                onClick={(e) => {
-                  scrollToSection(e, item.id);
-                  setIsSidebarOpen(false);
-                }}
-                className={`block py-4 px-2 text-sm font-semibold tracking-widest transition-colors duration-300 ${activeSection === item.id
-                  ? 'text-slate-900 border-l-2 border-slate-900 pl-4 bg-slate-50'
-                  : 'text-slate-400 hover:text-slate-900 pl-4'
+                onClick={(e) => scrollToSection(e, item.id)}
+                className={`text-xs font-semibold tracking-widest transition-colors duration-300 hover:text-slate-900 ${activeSection === item.id
+                  ? 'text-slate-900 border-b-2 border-slate-900 pb-1'
+                  : 'text-slate-400'
                   }`}
               >
                 {item.label}
               </a>
             ))}
           </div>
-        </div>
 
-        {/* 배경 오버레이 */}
-        <div
-          className={`fixed inset-0 z-[199] bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
-            }`}
-          onClick={() => setIsSidebarOpen(false)}
-        />
+          {/* 햄버거 아이콘 (모바일) */}
+          <button
+            className="md:hidden w-10 h-10 flex items-center justify-center text-slate-900 z-[201] relative cursor-pointer"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            aria-label="Toggle menu"
+          >
+            {isSidebarOpen ? (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
+      </nav>
+
+      {/* 모바일 사이드바 드로어 — nav 바깥에 배치하여 fixed가 화면 전체에 적용 */}
+      <div
+        className={`fixed top-0 right-0 h-full w-[280px] bg-white z-[200] shadow-2xl transform transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${isSidebarOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
+      >
+        <div className="flex flex-col pt-24 px-6 space-y-2">
+          {navItems.map((item) => (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              onClick={(e) => {
+                scrollToSection(e, item.id);
+                setIsSidebarOpen(false);
+              }}
+              className={`block py-4 px-2 text-sm font-semibold tracking-widest transition-colors duration-300 ${activeSection === item.id
+                ? 'text-slate-900 border-l-2 border-slate-900 pl-4 bg-slate-50'
+                : 'text-slate-400 hover:text-slate-900 pl-4'
+                }`}
+            >
+              {item.label}
+            </a>
+          ))}
+        </div>
       </div>
-    </nav>
+
+      {/* 배경 오버레이 — nav 바깥에 배치 */}
+      <div
+        className={`fixed inset-0 z-[199] bg-black/20 backdrop-blur-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100 visible' : 'opacity-0 invisible'
+          }`}
+        onClick={() => setIsSidebarOpen(false)}
+      />
+    </>
   );
 };
 
