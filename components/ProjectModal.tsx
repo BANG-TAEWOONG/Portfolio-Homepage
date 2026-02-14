@@ -74,7 +74,7 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                 </button>
 
                 {/* 4. 내부 카드 컨테이너 (흰색 배경) - PC에선 가로 배치 */}
-                <div className="w-full bg-white rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col md:flex-row md:max-h-[85vh]">
+                <div className="w-full bg-white rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col md:flex-row md:min-h-[75vh] md:max-h-[85vh]">
 
                     {/* A. 비디오 섹션 (PC: 좌측 60%) */}
                     <div className="w-full md:w-2/3 bg-black relative aspect-video md:aspect-auto md:h-auto shrink-0 self-stretch">
