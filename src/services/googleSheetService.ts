@@ -110,6 +110,11 @@ const mapWorkType = (level: string): WorkType => {
     return 'Participated';
 };
 
+const addCacheBuster = (url: string): string => {
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}t=${Date.now()}`;
+};
+
 // ----------------------------------------------------------------------
 // 4. 데이터 페칭 함수 (외부로 export)
 // ----------------------------------------------------------------------
@@ -121,7 +126,7 @@ const mapWorkType = (level: string): WorkType => {
  */
 export const fetchWorkItems = async (): Promise<WorkItem[]> => {
     return new Promise((resolve, reject) => {
-        Papa.parse(GOOGLE_SHEET_CSV_URL, {
+        Papa.parse(addCacheBuster(GOOGLE_SHEET_CSV_URL), {
             download: true, // URL에서 직접 다운로드
             header: true,   // 첫 번째 줄을 키(Key)로 사용
             transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
@@ -170,7 +175,7 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
  */
 export const fetchSkillsData = async (): Promise<SkillItem[]> => {
     return new Promise((resolve) => {
-        Papa.parse(GOOGLE_SHEET_SKILLS_URL, {
+        Papa.parse(addCacheBuster(GOOGLE_SHEET_SKILLS_URL), {
             download: true,
             header: true,
             transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
@@ -210,7 +215,7 @@ export const fetchSkillsData = async (): Promise<SkillItem[]> => {
  */
 export const fetchToolsData = async (): Promise<SkillItem[]> => {
     return new Promise((resolve, reject) => {
-        Papa.parse(GOOGLE_SHEET_TOOLS_URL, {
+        Papa.parse(addCacheBuster(GOOGLE_SHEET_TOOLS_URL), {
             download: true,
             header: true,
             transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
@@ -248,7 +253,7 @@ export const fetchToolsData = async (): Promise<SkillItem[]> => {
  */
 export const fetchEquipmentData = async (): Promise<SkillItem[]> => {
     return new Promise((resolve, reject) => {
-        Papa.parse(GOOGLE_SHEET_EQUIPMENT_URL, {
+        Papa.parse(addCacheBuster(GOOGLE_SHEET_EQUIPMENT_URL), {
             download: true,
             header: true,
             transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
@@ -296,7 +301,7 @@ interface SiteTextRow {
  */
 export const fetchSiteTexts = async (): Promise<Partial<SiteTexts>> => {
     return new Promise((resolve) => {
-        Papa.parse(SITE_TEXTS_SHEET_URL, {
+        Papa.parse(addCacheBuster(SITE_TEXTS_SHEET_URL), {
             download: true,
             header: true,
             transformHeader: (h: string) => h.trim(),
