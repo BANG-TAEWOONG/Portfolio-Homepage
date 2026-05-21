@@ -184,26 +184,34 @@ const Work: React.FC = () => {
       {/* B. 그리드 컨텐츠 영역 */}
       {loading ? (
         // 로딩 중일 때 스켈레톤 UI (회색 박스 깜빡임) 표시
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 min-h-[400px]">
+        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 w-full">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="animate-pulse aspect-[16/10] bg-slate-100"></div>
+            <div key={i} className={`animate-pulse bg-slate-100 mb-6 w-full rounded-lg ${i % 3 === 0 ? 'aspect-[9/16]' : 'aspect-[16/10]'}`}></div>
           ))}
         </div>
       ) : (
         // 데이터 로드 완료 시 실제 그리드 렌더링
         <div
           key={activeCategory + activeType} // 키값이 바뀌면 컴포넌트가 새로 그려지며 애니메이션 리셋됨
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-0 min-h-[500px]"
+          className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 w-full min-h-[500px]"
         >
           {!isGridUpdating && filteredItems.map((item, index) => (
             <div
               key={`${item.id}-${activeType}-${activeCategory}`}
-              className="stagger-item group cursor-pointer relative"
+              className="stagger-item group cursor-pointer relative break-inside-avoid mb-6 block w-full rounded-lg overflow-hidden"
               style={{ animationDelay: `${index * 80}ms` }} // 순차적으로 나타나는 애니메이션 딜레이
               onClick={() => openModal(item)}
             >
               {/* 이미지 컨테이너 */}
-              <div className="relative aspect-[16/10] overflow-hidden bg-slate-50 transition-all duration-700">
+              <div className={`relative w-full overflow-hidden bg-slate-50 transition-all duration-700 ${item.vertical ? 'aspect-[9/16]' : 'aspect-[16/10]'}`}>
+                {item.vertical && (
+                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-full uppercase tracking-wider z-20 flex items-center gap-1 shadow-sm">
+                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Vertical
+                  </div>
+                )}
                 <img
                   src={item.thumbnail}
                   alt={item.title}

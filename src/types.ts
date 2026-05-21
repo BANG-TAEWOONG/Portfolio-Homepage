@@ -15,6 +15,7 @@ export interface WorkItem {
   role: string;
   setup: string;
   contributionRate?: string;
+  vertical?: boolean;
 }
 
 export interface Skill {

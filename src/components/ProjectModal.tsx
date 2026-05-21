@@ -74,15 +74,15 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                 </button>
 
                 {/* 4. 내부 카드 컨테이너 (흰색 배경) - PC에선 가로 배치 */}
-                <div className="w-full bg-white rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col lg:flex-row lg:min-h-[75vh] lg:max-h-[85vh]">
+                <div className="w-full bg-white rounded-xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] overflow-hidden flex flex-col lg:flex-row lg:h-[80vh] lg:min-h-[70vh] lg:max-h-[85vh]">
 
-                    {/* A. 비디오 섹션 (PC: 좌측 60%) */}
-                    <div className="w-full lg:w-2/3 bg-black relative aspect-video lg:aspect-auto lg:h-auto shrink-0 self-stretch">
+                    {/* A. 비디오 섹션 */}
+                    <div className={`bg-black relative shrink-0 self-stretch flex items-center justify-center ${selectedWork.vertical ? 'w-full aspect-[9/16] lg:w-auto lg:h-full lg:aspect-[9/16]' : 'w-full lg:w-2/3 aspect-video lg:aspect-auto lg:h-full'}`}>
                         {selectedWork.videoUrl && (
                             <iframe
                                 key={`${selectedWork.id}-iframe`}
                                 src={getYouTubeEmbedUrl(selectedWork.videoUrl)}
-                                className="w-full h-full absolute inset-0 lg:static"
+                                className="w-full h-full absolute inset-0"
                                 title={selectedWork.title}
                                 frameBorder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -100,8 +100,8 @@ const ProjectModal: React.FC<ProjectModalProps> = ({ selectedWork, onClose, onNe
                         </button>
                     </div>
 
-                    {/* B. 텍스트 컨텐츠 섹션 (PC: 우측 40%, 스크롤 가능) */}
-                    <div className="w-full lg:w-1/3 p-6 lg:p-10 bg-white max-h-[60vh] lg:max-h-[85vh] overflow-y-auto no-scrollbar relative">
+                    {/* B. 텍스트 컨텐츠 섹션 (스크롤 가능, 남은 공간 차지) */}
+                    <div className={`p-6 lg:p-10 bg-white overflow-y-auto no-scrollbar relative flex-grow ${selectedWork.vertical ? 'w-full lg:w-auto max-h-[50vh] lg:max-h-[85vh]' : 'w-full lg:w-1/3 max-h-[60vh] lg:max-h-[85vh]'}`}>
                         {/* PC용 닫기 버튼 */}
                         <button
                             onClick={onClose}

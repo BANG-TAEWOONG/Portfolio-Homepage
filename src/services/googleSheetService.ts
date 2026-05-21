@@ -49,6 +49,7 @@ interface SheetRow {
     set_up: string;
     video_url: string;
     description: string;
+    vertical?: string;
 }
 
 // 스킬(Capabilities) 시트의 행 데이터 타입 (Raw Data)
@@ -151,7 +152,8 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                             role: row.my_role ? row.my_role.replace(/"/g, '') : '', // role -> my_role
                             setup: row.set_up ? row.set_up.replace(/"/g, '') : '', // setup -> set_up
                             description: row.description,
-                            contributionRate: row.contribution_rate // 추가됨
+                            contributionRate: row.contribution_rate, // 추가됨
+                            vertical: row.vertical ? row.vertical.trim().toUpperCase() === 'TRUE' : false
                         }));
 
                     resolve(workItems);
