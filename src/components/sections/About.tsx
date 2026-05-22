@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA, TIMELINE_DATA } from '../../constants';
+import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../../constants';
 import { Skill, SkillItem as SkillItemType } from '../../types';
 import { fetchSkillsData, fetchToolsData, fetchEquipmentData } from '../../services/googleSheetService';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
@@ -423,6 +423,30 @@ const InteractiveSkillSection: React.FC = () => {
 
 const Timeline: React.FC = () => {
   const [ref, isVisible] = useIntersectionObserver({ threshold: 0.1, once: false });
+  const { texts } = useSiteTexts();
+
+  const timelineData = useMemo(() => [
+    {
+      year: texts.aboutTimeline1Year,
+      title: texts.aboutTimeline1Title,
+      description: texts.aboutTimeline1Desc,
+    },
+    {
+      year: texts.aboutTimeline2Year,
+      title: texts.aboutTimeline2Title,
+      description: texts.aboutTimeline2Desc,
+    },
+    {
+      year: texts.aboutTimeline3Year,
+      title: texts.aboutTimeline3Title,
+      description: texts.aboutTimeline3Desc,
+    },
+    {
+      year: texts.aboutTimeline4Year,
+      title: texts.aboutTimeline4Title,
+      description: texts.aboutTimeline4Desc,
+    },
+  ], [texts]);
 
   return (
     <div ref={ref} className="relative my-12 py-6">
@@ -430,7 +454,7 @@ const Timeline: React.FC = () => {
       <div className="absolute top-8 left-[12.5%] right-[12.5%] h-[1px] bg-slate-200 hidden sm:block" />
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 md:gap-12 relative z-10">
-        {TIMELINE_DATA.map((item, idx) => (
+        {timelineData.map((item, idx) => (
           <div
             key={item.year}
             className={`flex flex-col items-center text-center transition-all duration-1000 transform ${

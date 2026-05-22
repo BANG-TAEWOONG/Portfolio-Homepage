@@ -6,7 +6,24 @@ export const DEFAULT_SITE_TEXTS = {
     // ── About ──
     aboutTitle: "I AM A STORYTELLER.",
     aboutQuote: "카메라는 도구일 뿐, 감동을 만드는 것은 그 프레임 안에 담긴 진심입니다.",
-    aboutDescription: "단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다.\n다양한 댄스 필름과 뮤직비디오 프로젝트를 거치며 시각적 리듬감과 역동적인 연출력을 쌓아왔습니다.",
+    aboutDescription: "단순히 기록하는 것을 넘어, 매 순간의 감정과 분위기를 가장 완벽한 톤으로 담아내고자 합니다.\n다양한 댄스 필름 및 뮤직비디오 프로젝트를 거치며 시각적 리듬감과 역동적인 연출력을 쌓아왔습니다.",
+
+    // ── About: 연혁 타임라인 (Timeline starting from 2024) ──
+    aboutTimeline1Year: "2024",
+    aboutTimeline1Title: "TWOONG STUDIO 설립",
+    aboutTimeline1Desc: "댄스 필름 및 독립 뮤직비디오 프로덕션으로 첫 발걸음을 떼며 다수의 인디 아티스트 협업 시작.",
+
+    aboutTimeline2Year: "2025",
+    aboutTimeline2Title: "포트폴리오 다각화 및 프로덕션 확장",
+    aboutTimeline2Desc: "브랜드 필름, 광고 영상 및 댄스 스튜디오 협업 비디오 기획/연출 진행. 메인 시네마 카메라(FX3) 라인업 확보.",
+
+    aboutTimeline3Year: "2026",
+    aboutTimeline3Title: "장비 고도화 및 파트너십 구축",
+    aboutTimeline3Desc: "실제 촬영 장비 라인업 대대적 확장. 현장 중심의 고품질 조명 및 리그 장비 구축 및 중규모 프로덕션 협업.",
+
+    aboutTimeline4Year: "2027",
+    aboutTimeline4Title: "프리미엄 비주얼 스튜디오 도약",
+    aboutTimeline4Desc: "프리미엄 비주얼 스토리텔링 스튜디오로서 세련된 색감과 역동적인 연출력을 통해 감각적인 영상 크리에이션 지속.",
 
     // ── About: 핵심 가치 카드 (4개) ──
     aboutValue1Title: "Clear Communication",
