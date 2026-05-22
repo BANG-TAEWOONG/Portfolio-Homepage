@@ -34,31 +34,47 @@ const InteractiveSkillSection: React.FC = () => {
 
   // 각 카테고리별 현재 선택된 필터 상태 저장 (예: Tools 카테고리는 'Editing' 필터 선택 등)
   const [activeFilters, setActiveFilters] = useState<{ [key: string]: string }>({
-    Capabilities: 'All',
-    Tools: 'All',
-    Equipment: 'All'
+    Capabilities: '',
+    Tools: '',
+    Equipment: ''
   });
 
   const [activeBrand, setActiveBrand] = useState<string>('All');
 
+  const categories = ['Capabilities', 'Tools', 'Equipment'];
+
+  // 특정 카테고리의 유니크한 필터 목록 추출 (예: All, Editing, Color Grading...)
+  const getFilters = (category: string) => {
+    const categorySkills = skills.filter(s => s.category === category && !s.hidden);
+    const filters = Array.from(new Set(categorySkills.map(s => s.filter))).filter(f => f);
+    return ['All', ...filters];
+  };
+
+  const currentEquipmentFilter = useMemo(() => {
+    const eqSkills = skills.filter(s => s.category === 'Equipment' && !s.hidden);
+    const filters = Array.from(new Set(eqSkills.map(s => s.filter))).filter(f => f && f !== 'All');
+    const current = activeFilters['Equipment'];
+    return current && current !== 'All' && filters.includes(current) ? current : (filters[0] || 'All');
+  }, [skills, activeFilters.Equipment]);
+
   useEffect(() => {
     setActiveBrand('All');
-  }, [activeFilters.Equipment]);
+  }, [currentEquipmentFilter]);
 
   const equipmentBrands = useMemo(() => {
-    const eqSkills = skills.filter(s => s.category === 'Equipment' && s.filter === activeFilters.Equipment && !s.hidden);
+    const eqSkills = skills.filter(s => s.category === 'Equipment' && s.filter === currentEquipmentFilter && !s.hidden);
     const unique = new Set<string>();
     eqSkills.forEach(s => {
       if (s.brand) unique.add(s.brand.trim());
     });
     return ['All', ...Array.from(unique)];
-  }, [skills, activeFilters.Equipment]);
+  }, [skills, currentEquipmentFilter]);
 
   // 데이터 로드 효과
   useEffect(() => {
     const loadSkills = async () => {
       try {
-        // [Phase 4] 3개 시트 병렬 fetch (waterfall 방지)
+        // 3개 시트 병렬 fetch (waterfall 방지)
         const [capabilities, tools, equipment] = await Promise.all([
           fetchSkillsData(),
           fetchToolsData(),
@@ -118,33 +134,29 @@ const InteractiveSkillSection: React.FC = () => {
     loadSkills();
   }, []);
 
-  const categories = ['Capabilities', 'Tools', 'Equipment'];
-
-  // 특정 카테고리의 유니크한 필터 목록 추출 (예: All, Editing, Color Grading...)
-  const getFilters = (category: string) => {
-    const categorySkills = skills.filter(s => s.category === category && !s.hidden);
-    const filters = Array.from(new Set(categorySkills.map(s => s.filter))).filter(f => f);
-    return ['All', ...filters];
-  };
-
-  // 화살표 버튼 클릭 시 필터 순환 이동
-  const traverseFilters = (category: string, direction: 'next' | 'prev') => {
-    const filters = getFilters(category);
-    const currentFilter = activeFilters[category] || 'All';
-    const currentIndex = filters.indexOf(currentFilter);
-
-    let newIndex;
-    if (direction === 'next') {
-      newIndex = (currentIndex + 1) % filters.length;
-    } else {
-      newIndex = (currentIndex - 1 + filters.length) % filters.length;
+  // 스킬 데이터 로드 시 각 카테고리의 첫 번째 필터를 기본값으로 설정
+  useEffect(() => {
+    if (skills.length > 0) {
+      const initialFilters: { [key: string]: string } = {};
+      let changed = false;
+      categories.forEach((cat) => {
+        const catSkills = skills.filter(s => s.category === cat && !s.hidden);
+        const filters = Array.from(new Set(catSkills.map(s => s.filter))).filter(f => f && f !== 'All');
+        const current = activeFilters[cat];
+        if (!current || current === 'All' || !filters.includes(current)) {
+          initialFilters[cat] = filters[0] || 'All';
+          changed = true;
+        } else {
+          initialFilters[cat] = current;
+        }
+      });
+      if (changed) {
+        setActiveFilters(initialFilters);
+      }
     }
+  }, [skills]);
 
-    const nextFilter = filters[newIndex];
-    setActiveFilters(prev => ({ ...prev, [category]: nextFilter }));
-  };
-
-  // 'All' 뷰(개요)에서 보여줄 해당 필터 그룹의 평균 숙련도 계산
+  // 해당 필터 그룹의 평균 숙련도 계산
   const getAverageLevel = (filterName: string, category: string) => {
     const targetSkills = skills.filter(s => s.category === category && s.filter === filterName);
     if (!targetSkills.length) return 0;
@@ -165,98 +177,101 @@ const InteractiveSkillSection: React.FC = () => {
       {categories.map((category) => {
         // 현재 카테고리에 해당하는 스킬 필터링
         const categorySkills = skills.filter(s => s.category === category && !s.hidden);
-        const currentFilter = activeFilters[category] || 'All';
-
-        // 현재 선택된 필터에 따라 보여줄 아이템 결정 ('All'이면 전체, 아니면 해당 필터만)
-        const displaySkills = currentFilter === 'All'
-          ? categorySkills
-          : categorySkills.filter(s => s.filter === currentFilter);
-
-        const isOverview = currentFilter === 'All';
         const overviewItems = getFilters(category).filter(f => f !== 'All'); // 'All'을 제외한 서브 필터 목록
+        
+        // 현재 선택된 필터 (없거나 All이면 첫 번째 서브 필터를 기본값으로)
+        const currentFilter = activeFilters[category] && activeFilters[category] !== 'All'
+          ? activeFilters[category]
+          : (overviewItems[0] || 'All');
+
+        // 현재 선택된 필터에 해당하는 스킬 목록
+        const displaySkills = categorySkills.filter(s => s.filter === currentFilter);
 
         return (
           <div key={category} className="flex flex-col h-full">
-            {/* 카테고리 헤더 및 네비게이션 */}
-            <div className="flex justify-between items-baseline mb-8 md:mb-12">
-              <div
-                className={`flex items-center gap-2 ${!isOverview ? 'cursor-pointer group/title' : ''}`}
-                onClick={() => !isOverview && setActiveFilters(prev => ({ ...prev, [category]: 'All' }))}
-              >
-                <h4 className="text-xs sm:text-sm font-bold tracking-[0.5em] text-slate-400 uppercase transition-colors group-hover/title:text-slate-900">
+            {/* 카테고리 헤더 */}
+            <div className="flex justify-between items-baseline mb-8 md:mb-10">
+              <div className="flex items-center gap-2">
+                <h4 className="text-xs sm:text-sm font-bold tracking-[0.5em] text-slate-400 uppercase">
                   {category}
                 </h4>
-                {/* 필터 활성화 시 홈으로 돌아가기 표시 */}
-                {!isOverview && (
-                  <span className="text-[10px] text-slate-400 opacity-0 md:opacity-100 md:animate-in md:fade-in md:slide-in-from-right-2 font-medium tracking-normal animate-pulse">
-                    ◀ Click home
-                  </span>
-                )}
               </div>
 
               <div className="flex items-center gap-4 md:gap-6">
-                {/* 현재 보고 있는 필터 이름 또는 안내 문구 */}
-                {isOverview ? (
-                  <span className="text-[10px] sm:text-xs font-medium text-slate-300 tracking-widest uppercase">
-                    Click each item
-                  </span>
-                ) : (
-                  <span className="text-xs sm:text-sm md:text-base font-bold tracking-[0.2em] uppercase text-slate-900 min-w-[80px] text-right">
-                    {currentFilter}
-                  </span>
-                )}
+                <span className="text-xs sm:text-sm md:text-base font-bold tracking-[0.2em] uppercase text-slate-900 min-w-[80px] text-right animate-in fade-in duration-300">
+                  {currentFilter}
+                </span>
               </div>
             </div>
 
-            {/* 컨텐츠 영역 (최소 높이 지정으로 레이아웃 흔들림 방지) */}
-            <div className="space-y-4 flex-1 min-h-[320px] transition-all duration-500 ease-in-out">
-              {isOverview ? (
-                // [VIEW 1] 개요 모드: 서브 필터 목록과 평균 점수 표시
-                <div className="grid grid-cols-1 gap-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  {overviewItems.map((filterName: string, idx: number) => {
-                    const avgLevel = getAverageLevel(filterName, category);
-                    return (
-                      <div
-                        key={filterName}
-                        onClick={() => setActiveFilters(prev => ({ ...prev, [category]: filterName }))} // 클릭 시 해당 필터 상세 보기로 이동
-                        className="group cursor-pointer border-b border-slate-100 py-4 flex justify-between items-center hover:border-slate-900 transition-all duration-500 stagger-item"
-                        style={{ animationDelay: `${idx * 100}ms` }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="text-sm font-bold text-slate-700 group-hover:text-slate-900 transition-colors">
-                            {filterName}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          {/* 평균 레벨 표시 */}
-                          <div className="flex flex-col items-end group-hover:transform group-hover:scale-105 transition-all duration-300">
-                            <span className="text-[10px] md:text-xs font-bold text-slate-400 group-hover:text-slate-900 transition-colors">
-                              AVG. {renderLevel(avgLevel)}
-                            </span>
-                          </div>
-                          {/* 호버 시 나타나는 + 아이콘 */}
-                          <span className="text-[10px] text-slate-300 group-hover:text-slate-500 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                            +
-                          </span>
-                        </div>
+            {/* 컨텐츠 영역 (평균 게이지 바 + 구분선 + 세부 리스트) */}
+            <div className="flex-1 transition-all duration-500 ease-in-out">
+              {/* 분야별 평균 숙련도 리스트 (상단 노출) */}
+              <div className="grid grid-cols-1 gap-2.5 mb-6">
+                {overviewItems.map((field: string) => {
+                  const avgLevel = getAverageLevel(field, category);
+                  const isActive = currentFilter === field;
+                  return (
+                    <div
+                      key={field}
+                      onClick={() => setActiveFilters(prev => ({ ...prev, [category]: field }))}
+                      className={`group cursor-pointer p-3 rounded-lg border transition-all duration-300 flex flex-col justify-between ${
+                        isActive
+                          ? 'bg-slate-50 border-slate-950 shadow-[0_2px_8px_rgba(0,0,0,0.03)]'
+                          : 'bg-white border-slate-100 hover:border-slate-300 hover:bg-slate-50/50'
+                      }`}
+                    >
+                      <div className="flex justify-between items-baseline mb-2">
+                        <span className={`text-xs sm:text-sm font-bold tracking-tight transition-colors ${
+                          isActive ? 'text-slate-950' : 'text-slate-600 group-hover:text-slate-900'
+                        }`}>
+                          {field}
+                        </span>
+                        <span className={`text-[9px] font-extrabold tracking-wider transition-colors uppercase ${
+                          isActive ? 'text-slate-950 font-black' : 'text-slate-400 group-hover:text-slate-700'
+                        }`}>
+                          AVG. {renderLevel(avgLevel)}
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                // [VIEW 2] 상세 모드: 개별 스킬 이름과 프로그레스 바 표시
-                <div
-                  key={currentFilter + (category === 'Equipment' ? `-${activeBrand}` : '')}
-                  className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 fill-mode-both"
-                >
-                  {category === 'Equipment' && (
-                    <div className="flex flex-wrap gap-1.5 mb-4 overflow-x-auto pb-2 scrollbar-none border-b border-slate-100/50">
+                      
+                      {/* 평균 숙련도 슬림 게이지 바 */}
+                      <div className="h-[2px] w-full bg-slate-100 rounded-full relative overflow-hidden">
+                        <div
+                          className={`absolute top-0 left-0 h-full rounded-full transition-all duration-700 ease-out ${
+                            isActive ? 'bg-slate-950 w-full' : 'bg-slate-300'
+                          }`}
+                          style={{ width: `${(avgLevel / 5) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 구분선 및 상세 정보 타이틀 */}
+              <div className="relative flex py-2 items-center my-6">
+                <div className="flex-grow border-t border-slate-100"></div>
+                <span className="flex-shrink mx-4 text-[9px] font-extrabold tracking-[0.25em] text-slate-400 uppercase">
+                  {currentFilter} Details
+                </span>
+                <div className="flex-grow border-t border-slate-100"></div>
+              </div>
+
+              {/* 세부 리스트 (하단 노출) */}
+              <div
+                key={currentFilter + (category === 'Equipment' ? `-${activeBrand}` : '')}
+                className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300 min-h-[180px]"
+              >
+                {category === 'Equipment' ? (
+                  // Equipment 전용 렌더링 (보유 장비 및 운용 가능 장비)
+                  <div className="space-y-5">
+                    {/* 브랜드 필터 칩 */}
+                    <div className="flex flex-wrap gap-1 mb-2 overflow-x-auto pb-1.5 scrollbar-none border-b border-slate-100">
                       {equipmentBrands.map((brand) => (
                         <button
                           key={brand}
                           onClick={() => setActiveBrand(brand)}
-                          className={`px-2.5 py-1 text-[9px] font-bold tracking-wider rounded border transition-all uppercase whitespace-nowrap ${
+                          className={`px-2.5 py-1 text-[8px] font-bold tracking-wider rounded border transition-all uppercase whitespace-nowrap ${
                             activeBrand === brand
                               ? 'bg-slate-900 border-slate-900 text-white'
                               : 'bg-white border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-400'
@@ -266,150 +281,137 @@ const InteractiveSkillSection: React.FC = () => {
                         </button>
                       ))}
                     </div>
-                  )}
 
-                  {category === 'Equipment' ? (
-                    // Equipment 전용 렌더링
-                    <div className="space-y-6">
-                      {/* 1. 보유 장비 (Owned Gear) */}
-                      {(() => {
-                        const filteredEq = displaySkills.filter(s => s.owned && (activeBrand === 'All' || s.brand?.trim() === activeBrand));
-                        if (filteredEq.length === 0) return null;
-                        return (
-                          <div className="space-y-3">
-                            <h5 className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-                              Owned Gear
-                            </h5>
-                            <div className="grid grid-cols-1 gap-3">
-                              {filteredEq.map((skill, idx) => (
-                                <div
-                                  key={`${skill.name}-${idx}`}
-                                  className="p-3 bg-white border border-slate-100 rounded-md hover:border-slate-300 transition-all duration-300 shadow-sm relative group/eqcard"
-                                >
-                                  <div className="flex justify-between items-start gap-2">
-                                    <div className="flex flex-col">
-                                      {skill.brand && (
-                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
-                                          {skill.brand}
-                                        </span>
-                                      )}
-                                      <span className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight leading-tight">
-                                        {skill.model || skill.name}
+                    {/* 1. 보유 장비 (Owned Gear) */}
+                    {(() => {
+                      const filteredEq = displaySkills.filter(s => s.owned && (activeBrand === 'All' || s.brand?.trim() === activeBrand));
+                      if (filteredEq.length === 0) return null;
+                      return (
+                        <div className="space-y-2.5">
+                          <h5 className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">
+                            Owned Gear
+                          </h5>
+                          <div className="grid grid-cols-1 gap-2.5">
+                            {filteredEq.map((skill, idx) => (
+                              <div
+                                key={`${skill.name}-${idx}`}
+                                className="p-3 bg-white border border-slate-100 rounded-md hover:border-slate-300 transition-all duration-300 shadow-sm relative group/eqcard"
+                              >
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="flex flex-col">
+                                    {skill.brand && (
+                                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
+                                        {skill.brand}
                                       </span>
-                                    </div>
-                                    <div className="flex flex-col items-end gap-1 shrink-0">
-                                      <span className="text-[8px] font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded tracking-widest leading-none">
-                                        OWNED
-                                      </span>
-                                      {skill.quantity && skill.quantity > 1 && (
-                                        <span className="text-[9px] font-bold text-slate-400 leading-none">
-                                          QTY: {skill.quantity}
-                                        </span>
-                                      )}
-                                    </div>
+                                    )}
+                                    <span className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight leading-tight">
+                                      {skill.model || skill.name}
+                                    </span>
                                   </div>
-
-                                  {(skill.description || skill.keyComponents || skill.condition) && (
-                                    <div className="mt-2 pt-2 border-t border-slate-50 text-[10px] text-slate-500 font-light leading-relaxed space-y-1">
-                                      {skill.description && (
-                                        <p className="break-all">{skill.description}</p>
-                                      )}
-                                      {skill.keyComponents && (
-                                        <p className="text-[9px] text-slate-400">
-                                          <span className="font-semibold text-slate-500">Components:</span> {skill.keyComponents}
-                                        </p>
-                                      )}
-                                      {skill.condition && (
-                                        <p className="text-[9px] text-slate-400">
-                                          <span className="font-semibold text-slate-500">Condition:</span> {skill.condition}
-                                        </p>
-                                      )}
-                                    </div>
-                                  )}
+                                  <div className="flex flex-col items-end gap-1 shrink-0">
+                                    <span className="text-[7px] font-bold bg-slate-950 text-white px-1.5 py-0.5 rounded tracking-widest leading-none">
+                                      OWNED
+                                    </span>
+                                    {skill.quantity && skill.quantity > 1 && (
+                                      <span className="text-[9px] font-bold text-slate-400 leading-none">
+                                        QTY: {skill.quantity}
+                                      </span>
+                                    )}
+                                  </div>
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })()}
 
-                      {/* 2. 운용 가능 장비 (Experienced Gear) */}
-                      {(() => {
-                        const filteredExp = displaySkills.filter(s => !s.owned && (activeBrand === 'All' || s.brand?.trim() === activeBrand));
-                        if (filteredExp.length === 0) return null;
-                        return (
-                          <div className="space-y-3 pt-2">
-                            <h5 className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
-                              Experienced Gear
-                            </h5>
-                            <div className="flex flex-wrap gap-1.5">
-                              {filteredExp.map((skill, idx) => (
-                                <div
-                                  key={`${skill.name}-${idx}`}
-                                  className="px-2.5 py-1 bg-slate-100 border border-slate-200/50 hover:bg-slate-200 hover:border-slate-300 transition-all rounded text-[10px] font-medium text-slate-600 flex items-center gap-1.5 cursor-default"
-                                  title={`Familiarity Level: ${renderLevel(skill.level)}`}
-                                >
-                                  <span className="tracking-tight">{skill.name}</span>
-                                  <span className="w-1 h-1 bg-slate-400 rounded-full" />
-                                  <span className="text-[8px] font-bold text-slate-400">L{skill.level}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        );
-                      })()}
-
-                      {displaySkills.filter(s => activeBrand === 'All' || s.brand?.trim() === activeBrand).length === 0 && (
-                        <div className="text-xs text-slate-300 py-4">No equipment found matching the filter.</div>
-                      )}
-                    </div>
-                  ) : (
-                    // 일반 스킬/툴 뷰
-                    <>
-                      {displaySkills.map((skill, i) => (
-                        <div
-                          key={`${skill.name}-${i}`}
-                          className="group stagger-item relative"
-                          style={{ animationDelay: `${i * 100}ms` }}
-                        >
-                          <div className="flex justify-between items-end mb-1">
-                            <span className="text-sm font-medium text-slate-800">{skill.name}</span>
-                            <span className="text-[10px] md:text-xs font-bold text-slate-400 tracking-wider group-hover:text-slate-900 transition-colors">
-                              {renderLevel(skill.level)}
-                            </span>
-                          </div>
-
-                          {/* 스킬 프로그레스 바 */}
-                          <div className="h-[1px] w-full bg-slate-100 relative overflow-hidden">
-                            {/* 검은색 바 (실제 숙련도) */}
-                            <div
-                              className="absolute top-0 left-0 h-full bg-slate-900 transition-all duration-[1.5s] ease-out w-0 group-hover:w-full"
-                              style={{ width: `${(skill.level / 5) * 100}%` }}
-                            />
-                            {/* 배경 애니메이션 바 (회색) */}
-                            <div
-                              className="h-full bg-slate-200 w-0 animate-[growWidth_1s_ease-out_forwards]"
-                              style={{ width: `${(skill.level / 5) * 100}%`, animationDelay: `${(i * 100) + 300}ms` }}
-                            />
+                                {(skill.description || skill.keyComponents || skill.condition) && (
+                                  <div className="mt-2 pt-2 border-t border-slate-50 text-[10px] text-slate-500 font-light leading-relaxed space-y-1">
+                                    {skill.description && (
+                                      <p className="break-all">{skill.description}</p>
+                                    )}
+                                    {skill.keyComponents && (
+                                      <p className="text-[9px] text-slate-400">
+                                        <span className="font-semibold text-slate-500">Components:</span> {skill.keyComponents}
+                                      </p>
+                                    )}
+                                    {skill.condition && (
+                                      <p className="text-[9px] text-slate-400">
+                                        <span className="font-semibold text-slate-500">Condition:</span> {skill.condition}
+                                      </p>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
                           </div>
                         </div>
-                      ))}
+                      );
+                    })()}
 
-                      {displaySkills.length === 0 && (
-                        <div className="text-xs text-slate-300 py-4">No items found in this category.</div>
-                      )}
-                    </>
-                  )}
+                    {/* 2. 운용 가능 장비 (Experienced Gear) */}
+                    {(() => {
+                      const filteredExp = displaySkills.filter(s => !s.owned && (activeBrand === 'All' || s.brand?.trim() === activeBrand));
+                      if (filteredExp.length === 0) return null;
+                      return (
+                        <div className="space-y-2.5 pt-1">
+                          <h5 className="text-[9px] font-bold tracking-widest text-slate-400 uppercase">
+                            Experienced Gear
+                          </h5>
+                          <div className="flex flex-wrap gap-1.5">
+                            {filteredExp.map((skill, idx) => (
+                              <div
+                                key={`${skill.name}-${idx}`}
+                                className="px-2 py-0.5 bg-slate-50 border border-slate-100 hover:bg-slate-100 hover:border-slate-200 transition-all rounded text-[9px] font-medium text-slate-600 flex items-center gap-1 cursor-default"
+                                title={`Familiarity Level: ${renderLevel(skill.level)}`}
+                              >
+                                <span className="tracking-tight">{skill.name}</span>
+                                <span className="w-1 h-1 bg-slate-300 rounded-full" />
+                                <span className="text-[8px] font-bold text-slate-400">L{skill.level}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })()}
 
-                  {/* 개요(전체 목록)로 돌아가는 버튼 */}
-                  <button
-                    onClick={() => setActiveFilters(prev => ({ ...prev, [category]: 'All' }))}
-                    className="mt-8 text-[10px] font-bold text-slate-400 hover:text-slate-900 underline underline-offset-4 transition-all hover:tracking-widest"
-                  >
-                    BACK TO OVERVIEW
-                  </button>
-                </div>
-              )}
+                    {displaySkills.filter(s => activeBrand === 'All' || s.brand?.trim() === activeBrand).length === 0 && (
+                      <div className="text-xs text-slate-300 py-4 text-center">No equipment found matching the brand.</div>
+                    )}
+                  </div>
+                ) : (
+                  // 일반 스킬/툴 뷰
+                  <>
+                    {displaySkills.map((skill, i) => (
+                      <div
+                        key={`${skill.name}-${i}`}
+                        className="group stagger-item relative"
+                        style={{ animationDelay: `${i * 50}ms` }}
+                      >
+                        <div className="flex justify-between items-end mb-1">
+                          <span className="text-xs sm:text-sm font-medium text-slate-800">{skill.name}</span>
+                          <span className="text-[10px] md:text-xs font-bold text-slate-400 tracking-wider group-hover:text-slate-900 transition-colors">
+                            {renderLevel(skill.level)}
+                          </span>
+                        </div>
+
+                        {/* 스킬 프로그레스 바 */}
+                        <div className="h-[2px] w-full bg-slate-100 relative overflow-hidden rounded-full">
+                          {/* 검은색 바 (실제 숙련도) */}
+                          <div
+                            className="absolute top-0 left-0 h-full bg-slate-900 transition-all duration-[1.2s] ease-out w-0 group-hover:w-[100%]"
+                            style={{ width: `${(skill.level / 5) * 100}%` }}
+                          />
+                          {/* 배경 애니메이션 바 (회색) */}
+                          <div
+                            className="h-full bg-slate-200 w-0 animate-[growWidth_1s_ease-out_forwards]"
+                            style={{ width: `${(skill.level / 5) * 100}%`, animationDelay: `${(i * 50) + 150}ms` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+
+                    {displaySkills.length === 0 && (
+                      <div className="text-xs text-slate-300 py-4 text-center">No items found in this category.</div>
+                    )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         );
