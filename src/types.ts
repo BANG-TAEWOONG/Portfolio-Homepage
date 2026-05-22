@@ -30,4 +30,13 @@ export interface SkillItem {
   level: number;    // 1-5
   order?: number;
   hidden?: boolean;
+  brand?: string;
+  model?: string;
+  description?: string;
+  keyComponents?: string;
+  quantity?: number;
+  condition?: string;
+  remark?: string;
+  owned?: boolean;
 }
+

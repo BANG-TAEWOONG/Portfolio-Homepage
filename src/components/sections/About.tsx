@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../../constants';
+import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA, TIMELINE_DATA } from '../../constants';
 import { Skill, SkillItem as SkillItemType } from '../../types';
 import { fetchSkillsData, fetchToolsData, fetchEquipmentData } from '../../services/googleSheetService';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
@@ -37,6 +37,21 @@ const InteractiveSkillSection: React.FC = () => {
     Tools: 'All',
     Equipment: 'All'
   });
+
+  const [activeBrand, setActiveBrand] = useState<string>('All');
+
+  useEffect(() => {
+    setActiveBrand('All');
+  }, [activeFilters.Equipment]);
+
+  const equipmentBrands = useMemo(() => {
+    const eqSkills = skills.filter(s => s.category === 'Equipment' && s.filter === activeFilters.Equipment && !s.hidden);
+    const unique = new Set<string>();
+    eqSkills.forEach(s => {
+      if (s.brand) unique.add(s.brand.trim());
+    });
+    return ['All', ...Array.from(unique)];
+  }, [skills, activeFilters.Equipment]);
 
   // 데이터 로드 효과
   useEffect(() => {
@@ -231,40 +246,158 @@ const InteractiveSkillSection: React.FC = () => {
               ) : (
                 // [VIEW 2] 상세 모드: 개별 스킬 이름과 프로그레스 바 표시
                 <div
-                  key={currentFilter}
+                  key={currentFilter + (category === 'Equipment' ? `-${activeBrand}` : '')}
                   className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 fill-mode-both"
                 >
-                  {displaySkills.map((skill, i) => (
-                    <div
-                      key={`${skill.name}-${i}`}
-                      className="group stagger-item relative"
-                      style={{ animationDelay: `${i * 100}ms` }}
-                    >
-                      <div className="flex justify-between items-end mb-1">
-                        <span className="text-sm font-medium text-slate-800">{skill.name}</span>
-                        <span className="text-[10px] md:text-xs font-bold text-slate-400 tracking-wider group-hover:text-slate-900 transition-colors">
-                          {renderLevel(skill.level)}
-                        </span>
-                      </div>
-
-                      {/* 스킬 프로그레스 바 */}
-                      <div className="h-[1px] w-full bg-slate-100 relative overflow-hidden">
-                        {/* 검은색 바 (실제 숙련도) */}
-                        <div
-                          className="absolute top-0 left-0 h-full bg-slate-900 transition-all duration-[1.5s] ease-out w-0 group-hover:w-full"
-                          style={{ width: `${(skill.level / 5) * 100}%` }}
-                        />
-                        {/* 배경 애니메이션 바 (회색) */}
-                        <div
-                          className="h-full bg-slate-200 w-0 animate-[growWidth_1s_ease-out_forwards]"
-                          style={{ width: `${(skill.level / 5) * 100}%`, animationDelay: `${(i * 100) + 300}ms` }}
-                        />
-                      </div>
+                  {category === 'Equipment' && (
+                    <div className="flex flex-wrap gap-1.5 mb-4 overflow-x-auto pb-2 scrollbar-none border-b border-slate-100/50">
+                      {equipmentBrands.map((brand) => (
+                        <button
+                          key={brand}
+                          onClick={() => setActiveBrand(brand)}
+                          className={`px-2.5 py-1 text-[9px] font-bold tracking-wider rounded border transition-all uppercase whitespace-nowrap ${
+                            activeBrand === brand
+                              ? 'bg-slate-900 border-slate-900 text-white'
+                              : 'bg-white border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-400'
+                          }`}
+                        >
+                          {brand}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                  )}
 
-                  {displaySkills.length === 0 && (
-                    <div className="text-xs text-slate-300 py-4">No items found in this category.</div>
+                  {category === 'Equipment' ? (
+                    // Equipment 전용 렌더링
+                    <div className="space-y-6">
+                      {/* 1. 보유 장비 (Owned Gear) */}
+                      {(() => {
+                        const filteredEq = displaySkills.filter(s => s.owned && (activeBrand === 'All' || s.brand?.trim() === activeBrand));
+                        if (filteredEq.length === 0) return null;
+                        return (
+                          <div className="space-y-3">
+                            <h5 className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+                              Owned Gear
+                            </h5>
+                            <div className="grid grid-cols-1 gap-3">
+                              {filteredEq.map((skill, idx) => (
+                                <div
+                                  key={`${skill.name}-${idx}`}
+                                  className="p-3 bg-white border border-slate-100 rounded-md hover:border-slate-300 transition-all duration-300 shadow-sm relative group/eqcard"
+                                >
+                                  <div className="flex justify-between items-start gap-2">
+                                    <div className="flex flex-col">
+                                      {skill.brand && (
+                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">
+                                          {skill.brand}
+                                        </span>
+                                      )}
+                                      <span className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight leading-tight">
+                                        {skill.model || skill.name}
+                                      </span>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-1 shrink-0">
+                                      <span className="text-[8px] font-bold bg-slate-900 text-white px-1.5 py-0.5 rounded tracking-widest leading-none">
+                                        OWNED
+                                      </span>
+                                      {skill.quantity && skill.quantity > 1 && (
+                                        <span className="text-[9px] font-bold text-slate-400 leading-none">
+                                          QTY: {skill.quantity}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {(skill.description || skill.keyComponents || skill.condition) && (
+                                    <div className="mt-2 pt-2 border-t border-slate-50 text-[10px] text-slate-500 font-light leading-relaxed space-y-1">
+                                      {skill.description && (
+                                        <p className="break-all">{skill.description}</p>
+                                      )}
+                                      {skill.keyComponents && (
+                                        <p className="text-[9px] text-slate-400">
+                                          <span className="font-semibold text-slate-500">Components:</span> {skill.keyComponents}
+                                        </p>
+                                      )}
+                                      {skill.condition && (
+                                        <p className="text-[9px] text-slate-400">
+                                          <span className="font-semibold text-slate-500">Condition:</span> {skill.condition}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {/* 2. 운용 가능 장비 (Experienced Gear) */}
+                      {(() => {
+                        const filteredExp = displaySkills.filter(s => !s.owned && (activeBrand === 'All' || s.brand?.trim() === activeBrand));
+                        if (filteredExp.length === 0) return null;
+                        return (
+                          <div className="space-y-3 pt-2">
+                            <h5 className="text-[10px] font-bold tracking-widest text-slate-400 uppercase">
+                              Experienced Gear
+                            </h5>
+                            <div className="flex flex-wrap gap-1.5">
+                              {filteredExp.map((skill, idx) => (
+                                <div
+                                  key={`${skill.name}-${idx}`}
+                                  className="px-2.5 py-1 bg-slate-100 border border-slate-200/50 hover:bg-slate-200 hover:border-slate-300 transition-all rounded text-[10px] font-medium text-slate-600 flex items-center gap-1.5 cursor-default"
+                                  title={`Familiarity Level: ${renderLevel(skill.level)}`}
+                                >
+                                  <span className="tracking-tight">{skill.name}</span>
+                                  <span className="w-1 h-1 bg-slate-400 rounded-full" />
+                                  <span className="text-[8px] font-bold text-slate-400">L{skill.level}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })()}
+
+                      {displaySkills.filter(s => activeBrand === 'All' || s.brand?.trim() === activeBrand).length === 0 && (
+                        <div className="text-xs text-slate-300 py-4">No equipment found matching the filter.</div>
+                      )}
+                    </div>
+                  ) : (
+                    // 일반 스킬/툴 뷰
+                    <>
+                      {displaySkills.map((skill, i) => (
+                        <div
+                          key={`${skill.name}-${i}`}
+                          className="group stagger-item relative"
+                          style={{ animationDelay: `${i * 100}ms` }}
+                        >
+                          <div className="flex justify-between items-end mb-1">
+                            <span className="text-sm font-medium text-slate-800">{skill.name}</span>
+                            <span className="text-[10px] md:text-xs font-bold text-slate-400 tracking-wider group-hover:text-slate-900 transition-colors">
+                              {renderLevel(skill.level)}
+                            </span>
+                          </div>
+
+                          {/* 스킬 프로그레스 바 */}
+                          <div className="h-[1px] w-full bg-slate-100 relative overflow-hidden">
+                            {/* 검은색 바 (실제 숙련도) */}
+                            <div
+                              className="absolute top-0 left-0 h-full bg-slate-900 transition-all duration-[1.5s] ease-out w-0 group-hover:w-full"
+                              style={{ width: `${(skill.level / 5) * 100}%` }}
+                            />
+                            {/* 배경 애니메이션 바 (회색) */}
+                            <div
+                              className="h-full bg-slate-200 w-0 animate-[growWidth_1s_ease-out_forwards]"
+                              style={{ width: `${(skill.level / 5) * 100}%`, animationDelay: `${(i * 100) + 300}ms` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+
+                      {displaySkills.length === 0 && (
+                        <div className="text-xs text-slate-300 py-4">No items found in this category.</div>
+                      )}
+                    </>
                   )}
 
                   {/* 개요(전체 목록)로 돌아가는 버튼 */}
@@ -285,11 +418,57 @@ const InteractiveSkillSection: React.FC = () => {
 };
 
 // ----------------------------------------------------------------------
-// 3. About 메인 컴포넌트
+// 3. Timeline 컴포넌트
+// ----------------------------------------------------------------------
+
+const Timeline: React.FC = () => {
+  const [ref, isVisible] = useIntersectionObserver({ threshold: 0.1, once: false });
+
+  return (
+    <div ref={ref} className="relative pl-6 sm:pl-8 border-l border-slate-200 space-y-12 py-8 my-8 transition-colors duration-500">
+      {TIMELINE_DATA.map((item, idx) => (
+        <div
+          key={item.year}
+          className={`relative transition-all duration-1000 transform ${
+            isVisible
+              ? 'opacity-100 translate-y-0'
+              : 'opacity-0 translate-y-8'
+          }`}
+          style={{ transitionDelay: `${idx * 150}ms` }}
+        >
+          {/* Glowing dot */}
+          <div className="absolute -left-[9px] top-1.5 flex items-center justify-center">
+            <div className="w-4 h-4 bg-white border-2 border-slate-900 rounded-full flex items-center justify-center relative">
+              <div className="w-1.5 h-1.5 bg-slate-900 rounded-full animate-ping absolute duration-1000" />
+              <div className="w-1.5 h-1.5 bg-slate-900 rounded-full" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-8">
+            <div className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 md:col-span-1">
+              {item.year}
+            </div>
+            <div className="md:col-span-3 space-y-1.5">
+              <h4 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
+                {item.title}
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-500 font-light leading-relaxed break-keep">
+                {item.description}
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+// ----------------------------------------------------------------------
+// 4. About 메인 컴포넌트
 // ----------------------------------------------------------------------
 
 const About: React.FC = () => {
-  const [textRef, isTextVisible] = useIntersectionObserver({ threshold: 0.15 });
+  const [textRef, isTextVisible] = useIntersectionObserver({ threshold: 0.1, once: false });
   const { texts } = useSiteTexts();
 
   return (
@@ -339,6 +518,11 @@ const About: React.FC = () => {
                     </React.Fragment>
                   ))}
                 </p>
+              </div>
+
+              {/* 연혁 타임라인 (Timeline) */}
+              <div className={`transition-all duration-1000 delay-700 ${isTextVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+                <Timeline />
               </div>
             </div>
           </div>

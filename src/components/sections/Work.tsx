@@ -14,6 +14,27 @@ const Work: React.FC = () => {
   const [selectedWork, setSelectedWork] = useState<WorkItem | null>(null); // 모달에 띄울 현재 선택된 작업물
   const [isGridUpdating, setIsGridUpdating] = useState(false); // 필터 변경 시 그리드 깜빡임 효과 제어
   const [navDirection, setNavDirection] = useState<'next' | 'prev' | 'init'>('init'); // 모달 슬라이드 애니메이션 방향
+  const [columnCount, setColumnCount] = useState(4); // 반응형 열 개수 상태
+
+  // 화면 크기에 따른 동적 열 개수 설정
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth;
+      if (width < 640) {
+        setColumnCount(1);
+      } else if (width < 768) {
+        setColumnCount(2);
+      } else if (width < 1024) {
+        setColumnCount(3);
+      } else {
+        setColumnCount(4);
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // 필터 옵션 상수 정의
   const workTypes: WorkType[] = ['Created', 'Participated'];
@@ -184,56 +205,80 @@ const Work: React.FC = () => {
       {/* B. 그리드 컨텐츠 영역 */}
       {loading ? (
         // 로딩 중일 때 스켈레톤 UI (회색 박스 깜빡임) 표시
-        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 w-full">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className={`animate-pulse bg-slate-100 mb-6 w-full rounded-lg ${i % 3 === 0 ? 'aspect-[9/16]' : 'aspect-[16/10]'}`}></div>
-          ))}
-        </div>
-      ) : (
-        // 데이터 로드 완료 시 실제 그리드 렌더링
-        <div
-          key={activeCategory + activeType} // 키값이 바뀌면 컴포넌트가 새로 그려지며 애니메이션 리셋됨
-          className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 w-full min-h-[500px]"
-        >
-          {!isGridUpdating && filteredItems.map((item, index) => (
-            <div
-              key={`${item.id}-${activeType}-${activeCategory}`}
-              className="stagger-item group cursor-pointer relative break-inside-avoid mb-6 block w-full rounded-lg overflow-hidden"
-              style={{ animationDelay: `${index * 80}ms` }} // 순차적으로 나타나는 애니메이션 딜레이
-              onClick={() => openModal(item)}
-            >
-              {/* 이미지 컨테이너 */}
-              <div className={`relative w-full overflow-hidden bg-slate-50 transition-all duration-700 ${item.vertical ? 'aspect-[9/16]' : 'aspect-[16/10]'}`}>
-                {item.vertical && (
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-full uppercase tracking-wider z-20 flex items-center gap-1 shadow-sm">
-                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    Vertical
-                  </div>
-                )}
-                <img
-                  src={item.thumbnail}
-                  alt={item.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-[1.5s] cubic-bezier(0.22, 1, 0.36, 1) group-hover:scale-105"
-                />
-
-                {/* 호버 오버레이 (모바일: 항상 보임 / 데스크탑: 호버 시 보임) */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6 md:p-8">
-                  <div className="transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500">
-                    <span className="text-[8px] sm:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-2">{item.category}</span>
-                    <h3 className="text-sm sm:text-base md:text-lg lg:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
-                    <div className="hidden md:flex items-center text-[10px] text-white/80 font-medium tracking-widest uppercase">
-                      <span>View Project</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className="flex flex-row gap-[10px] w-full">
+          {Array.from({ length: columnCount }).map((_, colIdx) => (
+            <div key={colIdx} className="flex flex-col gap-[10px] flex-1">
+              {[...Array(2)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`animate-pulse bg-slate-100 w-full rounded-lg ${
+                    (colIdx + i) % 2 === 0 ? 'aspect-[9/16]' : 'aspect-[16/10]'
+                  }`}
+                ></div>
+              ))}
             </div>
           ))}
         </div>
-      )}
+      ) : (() => {
+        // Flexbox Columns에 맞춰 아이템 분배 (Chronological Flow)
+        const columns: WorkItem[][] = Array.from({ length: columnCount }, () => []);
+        filteredItems.forEach((item, index) => {
+          columns[index % columnCount].push(item);
+        });
+
+        return (
+          <div
+            key={activeCategory + activeType + columnCount} // 키가 바뀌면 애니메이션 초기화
+            className="flex flex-row gap-[10px] w-full min-h-[500px]"
+          >
+            {!isGridUpdating && columns.map((columnItems, colIndex) => (
+              <div key={colIndex} className="flex flex-col gap-[10px] flex-1">
+                {columnItems.map((item) => {
+                  const originalIndex = filteredItems.findIndex(fi => fi.id === item.id);
+                  return (
+                    <div
+                      key={`${item.id}-${activeType}-${activeCategory}`}
+                      className="stagger-item group cursor-pointer relative block w-full rounded-lg overflow-hidden"
+                      style={{ animationDelay: `${originalIndex * 80}ms` }} // 순차적으로 나타나는 애니메이션 딜레이
+                      onClick={() => openModal(item)}
+                    >
+                      {/* 이미지 컨테이너 */}
+                      <div className={`relative w-full overflow-hidden bg-slate-50 transition-all duration-700 ${item.vertical ? 'aspect-[9/16]' : 'aspect-[16/10]'}`}>
+                        {item.vertical && (
+                          <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-1 rounded-full uppercase tracking-wider z-20 flex items-center gap-1 shadow-sm">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                            </svg>
+                            Vertical
+                          </div>
+                        )}
+                        <img
+                          src={item.thumbnail}
+                          alt={item.title}
+                          loading="lazy"
+                          className="w-full h-full object-cover transition-transform duration-[1.5s] cubic-bezier(0.22, 1, 0.36, 1) group-hover:scale-105"
+                        />
+
+                        {/* 호버 오버레이 (모바일: 항상 보임 / 데스크탑: 호버 시 보임) */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 flex flex-col justify-end p-6 md:p-8">
+                          <div className="transform translate-y-0 md:translate-y-4 md:group-hover:translate-y-0 transition-transform duration-500">
+                            <span className="text-[8px] sm:text-[10px] font-bold tracking-[0.3em] text-white/70 uppercase block mb-2">{item.category}</span>
+                            <h3 className="text-sm sm:text-base md:text-lg lg:text-2xl font-bold text-white mb-2 md:mb-4 leading-tight">{item.title}</h3>
+                            <div className="hidden md:flex items-center text-[10px] text-white/80 font-medium tracking-widest uppercase">
+                              <span>View Project</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
 
       {/* C. 프로젝트 상세 모달 (조건부 렌더링) */}
       <ProjectModal

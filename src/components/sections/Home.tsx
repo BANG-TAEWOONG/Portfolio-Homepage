@@ -9,7 +9,21 @@ const Home: React.FC = () => {
   const [isRevealed, setIsRevealed] = useState(false);     // 마우스 오버 시 텍스트/버튼 표시 여부
   const [isMuted, setIsMuted] = useState(true);            // 비디오 음소거 상태 (기본값: 음소거)
   const [currentVideoNum, setCurrentVideoNum] = useState(1); // 현재 재생 중인 비디오 번호 (01, 02, ...)
+  const [isScaleDown, setIsScaleDown] = useState(false);    // 첫 진입 시 쇼릴 줌아웃 효과
   const videoRef = useRef<HTMLVideoElement>(null);         // 비디오 엘리먼트 직접 제어용 Ref
+
+  // 첫 진입 시 오버레이 인트로 끝나는 시점에 쇼릴 줌아웃(scale-down) 애니메이션 트리거
+  useEffect(() => {
+    const hasPlayed = sessionStorage.getItem('introPlayed');
+    if (!hasPlayed) {
+      const timer = setTimeout(() => {
+        setIsScaleDown(true);
+      }, 2000); // 인트로 재생 시간(약 2초) 후에 scale-down 시작
+      return () => clearTimeout(timer);
+    } else {
+      setIsScaleDown(true);
+    }
+  }, []);
 
   // ----------------------------------------------------------------------
   // 2. 비디오 소스 관리
@@ -91,7 +105,14 @@ const Home: React.FC = () => {
           onEnded={handleVideoEnded}
           onError={handleVideoError}
           // 텍스트가 보일 때(isRevealed) 비디오를 살짝 확대(scale-105)하여 깊이감 연출
-          className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-out ${isRevealed ? 'scale-105' : 'scale-100'}`}
+          // 첫 진입 시(인트로 모션 완료 후) scale-115에서 scale-100으로 부드럽게 줌아웃(scale-down)
+          className={`w-full h-full object-cover transition-transform ease-out ${
+            !isScaleDown 
+              ? 'scale-115 duration-[2000ms]' 
+              : isRevealed 
+                ? 'scale-105 duration-[6000ms]' 
+                : 'scale-100 duration-[6000ms]'
+          }`}
         >
           {/* mov, mp4 포맷 지원 */}
           <source src={`${getVideoSrc(currentVideoNum)}.mp4`} type="video/mp4" />

@@ -21,9 +21,9 @@ const GOOGLE_SHEET_SKILLS_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${SKILL_DB_GID}&ou
 const TOOLS_GID = '2121398315';
 const GOOGLE_SHEET_TOOLS_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${TOOLS_GID}&output=csv`;
 
-// Equipment 데이터가 있는 시트의 GID
-const EQUIPMENT_GID = '1277913603';
-const GOOGLE_SHEET_EQUIPMENT_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${EQUIPMENT_GID}&output=csv`;
+// Equipment 데이터가 있는 시트의 GID 및 URL
+const GOOGLE_SHEET_OLD_EQUIPMENT_URL = `${GOOGLE_SHEET_BASE_URL}?gid=1277913603&output=csv`;
+const GOOGLE_SHEET_EQUIPMENT_URL = 'https://docs.google.com/spreadsheets/d/1dwCdnFeZMedaMdv0nOxTXJpMqxEaB_ParMEAl00jRRo/export?format=csv';
 
 // 사이트 텍스트 시트 GID 및 URL
 const SITE_TEXTS_GID = '877199329';
@@ -249,45 +249,150 @@ export const fetchToolsData = async (): Promise<SkillItem[]> => {
 };
 
 /**
+ * Korean Category to English Filter mapper
+ */
+const mapCategoryToFilter = (cat: string): string => {
+    if (!cat) return 'Accessories';
+    const trimmed = cat.trim();
+    if (trimmed === '카메라' || trimmed === '렌즈') return 'Camera';
+    if (trimmed === '조명') return 'Lighting';
+    if (trimmed === '그립') return 'Stabilizer & Rigs';
+    return 'Accessories'; // 저장장치, 오디오, 악세서리, 기타, 파워 등
+};
+
+/**
  * Equipment 목록 가져오기
- * - group -> filter 매핑
- * - category: 'Equipment'
- * - level > 0 필터링 (핵심 비즈니스 로직)
+ * - 새 구글 시트에서 보유 장비(Owned) 데이터 로드
+ * - 기존 구글 시트에서 운용 장비(Experienced) 데이터 로드 (level > 0인 것)
+ * - 두 데이터 병합 및 중복 제거
  */
 export const fetchEquipmentData = async (): Promise<SkillItem[]> => {
-    return new Promise((resolve, reject) => {
-        Papa.parse(addCacheBuster(GOOGLE_SHEET_EQUIPMENT_URL), {
-            download: true,
-            header: true,
-            transformHeader: (h: string) => h.trim(), // CSV 헤더 공백 제거
-            complete: (results) => {
-                try {
-                    const rows = results.data as EquipmentSheetRow[];
-                    const equipment: SkillItem[] = rows
-                        .filter(row => {
-                            // hidden 처리된 항목만 제외 (level 필터 제거 — 시트에서 hidden으로 관리)
-                            return row.name && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE');
-                        })
-                        .map(row => ({
-                            category: 'Equipment',
-                            filter: row.group,
-                            name: row.name,
-                            level: parseInt(row.level, 10) || 0,
-                            hidden: false
-                        }));
-                    resolve(equipment);
-                } catch (err) {
-                    console.error('Error parsing equipment:', err);
+    // 1. 새 시트 (보유 장비) 페치 및 파싱
+    const fetchOwned = (): Promise<SkillItem[]> => {
+        return new Promise((resolve) => {
+            Papa.parse(addCacheBuster(GOOGLE_SHEET_EQUIPMENT_URL), {
+                download: true,
+                header: true,
+                transformHeader: (h: string) => h.trim(),
+                complete: (results) => {
+                    try {
+                        const rows = results.data as any[];
+                        const items: SkillItem[] = rows
+                            .filter(row => {
+                                const name = row['Equipment Name'] || row['Model'];
+                                return name && (!row.hidden || row.hidden.trim().toUpperCase() !== 'TRUE');
+                            })
+                            .map(row => {
+                                const brand = row['Brand']?.trim() || '';
+                                const model = row['Model']?.trim() || '';
+                                const eqName = row['Equipment Name']?.trim() || '';
+                                const name = model ? `${brand} ${model}` : `${brand} ${eqName}`;
+                                
+                                const remarks = row['Remarks']?.trim() || '';
+                                const isOwned = remarks.includes('보유') || remarks.toLowerCase().includes('owned') || true;
+
+                                return {
+                                    category: 'Equipment',
+                                    filter: mapCategoryToFilter(row['Category']),
+                                    name: name.trim(),
+                                    level: 5, // 보유 장비는 기본적으로 마스터(5) 수준으로 지정
+                                    hidden: false,
+                                    brand,
+                                    model,
+                                    description: row['Description']?.trim() || '',
+                                    keyComponents: row['Key Components']?.trim() || '',
+                                    quantity: parseInt(row["Q'ty"], 10) || 1,
+                                    condition: row['Condition']?.trim() || '',
+                                    remark: remarks,
+                                    owned: isOwned
+                                };
+                            });
+                        resolve(items);
+                    } catch (err) {
+                        console.error('Error parsing new owned equipment:', err);
+                        resolve([]);
+                    }
+                },
+                error: (err) => {
+                    console.error('Fetch error (new owned equipment):', err);
                     resolve([]);
                 }
-            },
-            error: (err) => {
-                console.error('Fetch error (equipment):', err);
-                resolve([]);
-            }
+            });
         });
-    });
+    };
+
+    // 2. 기존 시트 (운용 장비) 페치 및 파싱
+    const fetchExperienced = (): Promise<SkillItem[]> => {
+        return new Promise((resolve) => {
+            Papa.parse(addCacheBuster(GOOGLE_SHEET_OLD_EQUIPMENT_URL), {
+                download: true,
+                header: true,
+                transformHeader: (h: string) => h.trim(),
+                complete: (results) => {
+                    try {
+                        const rows = results.data as any[];
+                        const items: SkillItem[] = rows
+                            .filter(row => {
+                                const name = row.name || '';
+                                const hidden = row.hidden?.trim().toUpperCase() === 'TRUE';
+                                const lvl = parseInt(row.level, 10) || 0;
+                                return name && !hidden && lvl > 0;
+                            })
+                            .map(row => {
+                                const brand = row.brand?.trim() || '';
+                                const model = row.name?.trim() || '';
+                                const name = model.startsWith(brand) ? model : `${brand} ${model}`;
+                                
+                                let filter = 'Accessories';
+                                const grp = row.group?.trim();
+                                if (grp === 'Camera' || grp === 'Lens' || grp === 'Drone') {
+                                    filter = 'Camera';
+                                } else if (grp === 'Lighting') {
+                                    filter = 'Lighting';
+                                } else if (grp === 'Gimbal' || grp === 'Tripod') {
+                                    filter = 'Stabilizer & Rigs';
+                                }
+
+                                return {
+                                    category: 'Equipment',
+                                    filter: filter,
+                                    name: name.trim(),
+                                    level: parseInt(row.level, 10) || 0,
+                                    hidden: false,
+                                    brand,
+                                    model,
+                                    description: '',
+                                    keyComponents: '',
+                                    quantity: 1,
+                                    condition: '',
+                                    remark: row.remark || '',
+                                    owned: false
+                                };
+                            });
+                        resolve(items);
+                    } catch (err) {
+                        console.error('Error parsing old experienced equipment:', err);
+                        resolve([]);
+                    }
+                },
+                error: (err) => {
+                    console.error('Fetch error (old experienced equipment):', err);
+                    resolve([]);
+                }
+            });
+        });
+    };
+
+    // 병렬로 실행 후 병합 및 중복제거
+    const [ownedItems, experiencedItems] = await Promise.all([fetchOwned(), fetchExperienced()]);
+    
+    // 보유 중인 장비의 이름을 기준으로 기존 운용 장비와 중복 제거 (대소문자 무시)
+    const ownedNames = new Set(ownedItems.map(item => item.name.toLowerCase()));
+    const filteredExperienced = experiencedItems.filter(item => !ownedNames.has(item.name.toLowerCase()));
+
+    return [...ownedItems, ...filteredExperienced];
 };
+
 
 // ----------------------------------------------------------------------
 // 사이트 텍스트 시트 행 타입 (key | value)

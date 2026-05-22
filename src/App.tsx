@@ -34,6 +34,28 @@ const App: React.FC = () => {
   const [showAdmin, setShowAdmin] = useState(false);
   const { texts } = useSiteTexts();
 
+  // ── 시네마틱 인트로 오버레이 상태 ──
+  const [introActive, setIntroActive] = useState(false);
+  const [introFading, setIntroFading] = useState(false);
+
+  useEffect(() => {
+    const hasPlayed = sessionStorage.getItem('introPlayed');
+    if (!hasPlayed) {
+      setIntroActive(true);
+      // 2.2초 동안 텍스트 애니메이션 진행 후 페이드 아웃 시작
+      const fadeTimeout = setTimeout(() => {
+        setIntroFading(true);
+        // 1초간 페이드 아웃 완료 후 오버레이 완벽히 해제
+        const removeTimeout = setTimeout(() => {
+          setIntroActive(false);
+          sessionStorage.setItem('introPlayed', 'true');
+        }, 1000);
+        return () => clearTimeout(removeTimeout);
+      }, 2200);
+      return () => clearTimeout(fadeTimeout);
+    }
+  }, []);
+
   // ── 개발자 모드: 푸터 5번 탭 감지 ──
   const tapCountRef = useRef(0);
   const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,6 +103,23 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white selection:bg-black selection:text-white">
+      {/* Cinematic Intro Loader Overlay */}
+      {introActive && (
+        <div
+          className={`fixed inset-0 z-[9999] flex items-center justify-center bg-black transition-opacity duration-1000 ease-in-out ${
+            introFading ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          <div
+            className={`text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-widest transition-all duration-[2200ms] ease-out ${
+              introFading ? 'opacity-0 scale-[1.05] tracking-[1.5em]' : 'animate-letter-space'
+            }`}
+          >
+            TWOONG STUDIO
+          </div>
+        </div>
+      )}
+
       <Navbar activeSection={activeSection} />
 
       <main>
