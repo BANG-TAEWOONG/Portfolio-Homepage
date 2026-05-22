@@ -425,40 +425,44 @@ const Timeline: React.FC = () => {
   const [ref, isVisible] = useIntersectionObserver({ threshold: 0.1, once: false });
 
   return (
-    <div ref={ref} className="relative pl-6 sm:pl-8 border-l border-slate-200 space-y-12 py-8 my-8 transition-colors duration-500">
-      {TIMELINE_DATA.map((item, idx) => (
-        <div
-          key={item.year}
-          className={`relative transition-all duration-1000 transform ${
-            isVisible
-              ? 'opacity-100 translate-y-0'
-              : 'opacity-0 translate-y-8'
-          }`}
-          style={{ transitionDelay: `${idx * 150}ms` }}
-        >
-          {/* Glowing dot */}
-          <div className="absolute -left-[9px] top-1.5 flex items-center justify-center">
-            <div className="w-4 h-4 bg-white border-2 border-slate-900 rounded-full flex items-center justify-center relative">
+    <div ref={ref} className="relative my-12 py-6">
+      {/* Horizontal connector line (visible on sm and up) */}
+      <div className="absolute top-8 left-[12.5%] right-[12.5%] h-[1px] bg-slate-200 hidden sm:block" />
+
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 md:gap-12 relative z-10">
+        {TIMELINE_DATA.map((item, idx) => (
+          <div
+            key={item.year}
+            className={`flex flex-col items-center text-center transition-all duration-1000 transform ${
+              isVisible
+                ? 'opacity-100 translate-y-0'
+                : 'opacity-0 translate-y-8'
+            }`}
+            style={{ transitionDelay: `${idx * 150}ms` }}
+          >
+            {/* Dot container */}
+            <div className="w-4 h-4 bg-white border-2 border-slate-900 rounded-full flex items-center justify-center relative mb-4 shadow-sm">
               <div className="w-1.5 h-1.5 bg-slate-900 rounded-full animate-ping absolute duration-1000" />
               <div className="w-1.5 h-1.5 bg-slate-900 rounded-full" />
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2 md:gap-8">
-            <div className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 md:col-span-1">
+            {/* Year */}
+            <span className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 mb-2 leading-none">
               {item.year}
-            </div>
-            <div className="md:col-span-3 space-y-1.5">
-              <h4 className="text-sm sm:text-base font-bold text-slate-800 tracking-tight">
+            </span>
+
+            {/* Title & Desc */}
+            <div className="space-y-1.5 px-2">
+              <h4 className="text-sm font-bold text-slate-800 tracking-tight leading-tight">
                 {item.title}
               </h4>
-              <p className="text-xs sm:text-sm text-slate-500 font-light leading-relaxed break-keep">
+              <p className="text-[11px] sm:text-xs text-slate-400 font-light leading-relaxed max-w-[240px] mx-auto break-keep">
                 {item.description}
               </p>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };
