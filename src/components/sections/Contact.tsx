@@ -80,12 +80,12 @@ const Contact: React.FC = () => {
         </span>
       </div>
 
-      {/* 2-A. 캘린더 임베드 섹션 (가로 크기 max-w-6xl로 확장, 높이 반응형 최적화) */}
+      {/* 2-A. 캘린더 임베드 섹션 (반응형 유동적 크기 및 높이 확장 최적화) */}
       {texts.contactCalendarUrl && (
-        <div className="mt-16 md:mt-20 w-full max-w-6xl mx-auto px-2 sm:px-4">
+        <div className="mt-16 md:mt-20 w-full lg:max-w-[92vw] 2xl:max-w-[1500px] mx-auto px-2 sm:px-4">
           <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-2">Schedule</h3>
           <p className="text-slate-500 text-xs sm:text-sm font-light mb-6 tracking-wide">촬영 가능 일정을 확인하고 문의해주세요</p>
-          <div className="w-full h-[400px] sm:h-[500px] md:h-[650px] bg-slate-50 rounded-lg overflow-hidden border border-slate-100 shadow-sm relative transition-all duration-300">
+          <div className="w-full h-[400px] sm:h-[500px] md:h-[650px] xl:h-[800px] bg-slate-50 rounded-lg overflow-hidden border border-slate-100 shadow-sm relative transition-all duration-300">
             <iframe
               src={texts.contactCalendarUrl}
               className="w-full h-full border-0 rounded-lg"
