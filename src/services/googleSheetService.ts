@@ -25,8 +25,9 @@ const GOOGLE_SHEET_TOOLS_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${TOOLS_GID}&output
 const EQUIPMENT_GID = '1277913603';
 const GOOGLE_SHEET_EQUIPMENT_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${EQUIPMENT_GID}&output=csv`;
 
-// 사이트 텍스트 시트 (별도 스프레드시트)
-const SITE_TEXTS_SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQS8u7I2fzhfrogdXqEptSCalEY1revbT9OpnlTleQMpISMwezEEInp8EBoE2lEFMZuKkEmWAtc8zXh/pub?output=csv';
+// 사이트 텍스트 시트 GID 및 URL
+const SITE_TEXTS_GID = '877199329';
+const SITE_TEXTS_SHEET_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${SITE_TEXTS_GID}&output=csv`;
 
 // ----------------------------------------------------------------------
 // 2. 데이터 인터페이스 (구글 시트 헤더와 1:1 매핑)
