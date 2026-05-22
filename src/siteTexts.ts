@@ -44,6 +44,7 @@ export const DEFAULT_SITE_TEXTS = {
     contactAvailability: "Available for worldwide projects",
     contactFormUrl: "https://forms.google.com/YOUR_FORM_ID",
     contactCalendarUrl: "https://calendar.google.com/calendar/embed?src=d83273c5b0943375ee59b11179d4c555b62660043cc16173e988a8972081b012%40group.calendar.google.com&ctz=Asia%2FSeoul",
+    contactFormButtonText: "촬영 신청하기",
 
     // ── Footer ──
     footerCopyright: "TEST",

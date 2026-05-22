@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSiteTexts } from '../../hooks/useSiteTexts';
+import EditableText from '../EditableText';
 
 const Home: React.FC = () => {
   const { texts } = useSiteTexts();
@@ -134,15 +135,11 @@ const Home: React.FC = () => {
         {/* 텍스트 컨테이너: isRevealed 상태에 따라 아래에서 위로 올라오며 페이드인 */}
         <div className={`transition-all duration-[1500ms] cubic-bezier(0.22, 1, 0.36, 1) transform ${isRevealed ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'} text-center`}>
           {/* 메인 카피 문구 */}
-          {/* 메인 카피 문구 */}
-          <p className="text-sm sm:text-base md:text-xl lg:text-2xl text-white font-light leading-relaxed mb-8 md:mb-10 tracking-tight transition-all duration-[2000ms]">
-            {texts.homeDescription.split('\n').map((line, i) => (
-              <React.Fragment key={i}>
-                {i > 0 && <br className="hidden md:block" />}
-                {line}
-              </React.Fragment>
-            ))}
-          </p>
+          <EditableText
+            textKey="homeDescription"
+            className="text-sm sm:text-base md:text-xl lg:text-2xl text-white font-light leading-relaxed mb-8 md:mb-10 tracking-tight transition-all duration-[2000ms] block"
+            as="p"
+          />
 
           {/* 포트폴리오 바로가기 버튼 */}
           <a
@@ -151,7 +148,9 @@ const Home: React.FC = () => {
             className="group relative inline-block px-8 py-3.5 sm:px-10 sm:py-4 md:px-12 md:py-5 overflow-hidden border border-white/30 text-white text-[10px] sm:text-xs font-bold tracking-[0.3em] transition-all duration-500 uppercase"
           >
             {/* 버튼 텍스트 */}
-            <span className="relative z-10 transition-colors duration-500 group-hover:text-black">{texts.homeButtonText}</span>
+            <span className="relative z-10 transition-colors duration-500 group-hover:text-black">
+              <EditableText textKey="homeButtonText" />
+            </span>
             {/* 호버 시 아래에서 올라오는 흰색 배경 애니메이션 */}
             <div className="absolute inset-0 z-0 translate-y-full bg-white transition-transform duration-500 cubic-bezier(0.22, 1, 0.36, 1) group-hover:translate-y-0"></div>
           </a>

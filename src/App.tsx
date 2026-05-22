@@ -1,8 +1,9 @@
-
 import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
 import Navbar from './components/layout/Navbar';
 import { useIntersectionObserver } from './hooks/useIntersectionObserver';
 import { useSiteTexts } from './hooks/useSiteTexts';
+import { SiteTextsProvider } from './context/SiteTextsContext';
+import EditableText from './components/EditableText';
 
 // 컴포넌트 레이지 로딩 (초기 로딩 속도 향상)
 const Home = lazy(() => import('./components/sections/Home'));
@@ -29,10 +30,10 @@ const RevealSection: React.FC<{ id: string; children: React.ReactNode; className
   );
 };
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [showAdmin, setShowAdmin] = useState(false);
-  const { texts } = useSiteTexts();
+  const { texts, hasChanges, isSaving, saveChanges, discardChanges, pendingChanges } = useSiteTexts();
 
   // ── 시네마틱 인트로 오버레이 상태 ──
   const [introActive, setIntroActive] = useState(false);
@@ -53,26 +54,6 @@ const App: React.FC = () => {
         return () => clearTimeout(removeTimeout);
       }, 2200);
       return () => clearTimeout(fadeTimeout);
-    }
-  }, []);
-
-  // ── 개발자 모드: 푸터 5번 탭 감지 ──
-  const tapCountRef = useRef(0);
-  const tapTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const handleFooterTap = useCallback(() => {
-    tapCountRef.current += 1;
-
-    // 이전 타이머 리셋 (2초 이내에 5번 클릭해야 함)
-    if (tapTimerRef.current) clearTimeout(tapTimerRef.current);
-
-    if (tapCountRef.current >= 5) {
-      tapCountRef.current = 0;
-      setShowAdmin(true);
-    } else {
-      tapTimerRef.current = setTimeout(() => {
-        tapCountRef.current = 0;
-      }, 2000);
     }
   }, []);
 
@@ -101,6 +82,15 @@ const App: React.FC = () => {
     return () => observer.disconnect();
   }, []);
 
+  const handleSave = async () => {
+    const success = await saveChanges();
+    if (success) {
+      alert('구글 시트 전송 완료! 실시간 반영은 약 1~5분 정도 소요될 수 있으며, 로컬 페이지에는 즉시 임시 반영되었습니다.');
+    }
+  };
+
+  const pendingCount = Object.keys(pendingChanges).length;
+
   return (
     <div className="min-h-screen bg-white selection:bg-black selection:text-white">
       {/* Cinematic Intro Loader Overlay */}
@@ -120,7 +110,8 @@ const App: React.FC = () => {
         </div>
       )}
 
-      <Navbar activeSection={activeSection} />
+      {/* Navbar - onAdminClick 콜백 연동 */}
+      <Navbar activeSection={activeSection} onAdminClick={() => setShowAdmin(true)} />
 
       <main>
         <section id="home">
@@ -148,15 +139,45 @@ const App: React.FC = () => {
         </RevealSection>
       </main>
 
-      {/* 푸터 — copyright를 5번 빠르게 클릭하면 Admin 모달 활성화 */}
+      {/* 푸터 - 탭 카운터 제거하고 미니멀하게 단순 카피라이트 출력 */}
       <footer className="py-12 text-center border-t border-slate-100 text-slate-300 text-[10px] tracking-[0.2em] uppercase">
-        <p
-          onClick={handleFooterTap}
-          className="cursor-default select-none"
-        >
-          &copy; {new Date().getFullYear()} {texts.footerCopyright}. All rights reserved.
+        <p className="cursor-default select-none">
+          &copy; {new Date().getFullYear()} <EditableText textKey="footerCopyright" />. All rights reserved.
         </p>
       </footer>
+
+      {/* ── 인라인 편집 상태: 플로팅 저장/취소 세이브 바 ── */}
+      {hasChanges && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[8000] bg-slate-900 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-5 duration-300 border border-slate-800">
+          <div className="flex flex-col">
+            <span className="text-xs font-bold tracking-wider">임시 변경사항 ({pendingCount}건)</span>
+            <span className="text-[10px] text-slate-400">구글 시트에 저장하기 전입니다.</span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={discardChanges}
+              disabled={isSaving}
+              className="px-3.5 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer"
+            >
+              취소
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-4 py-2 bg-white text-slate-900 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors shadow flex items-center gap-1 cursor-pointer disabled:opacity-50"
+            >
+              {isSaving ? (
+                <>
+                  <span className="w-3.5 h-3.5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin"></span>
+                  저장 중...
+                </>
+              ) : (
+                '구글 시트에 저장하기'
+              )}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Admin 모달 오버레이 */}
       {showAdmin && (
@@ -165,6 +186,14 @@ const App: React.FC = () => {
         </Suspense>
       )}
     </div>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <SiteTextsProvider>
+      <AppContent />
+    </SiteTextsProvider>
   );
 };
 

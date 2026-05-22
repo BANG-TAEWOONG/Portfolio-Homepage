@@ -1,29 +1,51 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSiteTexts } from '../../hooks/useSiteTexts';
+import EditableText from '../EditableText';
 
 const Contact: React.FC = () => {
   const { texts } = useSiteTexts();
+  const [showToast, setShowToast] = useState(false);
+
+  const handleEmailClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // 클립보드에 이메일 주소 복사
+    if (texts.contactEmail) {
+      navigator.clipboard.writeText(texts.contactEmail);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 2500);
+    }
+  };
 
   return (
     // 전체 컨테이너: 텍스트 중앙 정렬(text-center) 및 좌우 패딩(px-6)
-    <div className="w-full px-6 text-center">
+    <div className="w-full px-6 text-center relative">
+      
+      {/* 이메일 복사 완료 토스트 알림 */}
+      {showToast && (
+        <div className="fixed top-24 left-1/2 transform -translate-x-1/2 z-[9999] bg-slate-900 text-white text-xs px-6 py-3.5 rounded-xl shadow-2xl tracking-wider animate-in fade-in slide-in-from-top-4 duration-300 border border-slate-800">
+          📬 이메일 주소가 복사되었습니다! ({texts.contactEmail})
+        </div>
+      )}
 
       {/* 1. 섹션 헤더 영역 */}
       {/* 제목: CONTACT (반응형 폰트 크기 적용) */}
       <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 mb-6 md:mb-8">CONTACT</h2>
       {/* 서브 텍스트: 협업 제안 메시지 (연한 회색, 얇은 폰트) */}
-      <p className="text-slate-400 text-xs md:text-sm font-light mb-12 md:mb-16 tracking-tight">{texts.contactSubText}</p>
+      <div className="mb-12 md:mb-16">
+        <EditableText textKey="contactSubText" className="text-slate-400 text-xs md:text-sm font-light tracking-tight" as="p" />
+      </div>
 
       {/* 2. 소셜 미디어 아이콘 링크 영역 */}
-      {/* 아이콘들을 가로로 정렬하고 간격을 띄움 (space-x-8) */}
       <div className="flex justify-center items-center space-x-8 md:space-x-16">
 
-        {/* A. 이메일 (mailto 링크) */}
-        {/* group 클래스: 부모(a태그)에 마우스를 올렸을 때 자식(svg)의 스타일을 바꾸기 위해 사용 */}
-        <a href={`mailto:${texts.contactEmail}`} className="group" aria-label="Email">
-          {/* 아이콘 래퍼: 호버 시 크기 확대 (scale-125) */}
+        {/* A. 이메일 (mailto 링크 + 클릭 시 클립보드 자동 복사) */}
+        <a 
+          href={`mailto:${texts.contactEmail}`} 
+          onClick={handleEmailClick}
+          className="group cursor-pointer" 
+          aria-label="Email"
+          title="이메일 보내기 및 주소 복사"
+        >
           <div className="flex items-center justify-center transition-all duration-500 transform group-hover:scale-125">
-            {/* SVG 아이콘: 기본 회색(text-slate-300) -> 호버 시 검정색(text-slate-900)으로 변경 */}
             <svg className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-slate-300 transition-colors duration-500 group-hover:text-slate-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
@@ -48,7 +70,7 @@ const Contact: React.FC = () => {
           </div>
         </a>
 
-        {/* D. 비메오 (비활성 — 실제 URL 설정 시 활성화) */}
+        {/* D. 비메오 (비활성) */}
         <span className="group cursor-not-allowed opacity-40" aria-label="Vimeo (준비 중)">
           <div className="flex items-center justify-center">
             <svg className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-slate-300" fill="currentColor" viewBox="0 0 24 24">
@@ -58,12 +80,12 @@ const Contact: React.FC = () => {
         </span>
       </div>
 
-      {/* 2-A. 캘린더 임베드 섹션 (URL이 있을 경우에만 표시) */}
+      {/* 2-A. 캘린더 임베드 섹션 (가로 크기 max-w-6xl로 확장, 높이 반응형 최적화) */}
       {texts.contactCalendarUrl && (
-        <div className="mt-16 md:mt-20 w-full max-w-4xl mx-auto">
+        <div className="mt-16 md:mt-20 w-full max-w-6xl mx-auto px-2 sm:px-4">
           <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-2">Schedule</h3>
           <p className="text-slate-500 text-xs sm:text-sm font-light mb-6 tracking-wide">촬영 가능 일정을 확인하고 문의해주세요</p>
-          <div className="w-full h-[350px] sm:h-[400px] md:h-[500px] bg-slate-50 rounded-lg overflow-hidden border border-slate-100 shadow-sm relative">
+          <div className="w-full h-[400px] sm:h-[500px] md:h-[650px] bg-slate-50 rounded-lg overflow-hidden border border-slate-100 shadow-sm relative transition-all duration-300">
             <iframe
               src={texts.contactCalendarUrl}
               className="w-full h-full border-0 rounded-lg"
@@ -74,7 +96,7 @@ const Contact: React.FC = () => {
         </div>
       )}
 
-      {/* 2-B. 촬영 문의하기 (CTA Button) */}
+      {/* 2-B. 촬영 문의하기 (CTA Button - CMS 연동 및 EditableText 래핑) */}
       <div className="mt-12 md:mt-16">
         <a
           href={texts.contactFormUrl}
@@ -82,15 +104,19 @@ const Contact: React.FC = () => {
           rel="noopener noreferrer"
           className="inline-block px-6 py-2.5 sm:px-8 sm:py-3 md:px-10 md:py-4 border border-slate-200 text-xs sm:text-sm font-bold tracking-[0.2em] uppercase text-slate-500 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-300"
         >
-          Project Inquiry
+          <EditableText textKey="contactFormButtonText" />
         </a>
       </div>
 
       {/* 3. 하단 정보 섹션 */}
       {/* 활동 지역 및 가능 여부 표시 */}
       <div className="mt-20 md:mt-32 pt-8 md:pt-12">
-        <p className="text-[10px] sm:text-xs font-bold text-slate-900 uppercase tracking-[0.4em]">{texts.contactLocation}</p>
-        <p className="text-[10px] sm:text-xs text-slate-300 mt-2 md:mt-3 uppercase tracking-widest font-light">{texts.contactAvailability}</p>
+        <div className="mb-2">
+          <EditableText textKey="contactLocation" className="text-[10px] sm:text-xs font-bold text-slate-900 uppercase tracking-[0.4em]" as="p" />
+        </div>
+        <div>
+          <EditableText textKey="contactAvailability" className="text-[10px] sm:text-xs text-slate-300 uppercase tracking-widest font-light" as="p" />
+        </div>
       </div>
     </div>
   );

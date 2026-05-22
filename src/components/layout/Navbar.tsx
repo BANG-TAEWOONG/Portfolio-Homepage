@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 
 interface NavbarProps {
   activeSection: string; // 현재 화면에 보이는 섹션 ID (부모 컴포넌트로부터 전달받음)
+  onAdminClick?: () => void; // Admin 모달 호출 콜백
 }
 
-const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
+const Navbar: React.FC<NavbarProps> = ({ activeSection, onAdminClick }) => {
   // 1. 상태 관리
   const [isScrolled, setIsScrolled] = useState(false); // 사용자가 스크롤을 내렸는지 여부
   const [isHovered, setIsHovered] = useState(false);   // 네비게이션 바에 마우스를 올렸는지 여부
@@ -77,14 +78,29 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection }) => {
         onMouseLeave={() => setIsHovered(false)}
       >
         <div className="w-full px-6 h-16 md:h-20 flex items-center justify-between">
-          {/* 좌측 로고 */}
-          <a
-            href="#home"
-            onClick={(e) => scrollToSection(e, 'home')}
-            className="text-[15px] md:text-xl font-bold tracking-tighter text-slate-900 whitespace-nowrap"
-          >
-            TWOONG STUDIO
-          </a>
+          {/* 좌측 로고 및 관리자 단추 */}
+          <div className="flex items-center gap-2">
+            <a
+              href="#home"
+              onClick={(e) => scrollToSection(e, 'home')}
+              className="text-[15px] md:text-xl font-bold tracking-tighter text-slate-900 whitespace-nowrap"
+            >
+              TWOONG STUDIO
+            </a>
+            {onAdminClick && (
+              <button
+                onClick={onAdminClick}
+                className="p-1 rounded text-slate-300 hover:text-slate-950 hover:bg-slate-50 transition-all duration-300 cursor-pointer"
+                title="관리자 설정"
+                aria-label="Admin Settings"
+              >
+                <svg className="w-3.5 h-3.5 md:w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            )}
+          </div>
 
           {/* 우측 메뉴 리스트 - 데스크탑 (md 이상) */}
           <div className="hidden md:flex md:space-x-12">
