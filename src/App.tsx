@@ -33,7 +33,7 @@ const RevealSection: React.FC<{ id: string; children: React.ReactNode; className
 const AppContent: React.FC = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [showAdmin, setShowAdmin] = useState(false);
-  const { texts, hasChanges, isSaving, saveChanges, discardChanges, pendingChanges } = useSiteTexts();
+  const { texts, hasChanges, isSaving, saveChanges, discardChanges, pendingChanges, isEditMode, setIsEditMode } = useSiteTexts();
 
   // ── 시네마틱 인트로 오버레이 상태 ──
   const [introActive, setIntroActive] = useState(false);
@@ -86,6 +86,7 @@ const AppContent: React.FC = () => {
     const success = await saveChanges();
     if (success) {
       alert('구글 시트 전송 완료! 실시간 반영은 약 1~5분 정도 소요될 수 있으며, 로컬 페이지에는 즉시 임시 반영되었습니다.');
+      setIsEditMode(false); // 저장 완료 시 편집 모드 자동 종료
     }
   };
 
@@ -155,7 +156,10 @@ const AppContent: React.FC = () => {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={discardChanges}
+              onClick={() => {
+                discardChanges();
+                setIsEditMode(false); // 취소 시 편집 모드 자동 종료
+              }}
               disabled={isSaving}
               className="px-3.5 py-2 rounded-lg text-xs font-bold text-slate-400 hover:text-white transition-colors cursor-pointer"
             >
@@ -176,6 +180,22 @@ const AppContent: React.FC = () => {
               )}
             </button>
           </div>
+        </div>
+      )}
+
+      {/* ── 인라인 편집 상태: 저장할 변경 사항이 없는 경우의 편집 종료 바 ── */}
+      {!hasChanges && isEditMode && (
+        <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-[8000] bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl flex items-center gap-5 animate-in slide-in-from-bottom-5 duration-300 border border-slate-800">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+            <span className="text-xs font-bold tracking-wider">화면 편집 모드 작동 중</span>
+          </div>
+          <button
+            onClick={() => setIsEditMode(false)}
+            className="px-3.5 py-1.5 bg-white text-slate-900 rounded-lg text-xs font-bold hover:bg-slate-200 transition-colors cursor-pointer shadow-sm"
+          >
+            편집 종료
+          </button>
         </div>
       )}
 
