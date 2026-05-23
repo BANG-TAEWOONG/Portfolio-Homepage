@@ -7,46 +7,59 @@ interface AdminProps {
 
 // 구글 앱스 스크립트 코드 스니펫 (클립보드 복사용)
 const APPS_SCRIPT_CODE = `function doPost(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("siteTexts");
-  if (!sheet) {
-    sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets().find(function(s) {
-      return s.getName().toLowerCase().indexOf("text") > -1;
-    }) || SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-  }
-  
-  var data = JSON.parse(e.postData.contents);
-  var rows = sheet.getDataRange().getValues();
-  
-  var keyColIndex = 0;
-  var valColIndex = 1;
-  
-  if (rows.length > 0) {
-    for (var c = 0; c < rows[0].length; c++) {
-      var header = rows[0][c].toString().toLowerCase().trim();
-      if (header === 'key') keyColIndex = c;
-      if (header === 'value') valColIndex = c;
-    }
-  }
-  
-  var updatedCount = 0;
-  var edits = Array.isArray(data) ? data : [data];
-  
-  for (var i = 0; i < edits.length; i++) {
-    var edit = edits[i];
-    var targetKey = edit.key;
-    var targetValue = edit.value;
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getSheetByName("siteTexts") || ss.getSheetByName("SiteTexts");
     
-    for (var r = 1; r < rows.length; r++) {
-      if (rows[r][keyColIndex].toString().trim() === targetKey) {
-        sheet.getCell(r + 1, valColIndex + 1).setValue(targetValue);
-        updatedCount++;
-        break;
+    // GID 또는 이름으로 시트 탐색 강화
+    if (!sheet) {
+      var sheets = ss.getSheets();
+      for (var i = 0; i < sheets.length; i++) {
+        if (sheets[i].getSheetId() == 877199329 || sheets[i].getName().toLowerCase().indexOf("text") > -1) {
+          sheet = sheets[i];
+          break;
+        }
+      }
+      if (!sheet) sheet = ss.getSheets()[0];
+    }
+    
+    var data = JSON.parse(e.postData.contents);
+    var rows = sheet.getDataRange().getValues();
+    
+    var keyColIndex = 0;
+    var valColIndex = 1;
+    
+    if (rows.length > 0) {
+      for (var c = 0; c < rows[0].length; c++) {
+        var header = rows[0][c].toString().toLowerCase().trim();
+        if (header === 'key') keyColIndex = c;
+        if (header === 'value') valColIndex = c;
       }
     }
+    
+    var updatedCount = 0;
+    var edits = Array.isArray(data) ? data : [data];
+    
+    for (var i = 0; i < edits.length; i++) {
+      var edit = edits[i];
+      var targetKey = edit.key;
+      var targetValue = edit.value;
+      
+      for (var r = 1; r < rows.length; r++) {
+        if (rows[r][keyColIndex].toString().trim() === targetKey) {
+          sheet.getCell(r + 1, valColIndex + 1).setValue(targetValue);
+          updatedCount++;
+          break;
+        }
+      }
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({ status: "success", updated: updatedCount }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-  
-  return ContentService.createTextOutput(JSON.stringify({ status: "success", updated: updatedCount }))
-    .setMimeType(ContentService.MimeType.JSON);
 }`;
 
 const Admin: React.FC<AdminProps> = ({ onClose }) => {
