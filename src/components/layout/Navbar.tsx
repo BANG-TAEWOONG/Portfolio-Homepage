@@ -83,7 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeSection, onAdminClick }) => {
             <a
               href="#home"
               onClick={(e) => scrollToSection(e, 'home')}
-              className="text-[15px] md:text-xl font-bold tracking-tighter text-slate-900 whitespace-nowrap"
+              className="text-[11px] sm:text-xs md:text-sm font-medium tracking-[0.4em] text-slate-950 whitespace-nowrap uppercase mr-[-0.4em]"
             >
               TWOONG STUDIO
             </a>
