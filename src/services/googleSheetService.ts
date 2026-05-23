@@ -25,9 +25,9 @@ const GOOGLE_SHEET_TOOLS_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${TOOLS_GID}&output
 const GOOGLE_SHEET_OLD_EQUIPMENT_URL = `${GOOGLE_SHEET_BASE_URL}?gid=1277913603&output=csv`;
 const GOOGLE_SHEET_EQUIPMENT_URL = 'https://docs.google.com/spreadsheets/d/1dwCdnFeZMedaMdv0nOxTXJpMqxEaB_ParMEAl00jRRo/export?format=csv';
 
-// 사이트 텍스트 시트 GID 및 URL
+// 사이트 텍스트 시트 GID 및 URL (실시간 내보내기 API를 사용하여 5~10분 캐시 지연을 제거)
 const SITE_TEXTS_GID = '877199329';
-const SITE_TEXTS_SHEET_URL = `${GOOGLE_SHEET_BASE_URL}?gid=${SITE_TEXTS_GID}&output=csv`;
+const SITE_TEXTS_SHEET_URL = `https://docs.google.com/spreadsheets/d/1dwCdnFeZMedaMdv0nOxTXJpMqxEaB_ParMEAl00jRRo/export?format=csv&gid=${SITE_TEXTS_GID}`;
 
 // ----------------------------------------------------------------------
 // 2. 데이터 인터페이스 (구글 시트 헤더와 1:1 매핑)
