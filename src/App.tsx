@@ -117,7 +117,7 @@ const AppContent: React.FC = () => {
       <main>
         <section id="home">
           <Suspense fallback={<SectionLoader />}>
-            <Home />
+            <Home isIntroPlaying={introActive && !introFading} />
           </Suspense>
         </section>
 

@@ -2,7 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useSiteTexts } from '../../hooks/useSiteTexts';
 import EditableText from '../EditableText';
 
-const Home: React.FC = () => {
+interface HomeProps {
+  isIntroPlaying?: boolean;
+}
+
+const Home: React.FC<HomeProps> = ({ isIntroPlaying = false }) => {
   const { texts } = useSiteTexts();
   // ----------------------------------------------------------------------
   // 1. 상태 관리 (State Management)
@@ -12,19 +16,14 @@ const Home: React.FC = () => {
   const [currentVideoNum, setCurrentVideoNum] = useState(1); // 현재 재생 중인 비디오 번호 (01, 02, ...)
   const [isScaleDown, setIsScaleDown] = useState(false);    // 첫 진입 시 쇼릴 줌아웃 효과
   const videoRef = useRef<HTMLVideoElement>(null);         // 비디오 엘리먼트 직접 제어용 Ref
+  const lastLoadedVideoNum = useRef<number | null>(null);
 
   // 첫 진입 시 오버레이 인트로 끝나는 시점에 쇼릴 줌아웃(scale-down) 애니메이션 트리거
   useEffect(() => {
-    const hasPlayed = sessionStorage.getItem('introPlayed');
-    if (!hasPlayed) {
-      const timer = setTimeout(() => {
-        setIsScaleDown(true);
-      }, 2000); // 인트로 재생 시간(약 2초) 후에 scale-down 시작
-      return () => clearTimeout(timer);
-    } else {
+    if (!isIntroPlaying) {
       setIsScaleDown(true);
     }
-  }, []);
+  }, [isIntroPlaying]);
 
   // ----------------------------------------------------------------------
   // 2. 비디오 소스 관리
@@ -39,13 +38,26 @@ const Home: React.FC = () => {
   // 3. 비디오 재생 로직 (Effect & Handlers)
   // ----------------------------------------------------------------------
 
-  // 비디오 번호가 바뀌면 새로운 영상을 로드하고 재생 시도
+  // 비디오 번호가 바뀌거나 인트로 진행 상태가 바뀌면 비디오 재생/일시정지 제어
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.load();
-      videoRef.current.play().catch(e => console.log('Autoplay prevented:', e)); // 브라우저 정책상 자동재생 실패 시 에러 로그
+      if (isIntroPlaying) {
+        // 인트로 중이고 아직 로드하지 않은 비디오라면 로드만 수행하여 백그라운드 버퍼링 유도
+        if (lastLoadedVideoNum.current !== currentVideoNum) {
+          videoRef.current.load();
+          lastLoadedVideoNum.current = currentVideoNum;
+        }
+        videoRef.current.pause();
+      } else {
+        // 인트로가 끝나거나 이미 본 경우 비디오 재생 시작
+        if (lastLoadedVideoNum.current !== currentVideoNum) {
+          videoRef.current.load();
+          lastLoadedVideoNum.current = currentVideoNum;
+        }
+        videoRef.current.play().catch(e => console.log('Autoplay prevented:', e)); // 브라우저 정책상 자동재생 실패 시 에러 로그
+      }
     }
-  }, [currentVideoNum]);
+  }, [currentVideoNum, isIntroPlaying]);
 
   // 현재 영상이 끝나면 번호를 1 증가시켜 다음 영상 재생
   const handleVideoEnded = () => {
@@ -100,7 +112,6 @@ const Home: React.FC = () => {
         <video
           key={currentVideoNum}
           ref={videoRef}
-          autoPlay
           muted={isMuted}
           playsInline
           onEnded={handleVideoEnded}
