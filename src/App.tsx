@@ -102,7 +102,7 @@ const AppContent: React.FC = () => {
           }`}
         >
           <div
-            className={`text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-widest transition-all duration-[2200ms] ease-out ${
+            className={`text-white text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-medium tracking-widest whitespace-nowrap transition-all duration-[2200ms] ease-out ${
               introFading ? 'opacity-0 scale-[1.05] tracking-[1.5em]' : 'animate-letter-space'
             }`}
           >
