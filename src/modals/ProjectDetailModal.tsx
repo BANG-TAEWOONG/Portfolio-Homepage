@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSwipeable } from 'react-swipeable';
 import { createPortal } from 'react-dom';
-import { WorkItem } from '../types';
-import { getYouTubeEmbedUrl, getVideoPlatform } from '../services/youtube';
+import { WorkItem } from '../data/types';
+import { getYouTubeEmbedUrl, getVideoPlatform } from '../integrations/youtubeParser';
 
 // 컴포넌트에서 사용할 Props 타입 정의
 interface ProjectModalProps {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSiteTexts } from '../hooks/useSiteTexts';
+import { useSiteTexts } from '../integrations/useSiteTexts';
 
 interface AdminProps {
     onClose: () => void;

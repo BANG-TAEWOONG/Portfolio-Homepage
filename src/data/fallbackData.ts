@@ -1,7 +1,4 @@
-
 import { Skill } from './types';
-
-
 
 export const SKILLS: Skill[] = [
   { name: 'Cinematography', level: 95 },
@@ -25,10 +22,6 @@ export const EQUIPMENT_DATA: Skill[] = [
   { name: 'Aputure Light', level: 90 },
 ];
 
-
-
-
-
 export const LEVEL_MAPPING: { [key: number]: string } = {
   0: 'BEGINNER',
   1: 'BASIC',
@@ -37,6 +30,3 @@ export const LEVEL_MAPPING: { [key: number]: string } = {
   4: 'PROFESSIONAL',
   5: 'MASTER'
 };
-
-
-

@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSiteTexts } from '../../hooks/useSiteTexts';
-import EditableText from '../EditableText';
-import { smoothScrollTo } from '../../utils/smoothScroll';
+import { useSiteTexts } from '../integrations/useSiteTexts';
+import EditableText from '../ui/EditableText';
+import { smoothScrollTo } from '../integrations/smoothScroll';
 
 interface HomeProps {
   isIntroPlaying?: boolean;
 }
 
-const Home: React.FC<HomeProps> = ({ isIntroPlaying = false }) => {
+const HomeSection: React.FC<HomeProps> = ({ isIntroPlaying = false }) => {
   const { texts } = useSiteTexts();
   // ----------------------------------------------------------------------
   // 1. 상태 관리 (State Management)
@@ -210,4 +210,4 @@ const Home: React.FC<HomeProps> = ({ isIntroPlaying = false }) => {
   );
 };
 
-export default Home;
+export default HomeSection;

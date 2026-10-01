@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../../constants';
-import { Skill, SkillItem as SkillItemType } from '../../types';
-import { fetchSkillsData, fetchToolsData, fetchEquipmentData } from '../../services/googleSheetService';
-import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
-import { useSiteTexts } from '../../hooks/useSiteTexts';
-import EditableText from '../EditableText';
+import { LEVEL_MAPPING, SKILLS, TOOLS_DATA, EQUIPMENT_DATA } from '../data/fallbackData';
+import { Skill, SkillItem as SkillItemType } from '../data/types';
+import { fetchSkillsData, fetchToolsData, fetchEquipmentData } from '../integrations/googleSheets';
+import { useIntersectionObserver } from '../integrations/useIntersectionObserver';
+import { useSiteTexts } from '../integrations/useSiteTexts';
+import EditableText from '../ui/EditableText';
 
 // ----------------------------------------------------------------------
 // 1. 헬퍼 함수
@@ -505,7 +505,7 @@ const Timeline: React.FC = () => {
 // 4. About 메인 컴포넌트
 // ----------------------------------------------------------------------
 
-const About: React.FC = () => {
+const AboutSection: React.FC = () => {
   const [textRef, isTextVisible] = useIntersectionObserver({ threshold: 0.1, once: false });
   const { texts, isEditMode } = useSiteTexts();
 
@@ -597,4 +597,4 @@ const About: React.FC = () => {
   );
 };
 
-export default About;
+export default AboutSection;

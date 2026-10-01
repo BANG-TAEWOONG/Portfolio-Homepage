@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { smoothScrollTo } from '../../utils/smoothScroll';
+import { smoothScrollTo } from '../integrations/smoothScroll';
 
 interface NavbarProps {
   activeSection: string; // 현재 화면에 보이는 섹션 ID (부모 컴포넌트로부터 전달받음)

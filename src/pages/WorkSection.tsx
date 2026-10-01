@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import { Category, WorkType, WorkItem } from '../../types';
-import { useWorkItems } from '../../hooks/useWorkItems';
-import ProjectModal from '../ProjectModal';
-import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
-import { getVideoPlatform } from '../../services/youtube';
+import { Category, WorkType, WorkItem } from '../data/types';
+import { useWorkItems } from '../integrations/useWorkItems';
+import ProjectDetailModal from '../modals/ProjectDetailModal';
+import { useIntersectionObserver } from '../integrations/useIntersectionObserver';
+import { getVideoPlatform } from '../integrations/youtubeParser';
 
-const Work: React.FC = () => {
+const WorkSection: React.FC = () => {
   // 1. 커스텀 훅을 통해 전체 작업물 데이터 가져오기
   const { items: workItems, loading, error } = useWorkItems();
 
@@ -311,7 +311,7 @@ const Work: React.FC = () => {
 
 
       {/* C. 프로젝트 상세 모달 (조건부 렌더링) */}
-      <ProjectModal
+      <ProjectDetailModal
         selectedWork={selectedWork}
         onClose={closeModal}
         onNext={handleNext}
@@ -322,4 +322,4 @@ const Work: React.FC = () => {
   );
 };
 
-export default Work;
+export default WorkSection;

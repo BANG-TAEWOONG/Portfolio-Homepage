@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { DEFAULT_SITE_TEXTS, SiteTexts } from '../siteTexts';
-import { fetchSiteTexts } from '../services/googleSheetService';
+import { DEFAULT_SITE_TEXTS, SiteTexts } from '../data/siteTexts';
+import { fetchSiteTexts } from './googleSheets';
 
 export interface SiteTextsContextType {
     texts: SiteTexts;

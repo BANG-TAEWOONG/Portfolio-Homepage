@@ -27,6 +27,8 @@
     <link rel="canonical" href="https://twoongstudio.vercel.app">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://img.youtube.com" crossorigin>
+    <link rel="dns-prefetch" href="https://img.youtube.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -35,7 +37,13 @@
             overflow-x: hidden;
         }
 
-        /* Custom Scrollbar */
+        /* Standard Scrollbar (Baseline Widely Available) */
+        * {
+            scrollbar-color: #e2e8f0 transparent;
+            scrollbar-width: thin;
+        }
+
+        /* WebKit Legacy Fallback */
         ::-webkit-scrollbar {
             width: 4px;
         }

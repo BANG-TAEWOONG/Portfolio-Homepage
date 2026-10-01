@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useSiteTexts } from '../hooks/useSiteTexts';
-import { SiteTexts } from '../siteTexts';
+import { useSiteTexts } from '../integrations/useSiteTexts';
+import { SiteTexts } from '../data/siteTexts';
 
 interface EditableTextProps {
     textKey: keyof SiteTexts;

@@ -1,7 +1,7 @@
 import Papa from 'papaparse';
-import { WorkItem, Category, WorkType, SkillItem } from '../types';
-import { getYouTubeId, getYouTubeThumbnail } from './youtube';
-import { SiteTexts, DEFAULT_SITE_TEXTS } from '../siteTexts';
+import { WorkItem, Category, WorkType, SkillItem } from '../data/types';
+import { getYouTubeId, getYouTubeThumbnail } from './youtubeParser';
+import { SiteTexts, DEFAULT_SITE_TEXTS } from '../data/siteTexts';
 
 // ----------------------------------------------------------------------
 // 1. 구글 시트 설정 및 상수 정의

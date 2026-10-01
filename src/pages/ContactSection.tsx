@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { useSiteTexts } from '../../hooks/useSiteTexts';
-import EditableText from '../EditableText';
-import InquiryModal from './InquiryModal';
+import { useSiteTexts } from '../integrations/useSiteTexts';
+import EditableText from '../ui/EditableText';
+import InquiryFormModal from '../modals/InquiryFormModal';
 
-const Contact: React.FC = () => {
+const ContactSection: React.FC = () => {
   const { texts } = useSiteTexts();
   const [showToast, setShowToast] = useState(false);
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
@@ -126,7 +126,7 @@ const Contact: React.FC = () => {
       </div>
 
       {/* 1:1 문의 모달 컴포넌트 */}
-      <InquiryModal
+      <InquiryFormModal
         isOpen={isInquiryOpen}
         onClose={() => setIsInquiryOpen(false)}
         contactEmail={texts.contactEmail}
@@ -146,4 +146,4 @@ const Contact: React.FC = () => {
   );
 };
 
-export default Contact;
+export default ContactSection;

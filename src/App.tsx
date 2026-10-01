@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef, useCallback, Suspense, lazy } from 'react';
-import Navbar from './components/layout/Navbar';
-import { useIntersectionObserver } from './hooks/useIntersectionObserver';
-import { useSiteTexts } from './hooks/useSiteTexts';
-import { SiteTextsProvider } from './context/SiteTextsContext';
-import EditableText from './components/EditableText';
+import Navbar from './ui/Navbar';
+import { useIntersectionObserver } from './integrations/useIntersectionObserver';
+import { useSiteTexts } from './integrations/useSiteTexts';
+import { SiteTextsProvider } from './integrations/SiteTextsContext';
+import EditableText from './ui/EditableText';
 
 // 컴포넌트 레이지 로딩 (초기 로딩 속도 향상)
-const Home = lazy(() => import('./components/sections/Home'));
-const Work = lazy(() => import('./components/sections/Work'));
-const About = lazy(() => import('./components/sections/About'));
-const Contact = lazy(() => import('./components/sections/Contact'));
+const HomeSection = lazy(() => import('./pages/HomeSection'));
+const WorkSection = lazy(() => import('./pages/WorkSection'));
+const AboutSection = lazy(() => import('./pages/AboutSection'));
+const ContactSection = lazy(() => import('./pages/ContactSection'));
 
-const Admin = lazy(() => import('./components/Admin'));
+const AdminSettingsModal = lazy(() => import('./modals/AdminSettingsModal'));
 
 // 섹션 스켈레톤 (로딩 중 표시)
 const SectionLoader = () => (
@@ -123,25 +123,25 @@ const AppContent: React.FC = () => {
       <main>
         <section id="home" className="scroll-mt-16 md:scroll-mt-20">
           <Suspense fallback={<SectionLoader />}>
-            <Home isIntroPlaying={introActive && !introFading} />
+            <HomeSection isIntroPlaying={introActive && !introFading} />
           </Suspense>
         </section>
 
         <RevealSection id="work" className="py-16 md:py-32 bg-white scroll-mt-16 md:scroll-mt-20">
           <Suspense fallback={<SectionLoader />}>
-            <Work />
+            <WorkSection />
           </Suspense>
         </RevealSection>
 
-        <RevealSection id="about" className="py-16 md:py-32 bg-slate-50 scroll-mt-16 md:scroll-mt-20">
+        <RevealSection id="about" className="py-16 md:py-32 bg-slate-50/40 scroll-mt-16 md:scroll-mt-20">
           <Suspense fallback={<SectionLoader />}>
-            <About />
+            <AboutSection />
           </Suspense>
         </RevealSection>
 
         <RevealSection id="contact" className="py-16 md:py-40 scroll-mt-16 md:scroll-mt-20">
           <Suspense fallback={<SectionLoader />}>
-            <Contact />
+            <ContactSection />
           </Suspense>
         </RevealSection>
       </main>
@@ -208,7 +208,7 @@ const AppContent: React.FC = () => {
       {/* Admin 모달 오버레이 */}
       {showAdmin && (
         <Suspense fallback={null}>
-          <Admin onClose={() => setShowAdmin(false)} />
+          <AdminSettingsModal onClose={() => setShowAdmin(false)} />
         </Suspense>
       )}
     </div>

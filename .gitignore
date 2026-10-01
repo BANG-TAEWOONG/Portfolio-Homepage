@@ -1,5 +1,9 @@
 # Backup directories
 backup_*
+*.backup
+
+# Editor & Local settings
+.claude
 
 # Logs
 logs

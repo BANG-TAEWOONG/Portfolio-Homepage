@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { WorkItem } from '../types';
-import { fetchWorkItems } from '../services/googleSheetService';
+import { WorkItem } from '../data/types';
+import { fetchWorkItems } from './googleSheets';
 
 // 모듈 레벨 캐시: 동일 세션 내 중복 API 호출 방지
 let cachedItems: WorkItem[] | null = null;
