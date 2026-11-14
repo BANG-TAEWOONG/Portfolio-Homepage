@@ -1,6 +1,27 @@
 @import "tailwindcss";
 
-/* Modern Typography Wrapping (Baseline Newly Available) */
+:root {
+  --bg-canvas: #FFFFFF;
+  --bg-surface: #F9F9F8;
+  --bg-pill: #F4F4F2;
+  --ink-primary: #0A0A0B;
+}
+
+/* Base Canvas & Native Scrollbar (Native smooth-scroll disabled so JS inertial RAF scroll has zero fight) */
+html {
+  scroll-behavior: auto;
+  overflow-x: clip;
+  background-color: #FFFFFF;
+  color: #0A0A0B;
+}
+
+body {
+  font-family: 'Pretendard Variable', Pretendard, 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background-color: #FFFFFF;
+  color: #0A0A0B;
+  overflow-x: clip;
+}
+
 h1, h2, h3, h4, h5, h6 {
   text-wrap: balance;
 }
@@ -9,26 +30,36 @@ p {
   text-wrap: pretty;
 }
 
-/* Global Smooth Scroll */
-html {
-  scroll-behavior: smooth;
+/* Wow Tapes Homage: Tall Heavy Condensed Uppercase Display Typography */
+.font-display {
+  font-family: 'Anton', 'Pretendard Variable', Pretendard, 'Inter', sans-serif;
+  font-weight: 900;
+  font-synthesis: none;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+  text-transform: uppercase;
 }
 
-/* Defer rendering of off-screen sections to accelerate initial load (Modern Web Performance) */
-#work,
-#about,
-#contact {
-  content-visibility: auto;
-  contain-intrinsic-size: auto 1000px;
+.font-display-kr {
+  font-family: 'Anton', 'Pretendard Variable', Pretendard, 'Inter', sans-serif;
+  font-weight: 900;
+  font-synthesis: none;
+  letter-spacing: -0.02em;
+  line-height: 1.04;
+  text-transform: uppercase;
 }
 
-/* Standard Scrollbar */
+/* Crisp Technical Metadata Font */
+.font-mono-tech {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Custom Thin Scrollbar */
 .custom-scrollbar {
-  scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
+  scrollbar-color: rgba(113, 113, 122, 0.28) transparent;
   scrollbar-width: thin;
 }
 
-/* Custom Scrollbar for minimal skill/tool/equipment lists (WebKit Fallback) */
 .custom-scrollbar::-webkit-scrollbar {
   width: 4px;
 }
@@ -38,39 +69,547 @@ html {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(113, 113, 122, 0.28);
   border-radius: 9999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(10, 10, 11, 0.55);
 }
 
-/* Dissolve Fade-in Animation */
-.animate-dissolve {
-  animation: dissolveIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* ════════════════════════════════════════════════════════════════════════
+   1. Zero-Hitch Persistent GPU Vector Mask Portal (`0 -> 5.35s` Full `'S'` Pass-Through)
+   ════════════════════════════════════════════════════════════════════════ */
+@keyframes portalSpread {
+  0% {
+    letter-spacing: -0.18em;
+    opacity: 0;
+  }
+  14% {
+    opacity: 1;
+  }
+  100% {
+    letter-spacing: 0.6em;
+    opacity: 1;
+  }
 }
 
-@keyframes dissolveIn {
+.animate-portal-spread {
+  animation: portalSpread 2.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Exact Matching Typography Metrics Inside SVG (`font-medium` 500, `24px -> 36px -> 48px -> 60px`) */
+.portal-svg-title {
+  font-family: 'Pretendard Variable', Pretendard, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  letter-spacing: 0.6em;
+}
+@media (min-width: 640px) {
+  .portal-svg-title {
+    font-size: 36px;
+  }
+}
+@media (min-width: 768px) {
+  .portal-svg-title {
+    font-size: 48px;
+  }
+}
+@media (min-width: 1024px) {
+  .portal-svg-title {
+    font-size: 60px;
+  }
+}
+
+/* Keeps Showreel background pure black during initial spread, then softly illuminates live video through letters before zoom! */
+@keyframes portalVideoVeil {
+  0%, 62% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-portal-video-veil {
+  animation: portalVideoVeil 2.75s ease-in-out forwards;
+  will-change: opacity;
+}
+
+/* Crisp white letter fill stays solid through Phase 1 spread, then melts gently into the live Showreel video inside `'S'` */
+@keyframes portalWhiteGlyphsFade {
+  0%, 66% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-portal-white-glyphs {
+  animation: portalWhiteGlyphsFade 2.95s ease-in-out forwards;
+}
+
+/* Safety fade in final 120ms (after curtain opacity has already smoothly eased to 0) */
+@keyframes portalFinishFade {
+  0%, 97.5% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+.animate-portal-finish {
+  animation: portalFinishFade 5.5s linear forwards;
+  will-change: opacity;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   2. Unhurried Post-Portal Hero Line-Mask & Cycling Word Roll (`1.75s – 1.80s`)
+   ════════════════════════════════════════════════════════════════════════ */
+.hero-line-mask {
+  display: block;
+  overflow: hidden;
+  padding-top: 0.04em;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.06em;
+}
+
+.hero-line-inner {
+  display: block;
+  opacity: 0;
+  transform: translate3d(0, 114%, 0);
+  will-change: transform, opacity;
+}
+
+@keyframes heroLineRise {
   0% {
     opacity: 0;
-    transform: translateY(6px);
-    filter: blur(4px);
+    transform: translate3d(0, 114%, 0);
+  }
+  20% {
+    opacity: 1;
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0%, 0);
+  }
+}
+
+.hero-revealed .hero-line-inner {
+  animation: heroLineRise 1.78s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+.hero-stagger-fade {
+  opacity: 0;
+  transform: translate3d(0, 42px, 0);
+  will-change: transform, opacity;
+}
+
+@keyframes heroFadeUp {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 42px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.hero-revealed .hero-stagger-fade {
+  animation: heroFadeUp 1.75s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+.hero-rule-grow {
+  transform-origin: left center;
+  transform: scaleX(0);
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+@keyframes heroRuleGrow {
+  0% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+.hero-revealed .hero-rule-grow {
+  animation: heroRuleGrow 1.72s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+/* Masked Vertical Cycling Word (`MOVE -> RESONATE -> LAST`) matching wowtapes.com rollText */
+@keyframes heroWordRollEnter {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 108%, 0);
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0%, 0);
+  }
+}
+
+@keyframes heroWordRollExit {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0%, 0);
+  }
+  80% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -108%, 0);
+  }
+}
+
+.animate-hero-word-enter {
+  animation: heroWordRollEnter 1.56s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-hero-word-exit {
+  animation: heroWordRollExit 1.44s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  will-change: transform, opacity;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   3. Wow Tapes Bidirectional Scroll Choreography (`1.65s – 1.80s` Scroll-Down & Scroll-Up)
+   ════════════════════════════════════════════════════════════════════════ */
+.o-line-mask {
+  display: block;
+  overflow: hidden;
+  padding-top: 0.12em;
+  margin-top: -0.08em;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.04em;
+}
+
+.o-line-item {
+  display: block;
+  transform: translate3d(0, 115%, 0);
+  transition: transform 1.75s cubic-bezier(0.165, 0.84, 0.44, 1);
+  will-change: transform;
+}
+
+.section-choreo[data-enter-from="top"]:not(.is-inview) .o-line-item {
+  transform: translate3d(0, -110%, 0);
+}
+
+.section-choreo:not(.is-inview) .o-line-item {
+  transition-duration: 0.35s;
+  transition-delay: 0ms !important;
+}
+
+.section-choreo.is-inview .o-line-item {
+  transform: translate3d(0, 0%, 0);
+}
+
+.choreo-fade {
+  opacity: 0;
+  transform: translate3d(0, 44px, 0);
+  transition:
+    opacity 1.32s cubic-bezier(0.165, 0.84, 0.44, 1),
+    transform 1.75s cubic-bezier(0.165, 0.84, 0.44, 1);
+  will-change: transform, opacity;
+}
+
+.section-choreo[data-enter-from="top"]:not(.is-inview) .choreo-fade {
+  opacity: 0;
+  transform: translate3d(0, -34px, 0);
+}
+
+.section-choreo:not(.is-inview) .choreo-fade {
+  transition-duration: 0.28s;
+  transition-delay: 0ms !important;
+}
+
+.section-choreo.is-inview .choreo-fade {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+/* Individual Staggered Capability Pills inside `#services` */
+.choreo-pill-item {
+  opacity: 0;
+  transform: translate3d(0, 26px, 0);
+  transition:
+    opacity 1.15s cubic-bezier(0.165, 0.84, 0.44, 1),
+    transform 1.55s cubic-bezier(0.165, 0.84, 0.44, 1);
+  will-change: transform, opacity;
+}
+
+.section-choreo[data-enter-from="top"]:not(.is-inview) .choreo-pill-item {
+  opacity: 0;
+  transform: translate3d(0, -18px, 0);
+}
+
+.section-choreo:not(.is-inview) .choreo-pill-item {
+  transition-duration: 0.25s;
+  transition-delay: 0ms !important;
+}
+
+.section-choreo.is-inview .choreo-pill-item {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.choreo-hairline {
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 1.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+  will-change: transform;
+}
+
+.section-choreo:not(.is-inview) .choreo-hairline {
+  transition-duration: 0.28s;
+  transition-delay: 0ms !important;
+}
+
+.section-choreo.is-inview .choreo-hairline {
+  transform: scaleX(1);
+}
+
+/* Individual Widescreen, Vertical & Index List Bidirectional & Cascade Scroll Reveal */
+.work-card-reveal {
+  opacity: 0;
+  transform: translate3d(0, 56px, 0) scale(0.982);
+  transition:
+    opacity 1.35s cubic-bezier(0.165, 0.84, 0.44, 1),
+    transform 1.78s cubic-bezier(0.165, 0.84, 0.44, 1);
+  will-change: transform, opacity;
+}
+
+.work-card-reveal[data-enter-from="top"]:not(.is-inview) {
+  opacity: 0;
+  transform: translate3d(0, -40px, 0) scale(0.985);
+}
+
+.work-card-reveal:not(.is-inview) {
+  transition-duration: 0.28s;
+  transition-delay: 0ms !important;
+}
+
+.work-card-reveal.is-inview {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+
+/* Snap reset frame before track/category/view staggered cascade launch */
+.work-card-reveal.is-cascade-reset {
+  opacity: 0 !important;
+  transform: translate3d(0, 56px, 0) scale(0.982) !important;
+  transition: none !important;
+}
+
+/* Post-Menu-Curtain Destination Arrival Glide */
+@keyframes routeArriveGlide {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 52px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-route-arrive {
+  animation: routeArriveGlide 1.6s cubic-bezier(0.165, 0.84, 0.44, 1) 0.52s both;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   4. Unhurried Menu Curtain Sweep (`1.72s`) & Silky Case Study Sheet (`1.48s`)
+   ════════════════════════════════════════════════════════════════════════ */
+@keyframes navCurtainSweep {
+  0% {
+    transform: translate3d(0, 100%, 0);
+  }
+  38% {
+    transform: translate3d(0, 0%, 0);
+  }
+  62% {
+    transform: translate3d(0, 0%, 0);
+  }
+  100% {
+    transform: translate3d(0, -100%, 0);
+  }
+}
+
+.animate-nav-curtain {
+  animation: navCurtainSweep 1.72s cubic-bezier(0.76, 0, 0.24, 1) forwards;
+  will-change: transform;
+}
+
+@keyframes curtainTitleSlide {
+  0% {
+    transform: translate3d(0, 110%, 0);
+    opacity: 0;
+  }
+  34% {
+    transform: translate3d(0, 0%, 0);
+    opacity: 1;
+  }
+  68% {
+    transform: translate3d(0, 0%, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(0, -110%, 0);
+    opacity: 0;
+  }
+}
+
+.animate-curtain-title {
+  animation: curtainTitleSlide 1.64s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+@keyframes curtainSubFade {
+  0%, 15% {
+    opacity: 0;
+  }
+  36%, 64% {
+    opacity: 1;
+  }
+  90%, 100% {
+    opacity: 0;
+  }
+}
+
+.animate-curtain-sub {
+  animation: curtainSubFade 1.64s ease forwards;
+}
+
+/* Unhurried Silky Case Study Sheet Slide-Up (`1.48s cubic-bezier(0.165, 0.84, 0.44, 1)`) */
+@keyframes whiteSheetRise {
+  0% {
+    transform: translate3d(0, 100%, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes whiteSheetLower {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(0, 100%, 0);
+  }
+}
+
+.animate-sheet-rise {
+  animation: whiteSheetRise 1.48s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  will-change: transform;
+}
+
+.animate-sheet-lower {
+  animation: whiteSheetLower 1.0s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+  will-change: transform;
+}
+
+@keyframes cinemaMediaDissolve {
+  0% {
+    opacity: 0;
+    transform: scale(1.035);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
     filter: blur(0);
   }
 }
 
-/* Sound Wave Equalizer Animation for Unmuted Audio */
+.animate-media-dissolve {
+  animation: cinemaMediaDissolve 1.55s cubic-bezier(0.165, 0.84, 0.44, 1) 0.34s both;
+}
+
+@keyframes storyNextTransition {
+  0% {
+    opacity: 0;
+    transform: translate3d(52px, 0, 0) scale(0.99);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes storyPrevTransition {
+  0% {
+    opacity: 0;
+    transform: translate3d(-52px, 0, 0) scale(0.99);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes storyInitContentIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 44px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-story-init {
+  animation: storyInitContentIn 1.52s cubic-bezier(0.165, 0.84, 0.44, 1) 0.32s both;
+}
+
+.animate-story-next {
+  animation: storyNextTransition 1.32s cubic-bezier(0.165, 0.84, 0.44, 1) both;
+}
+
+.animate-story-prev {
+  animation: storyPrevTransition 1.32s cubic-bezier(0.165, 0.84, 0.44, 1) both;
+}
+
+/* Subtle Dissolve Fade-in */
+@keyframes dissolveIn {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+.animate-dissolve {
+  animation: dissolveIn 0.85s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Sound Wave Equalizer Animation */
 @keyframes soundWaveBar {
   0%, 100% {
-    height: 4px;
+    height: 3px;
   }
   50% {
-    height: 16px;
+    height: 13px;
   }
 }
 
@@ -87,70 +626,14 @@ html {
   animation: soundWaveBar 0.8s ease-in-out 0.1s infinite;
 }
 
-/* Reveal Animation */
-.reveal-view {
-  opacity: 0;
-  transform: translateY(30px);
-  transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+/* Native <dialog> Scroll Containment & Scoped Modal Backdrop */
+dialog.tw-admin-dialog:modal {
+  overscroll-behavior: contain;
 }
 
-.reveal-view.visible {
-  opacity: 1;
-  transform: translateY(0);
+dialog.tw-admin-dialog::backdrop {
+  background-color: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(8px);
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
-
-/* Stagger Animation */
-.stagger-item {
-  animation: slowFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-  opacity: 0;
-  will-change: transform, opacity;
-}
-
-@keyframes slowFade {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(1);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Home: Scroll Dot Animation */
-@keyframes scroll-dot {
-  0% { transform: translateY(-100%); opacity: 0; }
-  50% { transform: translateY(0%); opacity: 1; }
-  100% { transform: translateY(100%); opacity: 0; }
-}
-
-/* Cinematic Intro Keyframe Animations */
-@keyframes intro-letter-space {
-  0% {
-    letter-spacing: -0.2em;
-    opacity: 0;
-    filter: blur(12px);
-  }
-  25% {
-    opacity: 1;
-    filter: blur(0);
-  }
-  100% {
-    letter-spacing: 0.6em;
-    opacity: 1;
-  }
-}
-
-.animate-letter-space {
-  animation: intro-letter-space 2.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes growWidth {
-  from { width: 0; }
-  to { width: 100%; }
-}
-
-
-
-

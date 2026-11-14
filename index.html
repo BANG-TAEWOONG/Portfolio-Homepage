@@ -8,8 +8,8 @@
     <meta name="description" content="TWOONG STUDIO — 감각적인 연출과 시각적 리듬감의 뮤직비디오, 댄스 필름, 영상 제작 포트폴리오.">
     <meta name="keywords" content="TWOONG STUDIO, 영상 제작, 뮤직비디오, 댄스필름, 포트폴리오, 비디오 디렉터, 영상 연출">
     <meta name="author" content="TWOONG STUDIO">
-    
-    <!-- OpenGraph (KakaoTalk, Facebook, Slack 등 링크 공유 카드) -->
+
+    <!-- OpenGraph -->
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="TWOONG STUDIO">
     <meta property="og:title" content="TWOONG STUDIO — 영상 제작 포트폴리오">
@@ -27,25 +27,32 @@
     <link rel="canonical" href="https://twoongstudio.vercel.app">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
     <link rel="preconnect" href="https://img.youtube.com" crossorigin>
     <link rel="dns-prefetch" href="https://img.youtube.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Display (Anton), Technical Metadata (JetBrains Mono), Grotesque (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Pretendard Variable Dynamic Subset for Crisp Korean Typography -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+
     <style>
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Pretendard Variable', Pretendard, 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
             scroll-behavior: smooth;
             overflow-x: hidden;
+            background-color: #FFFFFF;
+            color: #0A0A0B;
         }
 
-        /* Standard Scrollbar (Baseline Widely Available) */
+        /* Standard Scrollbar */
         * {
-            scrollbar-color: #e2e8f0 transparent;
+            scrollbar-color: #d4d4d8 transparent;
             scrollbar-width: thin;
         }
 
-        /* WebKit Legacy Fallback */
         ::-webkit-scrollbar {
-            width: 4px;
+            width: 5px;
         }
 
         ::-webkit-scrollbar-track {
@@ -53,78 +60,12 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #e2e8f0;
-            border-radius: 10px;
+            background: #d4d4d8;
+            border-radius: 9999px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #cbd5e1;
-        }
-
-        /* Modal Base Animations */
-        @keyframes modalOverlayIn {
-            from {
-                opacity: 0;
-                backdrop-filter: blur(0px);
-            }
-
-            to {
-                opacity: 1;
-                backdrop-filter: blur(12px);
-            }
-        }
-
-        @keyframes modalContainerIn {
-            from {
-                opacity: 0;
-                transform: scale(0.95) translateY(40px);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1) translateY(0);
-            }
-        }
-
-        /* Sensory Transition Animations */
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(40px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-40px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0) scale(1);
-            }
-        }
-
-        .animate-modal-overlay {
-            animation: modalOverlayIn 0.8s cubic-bezier(0.22, 1, 0.3, 1) forwards;
-        }
-
-        .animate-modal-container {
-            animation: modalContainerIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .animate-slide-right {
-            animation: slideInRight 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-        }
-
-        .animate-slide-left {
-            animation: slideInLeft 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            background: #71717a;
         }
 
         .no-scrollbar::-webkit-scrollbar {
@@ -138,7 +79,7 @@
     </style>
 </head>
 
-<body class="bg-white text-slate-800 antialiased">
+<body class="bg-white text-[#0A0A0B] antialiased">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 </body>

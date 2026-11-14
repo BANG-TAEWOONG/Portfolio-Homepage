@@ -1,12 +1,17 @@
-
 export type Category = string;
 export type WorkType = 'Created' | 'Participated';
+
+export interface CreditItem {
+  role: string;
+  name: string;
+}
 
 export interface WorkItem {
   id: string;
   title: string;
   thumbnail: string;
   videoUrl: string;
+  previewUrl?: string;
   category: Category;
   type: WorkType;
   description: string;
@@ -15,7 +20,23 @@ export interface WorkItem {
   role: string;
   setup: string;
   contributionRate?: string;
+  pinned?: boolean;
   vertical?: boolean;
+  explicitVertical?: boolean;
+  // Case Study Extended Fields (Backward-Compatible)
+  client?: string;
+  artist?: string;
+  industry?: string;
+  medium?: string;
+  year?: string;
+  tools?: string;
+  focalPoint?: string;
+  scopePre?: string[];
+  scopeProd?: string[];
+  scopePost?: string[];
+  hasExplicitScopes?: boolean;
+  stills?: string[];
+  credits?: CreditItem[];
 }
 
 export interface Skill {
@@ -39,4 +60,3 @@ export interface SkillItem {
   remark?: string;
   owned?: boolean;
 }
-

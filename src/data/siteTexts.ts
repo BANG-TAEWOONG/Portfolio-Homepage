@@ -35,19 +35,32 @@ export const DEFAULT_SITE_TEXTS = {
     aboutValue4Title: "Flexible Solution",
     aboutValue4Desc: "현장의 변수 속에서도 최선의 결과를 위한 대안을 신속하게 찾습니다.",
 
+    // ── Services (Wow Tapes Editorial Workflow Section) ──
+    serviceHeadline: "ALL-IN FOR\nSTORIES",
+    servicePreDesc: "프로젝트의 본질과 아티스트의 무드를 분석해 기획안, 컨셉 보드, 스토리보드로 구체화합니다. 로케이션 헌팅부터 촬영 설계까지 현장의 모든 변수를 사전에 조율합니다.",
+    serviceProdDesc: "연출(Directing)과 촬영(DOP), 조명(Gaffer) 설계를 아우르는 정교한 현장 프로덕션을 수행합니다. 인물의 에너지와 공간의 질감을 시네마틱 프레임 안에 밀도 있게 담아냅니다.",
+    servicePostDesc: "리듬감 있는 컷 편집부터 DaVinci Resolve 기반 전문 색보정(DI), 2D/3D VFX 합성 및 사운드 피니싱까지 최종 마스터의 완성도를 끝까지 책임집니다.",
+
     // ── Contact ──
     contactSubText: "함께 새로운 프로젝트를 시작해볼까요?",
     contactEmail: "bangtis@gmail.com",
     contactInstagram: "https://www.instagram.com/twoong_studio?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==",
     contactYoutube: "https://youtube.com/@twoongstudio?si=cXvblSrN-XT7kDHx",
-    contactLocation: "Seoul, South Korea",
-    contactAvailability: "Available for worldwide projects",
     contactFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLScjVHKuWspHVI8P6BtTx8KMrMPFi4PiR0P05xk8Xjg4UqVoeg/viewform?usp=sharing&ouid=104716852182575239718",
     contactCalendarUrl: "https://calendar.google.com/calendar/embed?src=d83273c5b0943375ee59b11179d4c555b62660043cc16173e988a8972081b012%40group.calendar.google.com&ctz=Asia%2FSeoul",
     contactFormButtonText: "촬영 신청하기",
 
     // ── Footer ──
     footerCopyright: "TWOONG STUDIO",
+
+    // ── Works Thumbnail Focal Point Map (JSON: { [workId]: "50% 24%" }) ──
+    workCropPositions: "{}",
+
+    // ── Works Orientation Overrides Map (JSON: { [workId]: "horizontal" | "vertical" }) ──
+    workOrientationOverrides: "{}",
+
+    // ── Admin Custom Password SHA-256 Hash (empty = falls back to VITE_ADMIN_PASSWORD / "0000") ──
+    adminPasswordHash: "",
 };
 
 export type SiteTexts = typeof DEFAULT_SITE_TEXTS;

@@ -100,7 +100,7 @@ export const SiteTextsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (changedKeys.length === 0) return true;
 
         if (!scriptUrl) {
-            alert('구글 앱스 스크립트 웹 앱 URL이 설정되지 않았습니다.\n우측 상단 관리자 아이콘을 눌러 URL을 먼저 등록해주세요.');
+            alert('구글 앱스 스크립트 웹 앱 URL이 등록되지 않았습니다.\n관리자 창(Ctrl+Shift+A)에서 URL을 연동하거나, "설정값(JSON) 복사"로 sitetext 시트에 직접 붙여넣어 주세요.');
             return false;
         }
 

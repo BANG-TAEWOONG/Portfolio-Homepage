@@ -30,3 +30,8 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+# Local preview & agent orchestration
+local_preview.html
+.agents
+AGENTS.md

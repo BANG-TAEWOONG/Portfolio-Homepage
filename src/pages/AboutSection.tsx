@@ -454,8 +454,14 @@ const Timeline: React.FC = () => {
 
   return (
     <div ref={ref} className="relative my-12 py-6">
-      {/* Horizontal connector line (visible on sm and up) */}
-      <div className="absolute top-8 left-[12.5%] right-[12.5%] h-[1px] bg-slate-200 hidden sm:block" />
+      {/* Horizontal connector line (visible on sm and up) - 스크롤 진입 시 좌에서 우로 스르륵 그려지는 애니메이션 */}
+      <div className="absolute top-8 left-[12.5%] right-[12.5%] h-[1px] bg-slate-100 hidden sm:block overflow-hidden">
+        <div
+          className={`h-full bg-slate-900 transition-all duration-[1400ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isVisible ? 'w-full' : 'w-0'
+          }`}
+        />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 md:gap-12 relative z-10">
         {timelineKeys.map((item, idx) => (
@@ -508,6 +514,7 @@ const Timeline: React.FC = () => {
 const AboutSection: React.FC = () => {
   const [textRef, isTextVisible] = useIntersectionObserver({ threshold: 0.1, once: false });
   const { texts, isEditMode } = useSiteTexts();
+  const [hoveredValueIdx, setHoveredValueIdx] = useState<number>(0);
 
   return (
     <div className="w-full px-6">
@@ -577,20 +584,59 @@ const AboutSection: React.FC = () => {
         {/* 2. 스킬 섹션 (위에서 정의한 인터랙티브 컴포넌트 삽입) */}
         <InteractiveSkillSection />
 
-        {/* 3. 핵심 가치 섹션 (Values Section) - 4개의 카드 그리드 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 pb-20">
+        {/* 3. 핵심 가치 섹션 (Values Section) - 호버 아코디언 방식으로 WORK 섹션과 통일감 부여 */}
+        <div className="flex flex-col lg:flex-row gap-3.5 md:gap-4 pb-20 lg:h-[260px] items-stretch">
           {[
             { n: '01', t: 'aboutValue1Title', d: 'aboutValue1Desc' },
             { n: '02', t: 'aboutValue2Title', d: 'aboutValue2Desc' },
             { n: '03', t: 'aboutValue3Title', d: 'aboutValue3Desc' },
             { n: '04', t: 'aboutValue4Title', d: 'aboutValue4Desc' }
-          ].map((v) => (
-            <div key={v.n} className="group p-6 md:p-10 bg-white border border-slate-100 transition-all duration-700 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.05)] hover:-translate-y-1 cursor-default">
-              <span className="text-[9px] font-bold text-slate-200 group-hover:text-black transition-colors duration-500 mb-2 block tracking-widest">{v.n}</span>
-              <EditableText textKey={v.t as any} className="font-bold text-slate-900 mb-2 text-xs sm:text-sm tracking-tight block" as="h5" />
-              <EditableText textKey={v.d as any} className="text-[10px] sm:text-xs text-slate-400 leading-relaxed font-light block" as="p" />
-            </div>
-          ))}
+          ].map((v, idx) => {
+            const isExpanded = hoveredValueIdx === idx;
+            return (
+              <div
+                key={v.n}
+                onMouseEnter={() => setHoveredValueIdx(idx)}
+                style={{ flex: isExpanded ? '2.2 1 0%' : '1 1 0%' }}
+                className={`accordion-card group p-6 md:p-9 rounded-2xl border transition-all duration-700 flex flex-col justify-between cursor-default ${
+                  isExpanded
+                    ? 'bg-slate-950 border-slate-950 text-white shadow-2xl'
+                    : 'bg-white border-slate-100 text-slate-900 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`text-[10px] font-black tracking-[0.3em] transition-colors duration-500 ${
+                      isExpanded ? 'text-white/60' : 'text-slate-300'
+                    }`}
+                  >
+                    {v.n}
+                  </span>
+                  <span
+                    className={`w-2 h-2 rounded-full transition-all duration-500 ${
+                      isExpanded ? 'bg-white scale-110' : 'bg-slate-200'
+                    }`}
+                  />
+                </div>
+                <div className="mt-6">
+                  <EditableText
+                    textKey={v.t as any}
+                    className={`font-bold mb-2 text-sm sm:text-base tracking-tight block transition-colors duration-500 ${
+                      isExpanded ? 'text-white' : 'text-slate-900'
+                    }`}
+                    as="h5"
+                  />
+                  <EditableText
+                    textKey={v.d as any}
+                    className={`text-xs leading-relaxed font-light block transition-all duration-500 ${
+                      isExpanded ? 'text-slate-300 opacity-100' : 'text-slate-400 lg:line-clamp-2'
+                    }`}
+                    as="p"
+                  />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
