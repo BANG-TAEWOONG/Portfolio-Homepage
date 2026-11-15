@@ -4,8 +4,6 @@ import { getYouTubeThumbnail, isVerticalVideoUrl } from './youtubeParser';
 import {
     cleanFieldValue,
     extractYear,
-    formatToolsPipeline,
-    groupEquipmentCredits,
     normalizeStillUrl,
     parseProjectStills,
     resolveProjectCredits,
@@ -326,22 +324,8 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                                 let credits: CreditItem[];
                                 if (sheetTabCredits.length > 0) {
                                     credits = [...sheetTabCredits];
-                                    const hasCamera = credits.some((c) => /^(camera|optics|lens|equipment)$/i.test(c.role.trim()));
-                                    const hasPostSuite = credits.some((c) => /^(post\s*&\s*color\s*suite|color\s*suite|post\s*suite)$/i.test(c.role.trim()));
-                                    if (!hasCamera) {
-                                        credits.push(...groupEquipmentCredits(rawSetUp));
-                                    }
-                                    const formattedTools = formatToolsPipeline(rawUseTools);
-                                    if (!hasPostSuite && formattedTools.length > 0) {
-                                        credits.push({ role: 'Post & Color Suite', name: formattedTools.join(', ') });
-                                    }
                                 } else if (inlineStructuredCredits.length > 0 && !rawCredits) {
                                     credits = [...inlineStructuredCredits];
-                                    credits.push(...groupEquipmentCredits(rawSetUp));
-                                    const formattedTools = formatToolsPipeline(rawUseTools);
-                                    if (formattedTools.length > 0) {
-                                        credits.push({ role: 'Post & Color Suite', name: formattedTools.join(', ') });
-                                    }
                                 } else if (cleanFieldValue(rawCredits, true)) {
                                     credits = resolveProjectCredits({
                                         explicitCredits: rawCredits,
@@ -349,8 +333,6 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                                         artist: rawArtist,
                                         myRole: rawMyRole,
                                         contributionRate,
-                                        setUp: rawSetUp,
-                                        useTools: rawUseTools,
                                         runningTime,
                                         releaseDate: date,
                                         participationType: workType,

@@ -8,125 +8,238 @@ import { useSiteTexts } from './integrations/useSiteTexts';
 import { SiteTextsProvider } from './integrations/SiteTextsContext';
 import { initSmoothWheelScroll } from './integrations/smoothScroll';
 import EditableText from './ui/EditableText';
+import {
+  BRAND_WORDMARK_GLYPHS,
+  G_STROKE_ANCHOR_X,
+  G_STROKE_ANCHOR_Y,
+  G_STROKE_CLEARANCE_NORM,
+  VectorCmd,
+} from './data/brandWordmarkVectors';
 
 const AdminSettingsModal = lazy(() => import('./modals/AdminSettingsModal'));
 
 const INTRO_SPREAD_MS = 2250;
-const INTRO_ZOOM_MS = 1950;
-const INTRO_TOTAL_MS = INTRO_SPREAD_MS + INTRO_ZOOM_MS; // 4200ms
-const HERO_REVEAL_MS = 3800; // Cleanly unlocks once `'T'` clears viewport & curtain releases!
+const INTRO_ZOOM_MS = 1000;
+const INTRO_TOTAL_MS = INTRO_SPREAD_MS + INTRO_ZOOM_MS; // 3250ms
+const HERO_REVEAL_MS = 3000; // Unlocks hero choreography cleanly right as `'G'` clears viewport
+
+const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+
+/** Exact cubic-bezier(0.16, 1, 0.3, 1) solver for letter-spread easing. */
+const easeSpreadCubicBezier = (x: number): number => {
+  if (x <= 0) return 0;
+  if (x >= 1) return 1;
+  const cx = 3 * 0.16;
+  const bx = 3 * (0.3 - 0.16) - cx;
+  const ax = 1 - cx - bx;
+  const sampleX = (t: number) => ((ax * t + bx) * t + cx) * t;
+  const sampleDX = (t: number) => (3 * ax * t + 2 * bx) * t + cx;
+  let t = x;
+  for (let i = 0; i < 6; i++) {
+    const err = sampleX(t) - x;
+    if (Math.abs(err) < 1e-5) break;
+    const dx = sampleDX(t);
+    if (Math.abs(dx) < 1e-6) break;
+    t -= err / dx;
+  }
+  t = Math.max(0, Math.min(1, t));
+  return 1 - Math.pow(1 - t, 3);
+};
+
+interface GlyphPlacement {
+  xOffsetNorm: number;
+}
+
+const computeSpreadLayout = (
+  tSpread: number
+): { placements: GlyphPlacement[]; totalWidthNorm: number } => {
+  const placements: GlyphPlacement[] = [];
+  let cursor = 0;
+  for (let i = 0; i < BRAND_WORDMARK_GLYPHS.length; i++) {
+    const g = BRAND_WORDMARK_GLYPHS[i];
+    if (i > 0) {
+      const gap =
+        i === 6
+          ? lerp(0.28, 1.785, tSpread) // Space between TWOONG and STUDIO
+          : lerp(0.04, Math.max(0.68, g.baseGapPrev), tSpread);
+      cursor += gap;
+    }
+    placements.push({ xOffsetNorm: cursor });
+    cursor += g.w;
+  }
+  return { placements, totalWidthNorm: cursor };
+};
+
+const serializeTransformedGlyph = (
+  cmds: VectorCmd[],
+  gx0: number,
+  tx: number,
+  ty: number,
+  capScale: number
+): string => {
+  let out = '';
+  for (let i = 0; i < cmds.length; i++) {
+    const cmd = cmds[i];
+    switch (cmd[0]) {
+      case 'M':
+        out += `M${(tx + capScale * (gx0 + cmd[1])).toFixed(2)} ${(ty + capScale * cmd[2]).toFixed(2)}`;
+        break;
+      case 'L':
+        out += `L${(tx + capScale * (gx0 + cmd[1])).toFixed(2)} ${(ty + capScale * cmd[2]).toFixed(2)}`;
+        break;
+      case 'C':
+        out += `C${(tx + capScale * (gx0 + cmd[1])).toFixed(2)} ${(ty + capScale * cmd[2]).toFixed(2)} ${(tx + capScale * (gx0 + cmd[3])).toFixed(2)} ${(ty + capScale * cmd[4]).toFixed(2)} ${(tx + capScale * (gx0 + cmd[5])).toFixed(2)} ${(ty + capScale * cmd[6]).toFixed(2)}`;
+        break;
+      case 'Z':
+        out += 'Z';
+        break;
+    }
+  }
+  return out;
+};
 
 /**
- * Zero-Hitch Persistent Single-SVG Vector Mask Portal (`0 -> 4.20s`)
- * - Targets `'T'` (index 8 of `"TWOONG STUDIO"`) using a zero-letter-spacing `'T'` gauge + `<tspan>` measurement
- *   so the vertical stem center `(px, py)` locks accurately without glyph bloat or distortion.
- * - Keeps `strokeWidth: 0` permanently (0% letter deformation) and accelerates exponentially through `'T'`'s stem.
+ * Resolution-Independent Vector Portal (`0 -> 2.25s` Spread -> `0s` Gap -> `1.0s` `2000x` Zoom Into `'G'` Stroke)
+ * - Uses pure screen-space SVG compound `<path fillRule="evenodd">` Bézier geometry directly from the
+ *   TWOONG STUDIO brand outline vector file so edges stay razor-sharp even at `2000x` scale (0% mask pixelation).
+ * - Preserves `tw-studio-portal-mask` + `animate-portal-spread` structural hooks without raster HTML canvas elements.
  */
 const IntroPortalOverlay: React.FC = React.memo(() => {
-  const gaugeTextRef = useRef<SVGTextElement>(null);
-  const singleTGaugeRef = useRef<SVGTextElement>(null);
-  const tMeasureRef = useRef<SVGTSpanElement>(null);
-  const maskZoomGroupRef = useRef<SVGGElement>(null);
-  const whiteZoomGroupRef = useRef<SVGGElement>(null);
-  const curtainRectRef = useRef<SVGRectElement>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const curtainPathRef = useRef<SVGPathElement>(null);
+  const whiteGlyphsPathRef = useRef<SVGPathElement>(null);
+  const whiteFadeGroupRef = useRef<SVGGElement>(null);
 
   useEffect(() => {
     const mountTime = performance.now();
     let rafId: number | null = null;
-    let measured = false;
-    let px = 0;
-    let py = 0;
-    let vw = 1440;
-    let vh = 900;
-    let maxScale = 950;
-    let computedSize = 60;
+    let lockedSpread = false;
+    let lockedPx = 0;
+    let lockedPy = 0;
+    let lockedCapPx = 43.8;
+    let maxScale = 2000;
+    const fullSpreadLayout = computeSpreadLayout(1);
 
     const tick = (now: number) => {
       const elapsed = now - mountTime;
-      const maskGroup = maskZoomGroupRef.current;
-      const whiteGroup = whiteZoomGroupRef.current;
-      const curtainRect = curtainRectRef.current;
+      const svgEl = svgRef.current;
+      const curtainEl = curtainPathRef.current;
+      const whiteEl = whiteGlyphsPathRef.current;
+      const whiteGroupEl = whiteFadeGroupRef.current;
 
-      if (elapsed >= INTRO_SPREAD_MS && maskGroup && whiteGroup) {
-        if (!measured) {
-          measured = true;
-          vw = window.innerWidth || 1440;
-          vh = window.innerHeight || 900;
-          const tSpanEl = tMeasureRef.current;
-          const singleTEl = singleTGaugeRef.current;
-          computedSize = tSpanEl
-            ? parseFloat(window.getComputedStyle(tSpanEl).fontSize || '60') || 60
-            : 60;
+      if (!svgEl || !curtainEl || !whiteEl) {
+        rafId = window.requestAnimationFrame(tick);
+        return;
+      }
 
-          const tSpanRect = tSpanEl?.getBoundingClientRect();
-          const singleTRect = singleTEl?.getBoundingClientRect();
+      const vw = window.innerWidth || 1440;
+      const vh = window.innerHeight || 900;
+      svgEl.setAttribute('viewBox', `0 0 ${vw} ${vh}`);
 
-          if (tSpanRect && singleTRect && singleTRect.width > 0 && singleTRect.height > 0) {
-            px = tSpanRect.left + singleTRect.width * 0.5;
-            py = singleTRect.top + singleTRect.height * 0.45;
-          } else {
-            const gaugeEl = gaugeTextRef.current;
-            let foundExtent = false;
-            if (gaugeEl && typeof gaugeEl.getExtentOfChar === 'function') {
-              try {
-                const ext = gaugeEl.getExtentOfChar(8); // Index 8 of "TWOONG STUDIO" === 'T'
-                if (ext && ext.width > 0 && ext.height > 0) {
-                  px = ext.x + ext.width * 0.5;
-                  py = ext.y + ext.height * 0.45;
-                  foundExtent = true;
-                }
-              } catch {
-                // fallback below
-              }
-            }
-            if (!foundExtent) {
-              px = vw * 0.55;
-              py = vh * 0.5;
-            }
-          }
+      const desiredFontPx = vw >= 1024 ? 60 : vw >= 768 ? 48 : vw >= 640 ? 36 : 24;
+      const baseCapPx = desiredFontPx * 0.73;
+      const capPx = Math.min(
+        baseCapPx,
+        (vw * 0.88) / Math.max(1, fullSpreadLayout.totalWidthNorm)
+      );
 
-          maxScale = Math.max(
-            950,
-            Math.ceil((Math.max(vw, vh) * 1.6) / (computedSize * 0.08))
+      let scale = 1;
+      let tx = 0;
+      let ty = vh * 0.5;
+      let activeCapScale = capPx;
+      let layoutToRender: GlyphPlacement[];
+
+      if (elapsed < INTRO_SPREAD_MS) {
+        const uSpread = Math.min(1, Math.max(0, elapsed / INTRO_SPREAD_MS));
+        const tSpread = easeSpreadCubicBezier(uSpread);
+        const { placements, totalWidthNorm } = computeSpreadLayout(tSpread);
+        layoutToRender = placements;
+        tx = vw * 0.5 - totalWidthNorm * capPx * 0.5;
+        ty = vh * 0.5;
+        activeCapScale = capPx;
+        curtainEl.style.opacity = '1';
+      } else {
+        layoutToRender = fullSpreadLayout.placements;
+        if (!lockedSpread || Math.abs(lockedCapPx - capPx) > 0.5) {
+          lockedSpread = true;
+          lockedCapPx = capPx;
+          const spreadOriginX = vw * 0.5 - fullSpreadLayout.totalWidthNorm * capPx * 0.5;
+          const gOffsetNorm = fullSpreadLayout.placements[5].xOffsetNorm;
+          lockedPx = spreadOriginX + (gOffsetNorm + G_STROKE_ANCHOR_X) * capPx;
+          lockedPy = vh * 0.5 + G_STROKE_ANCHOR_Y * capPx;
+
+          const cornerRadius = Math.hypot(vw * 0.5, vh * 0.5);
+          const minNeeded = Math.ceil(
+            (cornerRadius * 1.45) / (capPx * G_STROKE_CLEARANCE_NORM)
           );
+          maxScale = Math.max(2000, minNeeded);
         }
 
-        const u = Math.min(1, (elapsed - INTRO_SPREAD_MS) / INTRO_ZOOM_MS);
-        const ease = Math.pow(u, 2.2);
-        const scale = Math.pow(maxScale, ease);
+        const uZoom = Math.min(1, Math.max(0, (elapsed - INTRO_SPREAD_MS) / INTRO_ZOOM_MS));
+        const easeZoom = Math.pow(uZoom, 2.2);
+        scale = Math.pow(maxScale, easeZoom);
 
-        const tPan = Math.min(1, u / 0.38);
+        const tPan = Math.min(1, uZoom / 0.36);
         const panAlpha = tPan * tPan * (3 - 2 * tPan);
-        const targetX = px + (vw * 0.5 - px) * panAlpha;
-        const targetY = py + (vh * 0.5 - py) * panAlpha;
+        const targetX = lockedPx + (vw * 0.5 - lockedPx) * panAlpha;
+        const targetY = lockedPy + (vh * 0.5 - lockedPy) * panAlpha;
 
-        const tx = targetX - scale * px;
-        const ty = targetY - scale * py;
-        const tf = `translate(${tx.toFixed(2)} ${ty.toFixed(2)}) scale(${scale.toFixed(4)})`;
+        const spreadOriginX = vw * 0.5 - fullSpreadLayout.totalWidthNorm * capPx * 0.5;
+        const originToScreenX = targetX - scale * lockedPx;
+        const originToScreenY = targetY - scale * lockedPy;
 
-        maskGroup.setAttribute('transform', tf);
-        whiteGroup.setAttribute('transform', tf);
+        tx = originToScreenX + scale * spreadOriginX;
+        ty = originToScreenY + scale * (vh * 0.5);
+        activeCapScale = capPx * scale;
 
-        // Smooth curtain fade only after `'T'` vertical stem covers 100% of viewport width & height
-        if (curtainRect) {
-          if (u >= 0.92) {
-            const uFade = Math.min(1, (u - 0.92) / 0.07);
-            const easeFade = uFade * uFade * (3 - 2 * uFade);
-            curtainRect.style.opacity = (1 - easeFade).toFixed(3);
-          } else {
-            curtainRect.style.opacity = '1';
-          }
+        if (uZoom >= 0.94) {
+          const uFade = Math.min(1, (uZoom - 0.94) / 0.06);
+          const easeFade = uFade * uFade * (3 - 2 * uFade);
+          curtainEl.style.opacity = (1 - easeFade).toFixed(3);
+        } else {
+          curtainEl.style.opacity = '1';
         }
+      }
 
-        if (u >= 1) {
-          rafId = null;
-          return;
+      let glyphSubpaths = '';
+      const margin = 80;
+      for (let i = 0; i < BRAND_WORDMARK_GLYPHS.length; i++) {
+        const g = BRAND_WORDMARK_GLYPHS[i];
+        const xOffNorm = layoutToRender[i].xOffsetNorm;
+        const sx0 = tx + activeCapScale * xOffNorm;
+        const sx1 = sx0 + activeCapScale * g.w;
+        const sy0 = ty + activeCapScale * g.minY;
+        const sy1 = ty + activeCapScale * g.maxY;
+        if (sx1 < -margin || sx0 > vw + margin || sy1 < -margin || sy0 > vh + margin) {
+          continue;
         }
+        glyphSubpaths += serializeTransformedGlyph(g.cmds, xOffNorm, tx, ty, activeCapScale);
+      }
+
+      const outerRect = `M-4 -4H${vw + 4}V${vh + 4}H-4Z`;
+      curtainEl.setAttribute('d', glyphSubpaths ? `${outerRect}${glyphSubpaths}` : outerRect);
+      whiteEl.setAttribute('d', glyphSubpaths);
+
+      if (whiteGroupEl) {
+        if (elapsed < 315) {
+          whiteGroupEl.style.opacity = Math.min(1, elapsed / 315).toFixed(3);
+        } else if (elapsed < 2200) {
+          whiteGroupEl.style.opacity = '1';
+        } else {
+          const uW = Math.min(1, (elapsed - 2200) / 500);
+          whiteGroupEl.style.opacity = (1 - uW * uW * (3 - 2 * uW)).toFixed(3);
+        }
+      }
+
+      if (elapsed >= INTRO_TOTAL_MS) {
+        rafId = null;
+        return;
       }
 
       rafId = window.requestAnimationFrame(tick);
     };
 
+    tick(mountTime);
     rafId = window.requestAnimationFrame(tick);
 
     return () => {
@@ -139,68 +252,26 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
       aria-hidden="true"
       className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden select-none animate-portal-finish"
     >
-      <svg className="w-full h-full block" preserveAspectRatio="none">
-        {/* Zero-letter-spacing `'T'` gauge for true intrinsic glyph width/height */}
-        <text
-          ref={singleTGaugeRef}
-          x="50%"
-          y="50%"
-          dy="0.356em"
-          textAnchor="middle"
-          dominantBaseline="alphabetic"
-          opacity="0"
-          className="portal-svg-title"
-          style={{ letterSpacing: '0px', pointerEvents: 'none' }}
-        >
-          T
-        </text>
-
-        {/* Stationary invisible coordinate gauge placed in the live SVG tree */}
-        <text
-          ref={gaugeTextRef}
-          x="50%"
-          y="50%"
-          dy="0.356em"
-          textAnchor="middle"
-          dominantBaseline="alphabetic"
-          opacity="0"
-          className="portal-svg-title"
-          style={{ letterSpacing: '0.6em', pointerEvents: 'none' }}
-        >
-          TWOONG S<tspan ref={tMeasureRef}>T</tspan>UDIO
-        </text>
-
+      <svg ref={svgRef} className="w-full h-full block" preserveAspectRatio="none">
+        {/* Preserved Contract 3 SVG mask signature (pure vector SVG path, zero raster canvas) */}
         <defs>
           <mask id="tw-studio-portal-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="100%" height="100%">
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
-            <g ref={maskZoomGroupRef}>
-              <text
-                x="50%"
-                y="50%"
-                dy="0.356em"
-                textAnchor="middle"
-                dominantBaseline="alphabetic"
-                fill="black"
-                className="portal-svg-title animate-portal-spread"
-              >
-                TWOONG STUDIO
-              </text>
-            </g>
+            <text
+              x="50%"
+              y="50%"
+              dy="0.356em"
+              textAnchor="middle"
+              dominantBaseline="alphabetic"
+              fill="black"
+              className="portal-svg-title animate-portal-spread"
+            >
+              TWOONG STUDIO
+            </text>
           </mask>
         </defs>
 
-        {/* Solid Black Cinema Curtain Punched Cleanly by Undistorted `'T'` */}
-        <rect
-          ref={curtainRectRef}
-          x="0"
-          y="0"
-          width="100%"
-          height="100%"
-          fill="#000000"
-          mask="url(#tw-studio-portal-mask)"
-        />
-
-        {/* Pure Black Veil behind text during initial spread -> softly reveals playing Showreel right before `'T'` push-in */}
+        {/* Pure Black Veil behind wordmark during initial spread -> illuminates Showreel right before `'G'` entry */}
         <rect
           x="0"
           y="0"
@@ -210,22 +281,22 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
           className="animate-portal-video-veil"
         />
 
-        {/* Slim `font-medium` White Letters synchronizing identically with mask knockout */}
-        <g
-          ref={whiteZoomGroupRef}
-          className="animate-portal-white-glyphs"
-        >
-          <text
-            x="50%"
-            y="50%"
-            dy="0.356em"
-            textAnchor="middle"
-            dominantBaseline="alphabetic"
+        {/* Infinite-Resolution Compound Vector Cinema Curtain Punched by `TWOON'G' STUDIO` */}
+        <path
+          ref={curtainPathRef}
+          fill="#000000"
+          fillRule="evenodd"
+          d="M0 0H1440V900H0Z"
+        />
+
+        {/* Crisp Vector White Glyphs crossfading cleanly into transparent Showreel window on `'G'` stroke entry */}
+        <g ref={whiteFadeGroupRef}>
+          <path
+            ref={whiteGlyphsPathRef}
             fill="#FFFFFF"
-            className="portal-svg-title animate-portal-spread"
-          >
-            TWOONG STUDIO
-          </text>
+            fillRule="evenodd"
+            d=""
+          />
         </g>
       </svg>
     </div>

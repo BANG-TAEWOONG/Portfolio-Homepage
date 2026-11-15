@@ -19,6 +19,7 @@ import {
 
 type WorksViewMode = 'cinema' | 'list';
 type TrackFilter = 'All' | WorkType;
+type FormatFilter = 'horizontal' | 'vertical';
 
 const PREDEFINED_CATEGORY_ORDER = [
   'Official MV',
@@ -446,7 +447,7 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
   const badge = getTrackBadgeMeta(item.type);
   const previewMedia = useMemo(
     () => getMutedPreviewEmbedUrl(item),
-    [item.videoUrl, item.previewUrl]
+    [item.id, item.videoUrl, item.previewUrl]
   );
 
   const [revealRef, isRevealed] = useIntersectionObserver({ threshold: 0.06, once: false });
@@ -454,7 +455,14 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
   const parallaxLayerRef = useRef<HTMLDivElement | null>(null);
 
   const [isHovered, setIsHovered] = useState(false);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
   const hoverTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setIsPreviewPlaying(false);
+    setPreviewFailed(false);
+  }, [item.id, previewMedia.src]);
 
   const setCombinedRef = useCallback(
     (node: HTMLElement | null) => {
@@ -505,11 +513,11 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
   }, [isFramingActive]);
 
   const handleMouseEnter = () => {
-    if (isFramingActive || previewMedia.kind === 'none') return;
+    if (isFramingActive || previewMedia.kind === 'none' || previewFailed) return;
     if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
     hoverTimerRef.current = window.setTimeout(() => {
       setIsHovered(true);
-    }, 180);
+    }, 90);
   };
 
   const handleMouseLeave = () => {
@@ -518,6 +526,7 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
       hoverTimerRef.current = null;
     }
     setIsHovered(false);
+    setIsPreviewPlaying(false);
   };
 
   useEffect(() => {
@@ -558,16 +567,23 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
           className="w-full h-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.03]"
         />
 
-        {previewMedia.kind === 'mp4' && !isFramingActive && (
+        {previewMedia.kind === 'mp4' && isHovered && !isFramingActive && !previewFailed && (
           <video
             src={previewMedia.src}
+            width={1280}
+            height={720}
             muted
             loop
             autoPlay
             playsInline
-            preload="metadata"
+            preload="auto"
+            onCanPlay={() => setIsPreviewPlaying(true)}
+            onPlaying={() => setIsPreviewPlaying(true)}
+            onError={() => setPreviewFailed(true)}
             style={{ objectPosition: focalPoint }}
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+            className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-200 ${
+              isPreviewPlaying ? 'opacity-100' : 'opacity-0'
+            }`}
           />
         )}
 
@@ -653,18 +669,28 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
 }) => {
   const rightMeta = getInsideCardMeta(item, true);
   const badge = getTrackBadgeMeta(item.type);
-  const previewMedia = useMemo(() => getMutedPreviewEmbedUrl(item), [item]);
+  const previewMedia = useMemo(
+    () => getMutedPreviewEmbedUrl(item),
+    [item.id, item.videoUrl, item.previewUrl]
+  );
   const [revealRef, isRevealed] = useIntersectionObserver({ threshold: 0.06, once: false });
   const [isHovered, setIsHovered] = useState(false);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [previewFailed, setPreviewFailed] = useState(false);
   const hoverTimerRef = useRef<number | null>(null);
   const effectiveDelayMs = cascadeDelayMs > 0 ? cascadeDelayMs : (index % 4) * 105;
 
+  useEffect(() => {
+    setIsPreviewPlaying(false);
+    setPreviewFailed(false);
+  }, [item.id, previewMedia.src]);
+
   const handleMouseEnter = () => {
-    if (isFramingActive || previewMedia.kind !== 'mp4') return;
+    if (isFramingActive || previewMedia.kind !== 'mp4' || previewFailed) return;
     if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
     hoverTimerRef.current = window.setTimeout(() => {
       setIsHovered(true);
-    }, 180);
+    }, 90);
   };
 
   const handleMouseLeave = () => {
@@ -673,6 +699,7 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
       hoverTimerRef.current = null;
     }
     setIsHovered(false);
+    setIsPreviewPlaying(false);
   };
 
   useEffect(() => {
@@ -707,16 +734,23 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
         className="w-full h-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.03]"
       />
 
-      {previewMedia.kind === 'mp4' && isHovered && !isFramingActive && (
+      {previewMedia.kind === 'mp4' && isHovered && !isFramingActive && !previewFailed && (
         <video
           src={previewMedia.src}
+          width={540}
+          height={960}
           muted
           loop
           autoPlay
           playsInline
-          preload="metadata"
+          preload="auto"
+          onCanPlay={() => setIsPreviewPlaying(true)}
+          onPlaying={() => setIsPreviewPlaying(true)}
+          onError={() => setPreviewFailed(true)}
           style={{ objectPosition: focalPoint }}
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+          className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-200 ${
+            isPreviewPlaying ? 'opacity-100' : 'opacity-0'
+          }`}
         />
       )}
 
@@ -892,13 +926,10 @@ const WorkSection: React.FC = () => {
 
   const [headerRef, isHeaderVisible] = useIntersectionObserver({ threshold: 0.06, once: false });
   const [tracksRef, isTracksVisible] = useIntersectionObserver({ threshold: 0.08, once: false });
-  const [verticalHeaderRef, isVerticalHeaderVisible] = useIntersectionObserver({
-    threshold: 0.06,
-    once: false,
-  });
 
   const [activeTrack, setActiveTrack] = useState<TrackFilter>('All');
   const [activeCategory, setActiveCategory] = useState<Category>('All');
+  const [formatFilter, setFormatFilter] = useState<FormatFilter>('horizontal');
   const [viewMode, setViewMode] = useState<WorksViewMode>('cinema');
 
   // Dedicated Admin-Only Image Framing & Orientation Adjuster Toggle
@@ -1046,10 +1077,28 @@ const WorkSection: React.FC = () => {
     [workItems]
   );
 
+  const trackFilteredItems = useMemo(() => {
+    return workItems.filter((item) => {
+      if (activeTrack !== 'All' && item.type !== activeTrack) return false;
+      return true;
+    });
+  }, [workItems, activeTrack]);
+
+  const horizontalTrackCount = useMemo(
+    () => trackFilteredItems.filter((item) => !checkIsVertical(item)).length,
+    [trackFilteredItems, checkIsVertical]
+  );
+
+  const verticalTrackCount = useMemo(
+    () => trackFilteredItems.filter((item) => checkIsVertical(item)).length,
+    [trackFilteredItems, checkIsVertical]
+  );
+
   const availableCategories = useMemo(() => {
     const cats = new Set<string>();
-    workItems.forEach((item) => {
-      if (activeTrack !== 'All' && item.type !== activeTrack) return;
+    trackFilteredItems.forEach((item) => {
+      const isVert = checkIsVertical(item);
+      if (formatFilter === 'vertical' ? !isVert : isVert) return;
       if (item.category) cats.add(item.category);
     });
 
@@ -1063,7 +1112,7 @@ const WorkSection: React.FC = () => {
     });
 
     return ['All', ...sorted];
-  }, [workItems, activeTrack]);
+  }, [trackFilteredItems, formatFilter, checkIsVertical]);
 
   useEffect(() => {
     if (activeCategory !== 'All' && !availableCategories.includes(activeCategory)) {
@@ -1072,12 +1121,11 @@ const WorkSection: React.FC = () => {
   }, [availableCategories, activeCategory]);
 
   const filteredItems = useMemo(() => {
-    return workItems.filter((item) => {
-      if (activeTrack !== 'All' && item.type !== activeTrack) return false;
+    return trackFilteredItems.filter((item) => {
       if (activeCategory !== 'All' && item.category !== activeCategory) return false;
       return true;
     });
-  }, [workItems, activeTrack, activeCategory]);
+  }, [trackFilteredItems, activeCategory]);
 
   const horizontalItems = useMemo(
     () => filteredItems.filter((item) => !checkIsVertical(item)),
@@ -1087,6 +1135,11 @@ const WorkSection: React.FC = () => {
   const verticalItems = useMemo(
     () => filteredItems.filter((item) => checkIsVertical(item)),
     [filteredItems, checkIsVertical]
+  );
+
+  const displayedItems = useMemo(
+    () => (formatFilter === 'vertical' ? verticalItems : horizontalItems),
+    [formatFilter, verticalItems, horizontalItems]
   );
 
   useEffect(() => {
@@ -1117,7 +1170,7 @@ const WorkSection: React.FC = () => {
       window.cancelAnimationFrame(raf2);
       window.clearTimeout(clearStaggerTimer);
     };
-  }, [activeTrack, activeCategory, viewMode]);
+  }, [activeTrack, activeCategory, viewMode, formatFilter]);
 
   useEffect(() => {
     if (workItems.length === 0) return;
@@ -1153,11 +1206,12 @@ const WorkSection: React.FC = () => {
   }, [workItems]);
 
   const navigationPool = useMemo(() => {
-    if (!selectedWork) return filteredItems;
+    if (!selectedWork) return displayedItems;
+    if (displayedItems.some((item) => item.id === selectedWork.id)) return displayedItems;
     return filteredItems.some((item) => item.id === selectedWork.id)
       ? filteredItems
       : workItems;
-  }, [selectedWork, filteredItems, workItems]);
+  }, [selectedWork, displayedItems, filteredItems, workItems]);
 
   const currentIndex = useMemo(() => {
     if (!selectedWork) return -1;
@@ -1247,7 +1301,7 @@ const WorkSection: React.FC = () => {
   // Warm browser image cache for all visible rows in Index List so hover preview appears instantaneously
   useEffect(() => {
     if (viewMode !== 'list' || typeof window === 'undefined') return;
-    filteredItems.forEach((item) => {
+    displayedItems.forEach((item) => {
       const candidates = buildThumbnailCandidates(item);
       if (candidates[0]) {
         const img = new Image();
@@ -1255,7 +1309,7 @@ const WorkSection: React.FC = () => {
         img.src = candidates[0];
       }
     });
-  }, [viewMode, filteredItems]);
+  }, [viewMode, displayedItems]);
 
   useEffect(() => {
     if (viewMode !== 'list' || !hoveredListRow) {
@@ -1381,15 +1435,15 @@ const WorkSection: React.FC = () => {
                 <h2 className="font-display text-[clamp(3.2rem,7.2vw,6.8rem)] leading-[0.88] text-neutral-950 uppercase select-none o-line-mask">
                   <span className="o-line-item">WORKS</span>
                 </h2>
-                {!loading && filteredItems.length > 0 && (
+                {!loading && displayedItems.length > 0 && (
                   <span className="font-mono-tech text-xs sm:text-sm text-neutral-400 mt-1.5 tabular-nums choreo-fade">
-                    ({filteredItems.length})
+                    ({displayedItems.length})
                   </span>
                 )}
               </div>
             </div>
 
-            {/* Secondary Controls: Admin-Only Image Crop Adjuster + Category Filter + [CINEMA VIEW | INDEX LIST] */}
+            {/* Secondary Controls: Admin-Only Image Crop Adjuster + Category Filter + [CINEMA VIEW | INDEX LIST] + [16:9 WIDE | 9:16 VERTICAL] */}
             <div className="flex flex-wrap items-center gap-2.5 choreo-fade" style={{ transitionDelay: '180ms' }}>
               {isEditMode && viewMode === 'cinema' && (
                 <button
@@ -1445,6 +1499,35 @@ const WorkSection: React.FC = () => {
                   }`}
                 >
                   Index List
+                </button>
+              </div>
+
+              <div
+                role="group"
+                aria-label="Format filter"
+                className="inline-flex items-center rounded-lg bg-[#F4F4F2] p-1 border border-black/8"
+              >
+                <button
+                  type="button"
+                  onClick={() => setFormatFilter('horizontal')}
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-mono-tech uppercase tracking-[0.1em] transition-colors cursor-pointer ${
+                    formatFilter === 'horizontal'
+                      ? 'bg-neutral-950 text-white'
+                      : 'text-neutral-600 hover:text-neutral-950'
+                  }`}
+                >
+                  16:9 Wide ({horizontalTrackCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormatFilter('vertical')}
+                  className={`px-3 py-1.5 rounded-md text-[11px] font-mono-tech uppercase tracking-[0.1em] transition-colors cursor-pointer ${
+                    formatFilter === 'vertical'
+                      ? 'bg-neutral-950 text-white'
+                      : 'text-neutral-600 hover:text-neutral-950'
+                  }`}
+                >
+                  9:16 Vertical ({verticalTrackCount})
                 </button>
               </div>
             </div>
@@ -1546,35 +1629,81 @@ const WorkSection: React.FC = () => {
                 />
               ))}
             </div>
-          ) : filteredItems.length === 0 ? (
+          ) : displayedItems.length === 0 ? (
             <div className="py-24 text-center border-y border-neutral-200">
               <p className="font-mono-tech text-xs uppercase tracking-[0.18em] text-neutral-400 mb-4">
-                선택한 조건에 해당하는 작품이 없습니다.
+                선택한 조건에 해당하는 {formatFilter === 'vertical' ? '세로형(9:16)' : '가로형(16:9)'} 작품이 없습니다.
               </p>
-              <button
-                type="button"
-                onClick={() => {
-                  setActiveTrack('All');
-                  setActiveCategory('All');
-                }}
-                className="rounded-md bg-neutral-950 text-white px-4 py-2 font-mono-tech text-xs uppercase tracking-[0.14em] hover:bg-neutral-800 transition-colors cursor-pointer"
-              >
-                전체 작품 보기로 초기화
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-2.5">
+                {formatFilter === 'horizontal' && verticalTrackCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFormatFilter('vertical')}
+                    className="rounded-md bg-neutral-950 text-white px-4 py-2 font-mono-tech text-xs uppercase tracking-[0.14em] hover:bg-neutral-800 transition-colors cursor-pointer"
+                  >
+                    9:16 세로형 작품 보기 ({verticalTrackCount})
+                  </button>
+                )}
+                {formatFilter === 'vertical' && horizontalTrackCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFormatFilter('horizontal')}
+                    className="rounded-md bg-neutral-950 text-white px-4 py-2 font-mono-tech text-xs uppercase tracking-[0.14em] hover:bg-neutral-800 transition-colors cursor-pointer"
+                  >
+                    16:9 가로형 작품 보기 ({horizontalTrackCount})
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveTrack('All');
+                    setActiveCategory('All');
+                    setFormatFilter('horizontal');
+                  }}
+                  className="rounded-md bg-[#F4F4F2] text-neutral-900 border border-black/10 px-4 py-2 font-mono-tech text-xs uppercase tracking-[0.14em] hover:border-neutral-950 transition-colors cursor-pointer"
+                >
+                  전체 작품 보기로 초기화
+                </button>
+              </div>
             </div>
           ) : viewMode === 'cinema' ? (
-            <>
-              {horizontalItems.length > 0 && (
-                <div className="flex flex-col gap-5 sm:gap-7 md:gap-8">
-                  {horizontalItems.map((item, idx) => (
-                    <WidescreenStoryCard
+            formatFilter === 'horizontal' ? (
+              <div className="flex flex-col gap-5 sm:gap-7 md:gap-8">
+                {horizontalItems.map((item, idx) => (
+                  <WidescreenStoryCard
+                    key={item.id}
+                    item={item}
+                    priority={idx < 3}
+                    focalPoint={getFocalForWork(item)}
+                    isFramingActive={isFramingActive}
+                    isCascadeResetting={isCascadeResetting}
+                    cascadeDelayMs={isCascadeStaggerActive ? Math.min(idx, 7) * 125 : 0}
+                    onUpdateFocal={handleUpdateFocal}
+                    onToggleOrientation={handleToggleOrientation}
+                    onDimensionsDetected={handleDimensionsDetected}
+                    onSelect={openModal}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-center justify-between gap-4 mb-5 px-1">
+                  <span className="font-mono-tech text-xs tracking-[0.16em] uppercase text-neutral-400">
+                    VERTICAL REELS &amp; SHORTS (9:16) · {verticalItems.length}편
+                  </span>
+                  <span className="h-px flex-1 bg-neutral-200 max-w-[180px] hidden sm:block" />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-7">
+                  {verticalItems.map((item, idx) => (
+                    <VerticalReelCard
                       key={item.id}
                       item={item}
-                      priority={idx < 3}
+                      index={idx}
                       focalPoint={getFocalForWork(item)}
                       isFramingActive={isFramingActive}
                       isCascadeResetting={isCascadeResetting}
-                      cascadeDelayMs={isCascadeStaggerActive ? Math.min(idx, 7) * 125 : 0}
+                      cascadeDelayMs={isCascadeStaggerActive ? Math.min(idx, 9) * 105 : 0}
                       onUpdateFocal={handleUpdateFocal}
                       onToggleOrientation={handleToggleOrientation}
                       onDimensionsDetected={handleDimensionsDetected}
@@ -1582,40 +1711,8 @@ const WorkSection: React.FC = () => {
                     />
                   ))}
                 </div>
-              )}
-
-              {verticalItems.length > 0 && (
-                <div className={horizontalItems.length > 0 ? 'mt-14 md:mt-20' : ''}>
-                  <div
-                    ref={verticalHeaderRef}
-                    className={`section-choreo ${isVerticalHeaderVisible ? 'is-inview' : ''} flex items-center justify-between gap-4 mb-5 px-1`}
-                  >
-                    <span className="font-mono-tech text-xs tracking-[0.16em] uppercase text-neutral-400 choreo-fade">
-                      VERTICAL REELS &amp; SHORTS (9:16) · {verticalItems.length}편
-                    </span>
-                    <span className="h-px flex-1 bg-neutral-200 max-w-[180px] hidden sm:block choreo-hairline" />
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-7">
-                    {verticalItems.map((item, idx) => (
-                      <VerticalReelCard
-                        key={item.id}
-                        item={item}
-                        index={idx}
-                        focalPoint={getFocalForWork(item)}
-                        isFramingActive={isFramingActive}
-                        isCascadeResetting={isCascadeResetting}
-                        cascadeDelayMs={isCascadeStaggerActive ? Math.min(idx, 9) * 105 : 0}
-                        onUpdateFocal={handleUpdateFocal}
-                        onToggleOrientation={handleToggleOrientation}
-                        onDimensionsDetected={handleDimensionsDetected}
-                        onSelect={openModal}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
+              </div>
+            )
           ) : (
             /* ── COMPACT INDEX LIST VIEW ── */
             <div
@@ -1631,7 +1728,7 @@ const WorkSection: React.FC = () => {
               </div>
 
               <div className="divide-y divide-neutral-200 border-b border-neutral-200">
-                {filteredItems.map((item, idx) => (
+                {displayedItems.map((item, idx) => (
                   <ListArchiveRow
                     key={item.id}
                     item={item}

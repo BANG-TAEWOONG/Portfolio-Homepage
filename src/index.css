@@ -121,9 +121,9 @@ p {
   }
 }
 
-/* Keeps Showreel background pure black during initial spread, then softly illuminates live video through letters before zoom! */
+/* Keeps Showreel background pure black during initial spread, then softly illuminates live video through letters before `'G'` entry */
 @keyframes portalVideoVeil {
-  0%, 62% {
+  0%, 60% {
     opacity: 1;
   }
   100% {
@@ -132,27 +132,13 @@ p {
 }
 
 .animate-portal-video-veil {
-  animation: portalVideoVeil 2.65s ease-in-out forwards;
+  animation: portalVideoVeil 2.35s ease-in-out forwards;
   will-change: opacity;
 }
 
-/* Crisp white letter fill stays solid through Phase 1 spread, then melts gently into the live Showreel video inside `'T'` */
-@keyframes portalWhiteGlyphsFade {
-  0%, 66% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
-
-.animate-portal-white-glyphs {
-  animation: portalWhiteGlyphsFade 2.85s ease-in-out forwards;
-}
-
-/* Safety fade in final 100ms (after curtain opacity has already smoothly eased to 0) */
+/* Safety fade in final 120ms (after curtain opacity has already smoothly eased to 0 at 3.25s) */
 @keyframes portalFinishFade {
-  0%, 97.5% {
+  0%, 96% {
     opacity: 1;
   }
   100% {
@@ -161,7 +147,7 @@ p {
 }
 
 .animate-portal-finish {
-  animation: portalFinishFade 4.2s linear forwards;
+  animation: portalFinishFade 3.25s linear forwards;
   will-change: opacity;
 }
 

@@ -1,5 +1,9 @@
 import { WorkItem } from '../data/types';
 import {
+  LOCAL_FULL_VIDEO_WORK_IDS,
+  LOCAL_PREVIEW_WORK_IDS,
+} from '../data/localMediaManifest';
+import {
   cleanFieldValue,
   extractYear,
   formatToolsPipeline,
@@ -171,15 +175,31 @@ export const getWorkReleaseDate = (item: WorkItem): string => {
 };
 
 /**
- * Builds a silent muted loop preview embed URL when a YouTube/Vimeo video is used as a background teaser.
+ * Builds a silent muted loop preview source.
+ * Priority:
+ * 1. Explicit `previewUrl` or direct `.mp4` `videoUrl`
+ * 2. Verified extracted local highlight MP4 (`/previews/<id>.mp4`)
+ * 3. Clean YouTube fallback teaser (for newly-added future rows)
  */
-export const getMutedPreviewEmbedUrl = (item: Pick<WorkItem, 'videoUrl' | 'previewUrl'>): {
+export const getMutedPreviewEmbedUrl = (
+  item: Pick<WorkItem, 'videoUrl' | 'previewUrl'> & { id?: string }
+): {
   kind: 'mp4' | 'youtube' | 'vimeo' | 'none';
   src: string;
 } => {
   const directCandidate = cleanFieldValue(item.previewUrl) || cleanFieldValue(item.videoUrl);
   if (directCandidate && /\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(directCandidate)) {
     return { kind: 'mp4', src: directCandidate };
+  }
+
+  if (item.id && LOCAL_PREVIEW_WORK_IDS.has(item.id)) {
+    const isFilePreview =
+      typeof window !== 'undefined' &&
+      window.location.pathname.endsWith('local_preview.html');
+    return {
+      kind: 'mp4',
+      src: isFilePreview ? `/public/previews/${item.id}.mp4` : `/previews/${item.id}.mp4`,
+    };
   }
 
   const ytId = getYouTubeId(item.videoUrl || '');
@@ -189,7 +209,6 @@ export const getMutedPreviewEmbedUrl = (item: Pick<WorkItem, 'videoUrl' | 'previ
       mute: '1',
       controls: '0',
       loop: '1',
-      playlist: ytId,
       playsinline: '1',
       rel: '0',
       modestbranding: '1',
@@ -204,6 +223,28 @@ export const getMutedPreviewEmbedUrl = (item: Pick<WorkItem, 'videoUrl' | 'previ
   }
 
   return { kind: 'none', src: '' };
+};
+
+/**
+ * Resolves the clean playable full video URL for the modal `WATCH` stage.
+ * Uses local same-origin `.mp4` (`/videos/<id>.mp4`) for Instagram works so `MinimalScrubPlayer`
+ * plays pure cinema footage without Instagram web chrome, while keeping `item.videoUrl` untouched
+ * for external `"Watch on Instagram ↗"` links.
+ */
+export const getModalPlayableVideoUrl = (
+  item: Pick<WorkItem, 'id' | 'videoUrl'>
+): string => {
+  const rawUrl = cleanFieldValue(item.videoUrl);
+  if (rawUrl && /\.(mp4|webm|mov|m4v)(?:[?#].*)?$/i.test(rawUrl)) {
+    return rawUrl;
+  }
+  if (item.id && LOCAL_FULL_VIDEO_WORK_IDS.has(item.id)) {
+    const isFilePreview =
+      typeof window !== 'undefined' &&
+      window.location.pathname.endsWith('local_preview.html');
+    return isFilePreview ? `/public/videos/${item.id}.mp4` : `/videos/${item.id}.mp4`;
+  }
+  return item.videoUrl;
 };
 
 /**

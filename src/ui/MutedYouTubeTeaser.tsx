@@ -9,7 +9,7 @@ interface MutedYouTubeTeaserProps {
   className?: string;
 }
 
-const UI_HIDE_SETTLE_MS = 3150;
+const UI_HIDE_SETTLE_MS = 180;
 
 /**
  * Chromeless Muted YouTube Hover/Teaser Player

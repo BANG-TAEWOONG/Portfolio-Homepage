@@ -3,6 +3,8 @@ import { getYouTubeId, getVimeoId, getInstagramId, getVideoPlatform } from '../i
 
 interface MinimalScrubPlayerProps {
   videoUrl: string;
+  externalUrl?: string;
+  isVertical?: boolean;
   title: string;
 }
 
@@ -46,10 +48,22 @@ export const loadYouTubeIframeApi = (): Promise<any> => {
  * - Hides cluttered native YouTube/HTML5 chrome and presents ONLY a clean, ultra-minimal bottom scrub/progress bar (`재생 바`)
  *   paired with Play/Pause, Sound Toggle, and Timecode that gently auto-hides during playback and reappears on pointer movement.
  */
-const MinimalScrubPlayer: React.FC<MinimalScrubPlayerProps> = ({ videoUrl, title }) => {
-  const platform = getVideoPlatform(videoUrl);
-  const ytId = getYouTubeId(videoUrl);
-  const isMp4 = isDirectVideoFile(videoUrl);
+const MinimalScrubPlayer: React.FC<MinimalScrubPlayerProps> = ({
+  videoUrl,
+  externalUrl,
+  isVertical = false,
+  title,
+}) => {
+  const [localMp4Failed, setLocalMp4Failed] = useState(false);
+
+  useEffect(() => {
+    setLocalMp4Failed(false);
+  }, [videoUrl]);
+
+  const effectiveUrl = localMp4Failed && externalUrl ? externalUrl : videoUrl;
+  const externalPlatform = getVideoPlatform(externalUrl || videoUrl);
+  const ytId = getYouTubeId(effectiveUrl);
+  const isMp4 = isDirectVideoFile(effectiveUrl);
 
   const [isPlaying, setIsPlaying] = useState(true);
   const [isMuted, setIsMuted] = useState(false);
@@ -250,13 +264,13 @@ const MinimalScrubPlayer: React.FC<MinimalScrubPlayerProps> = ({ videoUrl, title
 
   // Fallback for Instagram / Vimeo embeds that don't expose seek APIs without external SDKs
   if (!isMp4 && !ytId) {
-    const instaId = getInstagramId(videoUrl);
-    const vimeoId = getVimeoId(videoUrl);
+    const instaId = getInstagramId(effectiveUrl);
+    const vimeoId = getVimeoId(effectiveUrl);
     const embedSrc = instaId
       ? `https://www.instagram.com/p/${instaId}/embed/`
       : vimeoId
         ? `https://player.vimeo.com/video/${vimeoId}?autoplay=1&title=0&byline=0&portrait=0`
-        : videoUrl;
+        : effectiveUrl;
 
     return (
       <iframe
@@ -280,16 +294,39 @@ const MinimalScrubPlayer: React.FC<MinimalScrubPlayerProps> = ({ videoUrl, title
       onMouseMove={wakeControls}
       onMouseEnter={wakeControls}
       onClick={() => togglePlayPause()}
-      className="relative w-full h-full bg-black select-none overflow-hidden cursor-pointer animate-dissolve"
+      className="relative w-full h-full bg-black select-none overflow-hidden cursor-pointer"
     >
       {isMp4 ? (
         <video
           ref={mp4Ref}
-          src={videoUrl}
-          autoPlay
+          src={effectiveUrl}
+          width={isVertical ? 1080 : 1920}
+          height={isVertical ? 1920 : 1080}
+          preload="auto"
+          muted={isMuted}
           playsInline
+          onError={() => {
+            if (externalUrl && effectiveUrl !== externalUrl) {
+              setLocalMp4Failed(true);
+            }
+          }}
           onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-          onLoadedMetadata={(e) => setDuration(e.currentTarget.duration || 0)}
+          onLoadedMetadata={(e) => {
+            const vid = e.currentTarget;
+            setDuration(vid.duration || 0);
+            wakeControls();
+            const playPromise = vid.play();
+            if (playPromise && typeof playPromise.catch === 'function') {
+              playPromise.catch(() => {
+                vid.muted = true;
+                setIsMuted(true);
+                vid.play().catch(() => {
+                  setIsPlaying(false);
+                });
+              });
+            }
+          }}
+          onLoadedData={() => wakeControls()}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
           className="w-full h-full object-contain bg-black pointer-events-none"
@@ -373,12 +410,12 @@ const MinimalScrubPlayer: React.FC<MinimalScrubPlayerProps> = ({ videoUrl, title
           {isMuted ? 'SOUND OFF' : 'SOUND ON'}
         </button>
 
-        {platform === 'youtube' && (
+        {(externalPlatform === 'youtube' || externalPlatform === 'instagram') && (externalUrl || videoUrl) && (
           <a
-            href={videoUrl}
+            href={externalUrl || videoUrl}
             target="_blank"
             rel="noopener noreferrer"
-            title="YouTube 원본 화질로 열기"
+            title={externalPlatform === 'instagram' ? 'Instagram 원본 릴스 열기' : 'YouTube 원본 화질로 열기'}
             className="font-mono-tech text-[11px] text-white/55 hover:text-white transition-colors shrink-0 hidden md:inline"
           >
             ↗

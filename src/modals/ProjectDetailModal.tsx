@@ -13,6 +13,7 @@ import {
   buildThumbnailCandidates,
   getClientArtistDisplay,
   getInsideCardMeta,
+  getModalPlayableVideoUrl,
   getMutedPreviewEmbedUrl,
   getPrimaryEntityLabel,
   getWorkReleaseDate,
@@ -423,6 +424,8 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
           <video
             key={`${selectedWork.id}-teaser-mp4`}
             src={previewMedia.src}
+            width={isVertical ? 480 : 854}
+            height={isVertical ? 854 : 480}
             muted
             loop
             autoPlay
@@ -496,6 +499,8 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
 
   // Show bottom-right floating `CLOSE` ONLY after user scrolls past the header/intro area (and hide while closing)
   const showFloatingBottomRightClose = hasScrolledDown && !isClosingSheet;
+
+  const playableVideoUrl = getModalPlayableVideoUrl(selectedWork);
 
   return createPortal(
     <div className="fixed inset-0 z-[2000] pointer-events-auto">
@@ -575,7 +580,9 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
                 {isPlayingVideo ? (
                   <MinimalScrubPlayer
                     key={`${selectedWork.id}-scrub-player`}
-                    videoUrl={selectedWork.videoUrl}
+                    videoUrl={playableVideoUrl}
+                    externalUrl={selectedWork.videoUrl}
+                    isVertical={false}
                     title={selectedWork.title}
                   />
                 ) : (
@@ -600,7 +607,9 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
                   {isPlayingVideo ? (
                     <MinimalScrubPlayer
                       key={`${selectedWork.id}-scrub-player-v`}
-                      videoUrl={selectedWork.videoUrl}
+                      videoUrl={playableVideoUrl}
+                      externalUrl={selectedWork.videoUrl}
+                      isVertical={true}
                       title={selectedWork.title}
                     />
                   ) : (
@@ -608,7 +617,7 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
                   )}
                 </div>
 
-                {platform === 'instagram' && selectedWork.videoUrl && (
+                {platform === 'instagram' && selectedWork.videoUrl && !isPlayingVideo && (
                   <a
                     href={selectedWork.videoUrl}
                     target="_blank"

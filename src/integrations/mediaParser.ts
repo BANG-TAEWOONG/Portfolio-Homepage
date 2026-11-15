@@ -523,8 +523,6 @@ export const resolveProjectCredits = ({
     artist,
     myRole,
     contributionRate,
-    setUp,
-    useTools,
     participationType = 'Created',
     studioLabel = 'TWOONG STUDIO',
 }: CreditsResolutionInput): CreditItem[] => {
@@ -586,13 +584,6 @@ export const resolveProjectCredits = ({
 
     if (roleItems.length === 0 && participationType === 'Participated') {
         credits.push({ role: 'Crew Participation', name: creditEntity });
-    }
-
-    credits.push(...groupEquipmentCredits(setUp));
-
-    const toolList = formatToolsPipeline(useTools);
-    if (toolList.length > 0) {
-        credits.push({ role: 'Post & Color Suite', name: toolList.join(', ') });
     }
 
     return credits;
