@@ -417,6 +417,7 @@ interface WidescreenStoryCardProps {
   priority?: boolean;
   focalPoint: string;
   isFramingActive: boolean;
+  isAutoPreviewActive?: boolean;
   isCascadeResetting?: boolean;
   cascadeDelayMs?: number;
   onUpdateFocal: (id: string, pos: string) => void;
@@ -436,6 +437,7 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
   priority = false,
   focalPoint,
   isFramingActive,
+  isAutoPreviewActive = false,
   isCascadeResetting = false,
   cascadeDelayMs = 0,
   onUpdateFocal,
@@ -459,10 +461,19 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
   const [previewFailed, setPreviewFailed] = useState(false);
   const hoverTimerRef = useRef<number | null>(null);
 
+  const shouldShowPreview =
+    (isHovered || isAutoPreviewActive) && !isFramingActive && !previewFailed;
+
   useEffect(() => {
     setIsPreviewPlaying(false);
     setPreviewFailed(false);
   }, [item.id, previewMedia.src]);
+
+  useEffect(() => {
+    if (!shouldShowPreview) {
+      setIsPreviewPlaying(false);
+    }
+  }, [shouldShowPreview]);
 
   const setCombinedRef = useCallback(
     (node: HTMLElement | null) => {
@@ -513,6 +524,7 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
   }, [isFramingActive]);
 
   const handleMouseEnter = () => {
+    if (typeof window !== 'undefined' && window.matchMedia?.('(hover: none)').matches) return;
     if (isFramingActive || previewMedia.kind === 'none' || previewFailed) return;
     if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
     hoverTimerRef.current = window.setTimeout(() => {
@@ -538,6 +550,7 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
   return (
     <article
       ref={setCombinedRef}
+      data-work-card-id={item.id}
       onClick={() => {
         if (!isFramingActive) onSelect(item);
       }}
@@ -567,7 +580,7 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
           className="w-full h-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.03]"
         />
 
-        {previewMedia.kind === 'mp4' && isHovered && !isFramingActive && !previewFailed && (
+        {previewMedia.kind === 'mp4' && shouldShowPreview && (
           <video
             src={previewMedia.src}
             width={1280}
@@ -647,6 +660,7 @@ interface VerticalReelCardProps {
   index?: number;
   focalPoint: string;
   isFramingActive: boolean;
+  isAutoPreviewActive?: boolean;
   isCascadeResetting?: boolean;
   cascadeDelayMs?: number;
   onUpdateFocal: (id: string, pos: string) => void;
@@ -660,6 +674,7 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
   index = 0,
   focalPoint,
   isFramingActive,
+  isAutoPreviewActive = false,
   isCascadeResetting = false,
   cascadeDelayMs = 0,
   onUpdateFocal,
@@ -680,12 +695,22 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
   const hoverTimerRef = useRef<number | null>(null);
   const effectiveDelayMs = cascadeDelayMs > 0 ? cascadeDelayMs : (index % 4) * 105;
 
+  const shouldShowPreview =
+    (isHovered || isAutoPreviewActive) && !isFramingActive && !previewFailed;
+
   useEffect(() => {
     setIsPreviewPlaying(false);
     setPreviewFailed(false);
   }, [item.id, previewMedia.src]);
 
+  useEffect(() => {
+    if (!shouldShowPreview) {
+      setIsPreviewPlaying(false);
+    }
+  }, [shouldShowPreview]);
+
   const handleMouseEnter = () => {
+    if (typeof window !== 'undefined' && window.matchMedia?.('(hover: none)').matches) return;
     if (isFramingActive || previewMedia.kind !== 'mp4' || previewFailed) return;
     if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
     hoverTimerRef.current = window.setTimeout(() => {
@@ -711,6 +736,7 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
   return (
     <article
       ref={revealRef}
+      data-work-card-id={item.id}
       onClick={() => {
         if (!isFramingActive) onSelect(item);
       }}
@@ -734,7 +760,7 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
         className="w-full h-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.03]"
       />
 
-      {previewMedia.kind === 'mp4' && isHovered && !isFramingActive && !previewFailed && (
+      {previewMedia.kind === 'mp4' && shouldShowPreview && (
         <video
           src={previewMedia.src}
           width={540}
@@ -1057,6 +1083,9 @@ const WorkSection: React.FC = () => {
   const [selectedWork, setSelectedWork] = useState<WorkItem | null>(null);
   const [navDirection, setNavDirection] = useState<'next' | 'prev' | 'init'>('init');
   const [hoveredListRow, setHoveredListRow] = useState<WorkItem | null>(null);
+  const [activeMobilePreviewId, setActiveMobilePreviewId] = useState<string | null>(null);
+  const activeMobilePreviewIdRef = useRef<string | null>(null);
+  activeMobilePreviewIdRef.current = activeMobilePreviewId;
 
   const sectionTopRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -1141,6 +1170,134 @@ const WorkSection: React.FC = () => {
     () => (formatFilter === 'vertical' ? verticalItems : horizontalItems),
     [formatFilter, verticalItems, horizontalItems]
   );
+
+  // Mobile/touch center-band single-card auto-preview ("1번 방식")
+  // Activates strictly on non-hover / coarse-pointer devices or mobile (< 768px) viewports,
+  // preserving desktop fine-pointer mouse hover untouched.
+  useEffect(() => {
+    if (
+      loading ||
+      viewMode !== 'cinema' ||
+      Boolean(selectedWork) ||
+      isFramingActive ||
+      displayedItems.length === 0
+    ) {
+      setActiveMobilePreviewId(null);
+      return;
+    }
+
+    const isMobileAutoPreviewEligible = (): boolean => {
+      if (typeof window === 'undefined') return false;
+      const hasCoarseOrNoHover =
+        window.matchMedia?.('(hover: none), (pointer: coarse)').matches ?? false;
+      return hasCoarseOrNoHover || window.innerWidth < 768;
+    };
+
+    const pickCenteredCardId = (): string | null => {
+      if (!isMobileAutoPreviewEligible() || !stageRef.current) return null;
+      const vh = window.innerHeight || 0;
+      if (vh <= 0) return null;
+
+      const bandTop = vh * 0.18;
+      const bandBottom = vh * 0.82;
+      const viewportCenter = vh * 0.5;
+      const cards = stageRef.current.querySelectorAll<HTMLElement>('[data-work-card-id]');
+
+      let bestId: string | null = null;
+      let bestDistance = Infinity;
+
+      cards.forEach((el) => {
+        const id = el.dataset.workCardId;
+        if (!id) return;
+        const rect = el.getBoundingClientRect();
+        if (rect.height <= 0 || rect.width <= 0) return;
+
+        const visiblePx = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
+        const minVisible = Math.min(rect.height * 0.5, vh * 0.35);
+        if (visiblePx < minVisible) return;
+
+        const cardCenter = rect.top + rect.height * 0.5;
+        if (cardCenter < bandTop || cardCenter > bandBottom) return;
+
+        const distance = Math.abs(cardCenter - viewportCenter);
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestId = id;
+        }
+      });
+
+      return bestId;
+    };
+
+    const checkImmediateClear = () => {
+      if (!isMobileAutoPreviewEligible()) {
+        if (activeMobilePreviewIdRef.current !== null) {
+          setActiveMobilePreviewId(null);
+        }
+        return;
+      }
+
+      const currentId = activeMobilePreviewIdRef.current;
+      if (!currentId || !stageRef.current) return;
+
+      const vh = window.innerHeight || 0;
+      const activeEl = Array.from(
+        stageRef.current.querySelectorAll<HTMLElement>('[data-work-card-id]')
+      ).find((el) => el.dataset.workCardId === currentId);
+
+      if (!activeEl) {
+        setActiveMobilePreviewId(null);
+        return;
+      }
+
+      const rect = activeEl.getBoundingClientRect();
+      const visiblePx = Math.min(rect.bottom, vh) - Math.max(rect.top, 0);
+      const minKeepVisible = Math.min(rect.height * 0.35, vh * 0.25);
+      const cardCenter = rect.top + rect.height * 0.5;
+
+      if (visiblePx < minKeepVisible || cardCenter < vh * 0.1 || cardCenter > vh * 0.9) {
+        setActiveMobilePreviewId(null);
+      }
+    };
+
+    let settleTimer: number | null = null;
+    let rafId = 0;
+
+    const scheduleSettlePick = () => {
+      window.cancelAnimationFrame(rafId);
+      rafId = window.requestAnimationFrame(checkImmediateClear);
+      if (settleTimer) window.clearTimeout(settleTimer);
+      settleTimer = window.setTimeout(() => {
+        const nextId = pickCenteredCardId();
+        setActiveMobilePreviewId((prev) => (prev === nextId ? prev : nextId));
+      }, 160);
+    };
+
+    scheduleSettlePick();
+
+    const pointerMql = window.matchMedia?.('(hover: none), (pointer: coarse)');
+
+    window.addEventListener('scroll', scheduleSettlePick, { passive: true });
+    window.addEventListener('resize', scheduleSettlePick, { passive: true });
+    pointerMql?.addEventListener?.('change', scheduleSettlePick);
+
+    return () => {
+      window.removeEventListener('scroll', scheduleSettlePick);
+      window.removeEventListener('resize', scheduleSettlePick);
+      pointerMql?.removeEventListener?.('change', scheduleSettlePick);
+      window.cancelAnimationFrame(rafId);
+      if (settleTimer) window.clearTimeout(settleTimer);
+    };
+  }, [
+    loading,
+    displayedItems,
+    viewMode,
+    formatFilter,
+    activeTrack,
+    activeCategory,
+    selectedWork,
+    isFramingActive,
+  ]);
 
   useEffect(() => {
     setHoveredListRow(null);
@@ -1676,6 +1833,7 @@ const WorkSection: React.FC = () => {
                     priority={idx < 3}
                     focalPoint={getFocalForWork(item)}
                     isFramingActive={isFramingActive}
+                    isAutoPreviewActive={activeMobilePreviewId === item.id}
                     isCascadeResetting={isCascadeResetting}
                     cascadeDelayMs={isCascadeStaggerActive ? Math.min(idx, 7) * 125 : 0}
                     onUpdateFocal={handleUpdateFocal}
@@ -1702,6 +1860,7 @@ const WorkSection: React.FC = () => {
                       index={idx}
                       focalPoint={getFocalForWork(item)}
                       isFramingActive={isFramingActive}
+                      isAutoPreviewActive={activeMobilePreviewId === item.id}
                       isCascadeResetting={isCascadeResetting}
                       cascadeDelayMs={isCascadeStaggerActive ? Math.min(idx, 9) * 105 : 0}
                       onUpdateFocal={handleUpdateFocal}
