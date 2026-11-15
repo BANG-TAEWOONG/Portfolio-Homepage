@@ -4,10 +4,10 @@ import { WorkItem } from '../data/types';
 import { getVideoPlatform } from '../integrations/youtubeParser';
 import {
   cleanFieldValue,
+  formatRunningTimePrime,
   getStillFallbackUrl,
   isMeaningfulValue,
   parseProjectStills,
-  resolveProjectCredits,
 } from '../integrations/mediaParser';
 import {
   buildThumbnailCandidates,
@@ -23,6 +23,7 @@ import {
 } from '../pages/workLayoutEngine';
 import { useIntersectionObserver } from '../integrations/useIntersectionObserver';
 import MinimalScrubPlayer from '../ui/MinimalScrubPlayer';
+import MutedYouTubeTeaser from '../ui/MutedYouTubeTeaser';
 
 export interface ProjectModalProps {
   selectedWork: WorkItem | null;
@@ -240,7 +241,7 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
 
   // 3. Track scroll position inside the Case Study sheet so bottom-right `CLOSE` never overlaps the top description or WATCH player!
   const handleSheetScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setHasScrolledDown(e.currentTarget.scrollTop > 420);
+    setHasScrolledDown(e.currentTarget.scrollTop > 64);
   }, []);
 
   // 4. Keyboard navigation (`Escape`, `ArrowLeft`, `ArrowRight`)
@@ -330,23 +331,12 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
     return resolveCaseStudyStages(selectedWork);
   }, [selectedWork]);
 
-  // 7. True Film `CREDITS` list
+  // 7. True Film `CREDITS` list (only explicitly entered credits — omit section if empty)
   const creditsList = useMemo(() => {
     if (!selectedWork) return [];
-    if (selectedWork.credits && selectedWork.credits.length > 0) {
-      return selectedWork.credits;
-    }
-    return resolveProjectCredits({
-      client: selectedWork.client,
-      artist: selectedWork.artist,
-      myRole: selectedWork.role,
-      contributionRate: selectedWork.contributionRate,
-      setUp: selectedWork.setup,
-      useTools: selectedWork.tools,
-      runningTime: selectedWork.runningTime,
-      releaseDate: selectedWork.releaseDate,
-      participationType: selectedWork.type,
-    });
+    return selectedWork.credits && selectedWork.credits.length > 0
+      ? selectedWork.credits
+      : [];
   }, [selectedWork]);
 
   const previewMedia = useMemo(() => {
@@ -364,7 +354,7 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
   const clientDisplay =
     getClientArtistDisplay(selectedWork) || 'Original Project';
   const categoryDisplay = cleanFieldValue(selectedWork.category) || 'Film';
-  const cleanRuntime = cleanFieldValue(selectedWork.runningTime);
+  const cleanRuntime = formatRunningTimePrime(selectedWork.runningTime);
   const baseFormat = isVertical ? '9:16 Vertical' : '16:9 Widescreen';
   const formatDisplay = cleanRuntime
     ? `${isVertical ? '9:16' : '16:9'} · ${cleanRuntime}`
@@ -446,25 +436,12 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
         )}
 
         {previewMedia.kind === 'youtube' && !isVertical && (
-          <div
-            aria-hidden="true"
-            className={`hidden md:block absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-1000 ease-out ${
-              teaserReady ? 'opacity-100' : 'opacity-0'
-            }`}
-          >
-            <iframe
-              key={`${selectedWork.id}-teaser-yt`}
-              src={previewMedia.src}
-              title=""
-              tabIndex={-1}
-              frameBorder="0"
-              allow="autoplay; encrypted-media"
-              onLoad={() => {
-                window.setTimeout(() => setTeaserReady(true), 420);
-              }}
-              className="absolute top-1/2 left-1/2 w-[108%] h-[175%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
-            />
-          </div>
+          <MutedYouTubeTeaser
+            key={`${selectedWork.id}-teaser-yt`}
+            videoUrl={selectedWork.videoUrl}
+            cropClassName="hidden md:block absolute -top-[24%] -left-[9%] w-[118%] h-[148%] pointer-events-none"
+            className="hidden md:block"
+          />
         )}
 
         {/* Subtle Dark Cinema Gradient */}
@@ -787,8 +764,8 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
             </section>
           )}
 
-          {/* 7. True Film End `CREDITS` Section */}
-          {(creditsList.length > 0 || isMeaningfulValue(selectedWork.videoUrl)) && (
+          {/* 7. True Film End `CREDITS` Section (rendered ONLY when explicit credits exist) */}
+          {creditsList.length > 0 && (
             <section
               ref={creditsRef}
               className={`section-choreo ${isCreditsVisible ? 'is-inview' : ''} pt-14 md:pt-24 px-1`}
@@ -797,23 +774,21 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
                 <span className="o-line-item">CREDITS</span>
               </h2>
 
-              {creditsList.length > 0 && (
-                <dl
-                  style={{ transitionDelay: '140ms' }}
-                  className="m-0 choreo-fade border-t border-neutral-200 pt-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8"
-                >
-                  {creditsList.map((credit, idx) => (
-                    <div key={`${credit.role}-${idx}`}>
-                      <dt className="block font-mono-tech text-xs text-neutral-400 mb-1.5">
-                        {credit.role}
-                      </dt>
-                      <dd className="m-0 block text-[15px] md:text-base font-medium text-neutral-950 leading-snug break-keep">
-                        {credit.name}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              )}
+              <dl
+                style={{ transitionDelay: '140ms' }}
+                className="m-0 choreo-fade border-t border-neutral-200 pt-7 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-8"
+              >
+                {creditsList.map((credit, idx) => (
+                  <div key={`${credit.role}-${idx}`}>
+                    <dt className="block font-mono-tech text-xs text-neutral-400 mb-1.5">
+                      {credit.role}
+                    </dt>
+                    <dd className="m-0 block text-[15px] md:text-base font-medium text-neutral-950 leading-snug break-keep">
+                      {credit.name}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
 
               {isMeaningfulValue(selectedWork.videoUrl) && (
                 <div className="mt-10 choreo-fade" style={{ transitionDelay: '220ms' }}>
@@ -877,22 +852,22 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
             </footer>
           )}
         </article>
-
-        {/* Bottom-Right Floating `CLOSE` Pill:
-            - Relocated from bottom-center to bottom-right (`right-6 sm:right-8 bottom-6`)
-            - Automatically hides while watching the top video (`isPlayingVideo && !hasScrolledDown`) so it NEVER overlaps the video or scrub bar! */}
-        <button
-          type="button"
-          onClick={triggerSmoothClose}
-          className={`hidden md:inline-flex fixed bottom-6 right-6 lg:right-9 z-[2060] px-4.5 py-2 rounded-full bg-neutral-950/92 backdrop-blur-md text-white font-mono-tech text-[11px] font-semibold tracking-[0.14em] uppercase shadow-xl border border-white/15 hover:bg-neutral-800 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer ${
-            showFloatingBottomRightClose
-              ? 'opacity-100 translate-y-0 pointer-events-auto'
-              : 'opacity-0 translate-y-4 pointer-events-none'
-          }`}
-        >
-          CLOSE ✕
-        </button>
       </div>
+
+      {/* Viewport-Pinned Bottom-Right Floating `CLOSE` Pill:
+          - Placed outside `scrollContainerRef` (which has CSS transform/will-change from sheet rise)
+            so `position: fixed` stays strictly pinned to the viewport bottom-right during scroll on desktop & mobile! */}
+      <button
+        type="button"
+        onClick={triggerSmoothClose}
+        className={`inline-flex fixed bottom-6 right-6 lg:right-9 z-[2060] px-4.5 py-2 rounded-full bg-neutral-950/92 backdrop-blur-md text-white font-mono-tech text-[11px] font-semibold tracking-[0.14em] uppercase shadow-xl border border-white/15 hover:bg-neutral-800 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer ${
+          showFloatingBottomRightClose
+            ? 'opacity-100 translate-y-0 pointer-events-auto'
+            : 'opacity-0 translate-y-4 pointer-events-none'
+        }`}
+      >
+        CLOSE ✕
+      </button>
     </div>,
     document.body
   );

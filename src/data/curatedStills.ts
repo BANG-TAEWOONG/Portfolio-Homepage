@@ -3,7 +3,7 @@
  * Eliminates YouTube's auto-selected blurry dance mid-frames and end-credit slates.
  */
 export const CURATED_PROJECT_STILLS: Record<string, string[]> = {
-  "pj_26_012": [
+  "pj_26_013": [
     "/stills/pj_26_012_1.jpg",
     "/stills/pj_26_012_2.jpg",
     "/stills/pj_26_012_3.jpg"

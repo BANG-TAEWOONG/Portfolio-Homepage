@@ -18,7 +18,7 @@ const formatTime = (sec: number): string => {
 
 // Singleton loader for YouTube IFrame API (`window.YT`)
 let ytApiPromise: Promise<any> | null = null;
-const loadYouTubeIframeApi = (): Promise<any> => {
+export const loadYouTubeIframeApi = (): Promise<any> => {
   if (typeof window === 'undefined') return Promise.resolve(null);
   const win = window as any;
   if (win.YT && win.YT.Player) return Promise.resolve(win.YT);

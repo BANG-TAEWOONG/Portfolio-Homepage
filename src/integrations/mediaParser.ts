@@ -597,3 +597,37 @@ export const resolveProjectCredits = ({
 
     return credits;
 };
+
+/**
+ * Formats a running time string using prime/double-prime notation (`M' SS"`).
+ * Converts e.g. `9:13` -> `9' 13"`, `0:33` -> `0' 33"`, `1:05:20` -> `65' 20"`.
+ */
+export const formatRunningTimePrime = (raw?: string | null): string => {
+    const clean = cleanFieldValue(raw);
+    if (!clean) return '';
+
+    if (/['′″"]/.test(clean)) {
+        return clean
+            .replace(/′/g, "'")
+            .replace(/″/g, '"')
+            .replace(/\s+/g, ' ')
+            .trim();
+    }
+
+    const hmsMatch = clean.match(/^(\d{1,2})\s*:\s*(\d{1,2})\s*:\s*(\d{1,2})$/);
+    if (hmsMatch) {
+        const hours = Number(hmsMatch[1]);
+        const mins = Number(hmsMatch[2]);
+        const secs = hmsMatch[3].padStart(2, '0');
+        return `${hours * 60 + mins}' ${secs}"`;
+    }
+
+    const msMatch = clean.match(/^(\d{1,3})\s*:\s*(\d{1,2})$/);
+    if (msMatch) {
+        const mins = Number(msMatch[1]);
+        const secs = msMatch[2].padStart(2, '0');
+        return `${mins}' ${secs}"`;
+    }
+
+    return clean;
+};

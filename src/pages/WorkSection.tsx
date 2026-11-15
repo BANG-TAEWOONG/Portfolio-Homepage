@@ -5,6 +5,7 @@ import { useWorkItems } from '../integrations/useWorkItems';
 import { useSiteTexts } from '../integrations/useSiteTexts';
 import { useIntersectionObserver } from '../integrations/useIntersectionObserver';
 import ProjectDetailModal from '../modals/ProjectDetailModal';
+import MutedYouTubeTeaser from '../ui/MutedYouTubeTeaser';
 import {
   buildThumbnailCandidates,
   getClientArtistDisplay,
@@ -453,7 +454,6 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
   const parallaxLayerRef = useRef<HTMLDivElement | null>(null);
 
   const [isHovered, setIsHovered] = useState(false);
-  const [iframeReady, setIframeReady] = useState(false);
   const hoverTimerRef = useRef<number | null>(null);
 
   const setCombinedRef = useCallback(
@@ -508,7 +508,6 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
     if (isFramingActive || previewMedia.kind === 'none') return;
     if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
     hoverTimerRef.current = window.setTimeout(() => {
-      setIframeReady(false);
       setIsHovered(true);
     }, 180);
   };
@@ -519,7 +518,6 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
       hoverTimerRef.current = null;
     }
     setIsHovered(false);
-    setIframeReady(false);
   };
 
   useEffect(() => {
@@ -572,28 +570,15 @@ const WidescreenStoryCard: React.FC<WidescreenStoryCardProps> = ({
             className="absolute inset-0 w-full h-full object-cover pointer-events-none"
           />
         )}
-      </div>
 
-      {previewMedia.kind === 'youtube' && isHovered && !isFramingActive && (
-        <div
-          aria-hidden="true"
-          className={`hidden md:block absolute inset-0 overflow-hidden pointer-events-none transition-opacity duration-700 ease-out ${
-            iframeReady ? 'opacity-100' : 'opacity-0'
-          }`}
-        >
-          <iframe
-            src={previewMedia.src}
-            title=""
-            tabIndex={-1}
-            frameBorder="0"
-            allow="autoplay; encrypted-media"
-            onLoad={() => {
-              window.setTimeout(() => setIframeReady(true), 280);
-            }}
-            className="absolute top-1/2 left-1/2 w-[112%] h-[230%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+        {previewMedia.kind === 'youtube' && isHovered && !isFramingActive && (
+          <MutedYouTubeTeaser
+            videoUrl={item.videoUrl}
+            cropClassName="absolute top-1/2 left-1/2 w-[116%] h-[230%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+            className="hidden md:block"
           />
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Subtle Bottom Gradient Scrim */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-black/10 pointer-events-none" />
@@ -668,8 +653,33 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
 }) => {
   const rightMeta = getInsideCardMeta(item, true);
   const badge = getTrackBadgeMeta(item.type);
+  const previewMedia = useMemo(() => getMutedPreviewEmbedUrl(item), [item]);
   const [revealRef, isRevealed] = useIntersectionObserver({ threshold: 0.06, once: false });
+  const [isHovered, setIsHovered] = useState(false);
+  const hoverTimerRef = useRef<number | null>(null);
   const effectiveDelayMs = cascadeDelayMs > 0 ? cascadeDelayMs : (index % 4) * 105;
+
+  const handleMouseEnter = () => {
+    if (isFramingActive || previewMedia.kind !== 'mp4') return;
+    if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = window.setTimeout(() => {
+      setIsHovered(true);
+    }, 180);
+  };
+
+  const handleMouseLeave = () => {
+    if (hoverTimerRef.current) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    setIsHovered(false);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+    };
+  }, []);
 
   return (
     <article
@@ -677,6 +687,8 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
       onClick={() => {
         if (!isFramingActive) onSelect(item);
       }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       style={
         !isCascadeResetting && isRevealed && effectiveDelayMs > 0
           ? { transitionDelay: `${effectiveDelayMs}ms` }
@@ -694,6 +706,19 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
         onDimensionsDetected={onDimensionsDetected}
         className="w-full h-full object-cover transition-transform duration-1000 ease-[cubic-bezier(0.23,1,0.32,1)] group-hover:scale-[1.03]"
       />
+
+      {previewMedia.kind === 'mp4' && isHovered && !isFramingActive && (
+        <video
+          src={previewMedia.src}
+          muted
+          loop
+          autoPlay
+          playsInline
+          preload="metadata"
+          style={{ objectPosition: focalPoint }}
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        />
+      )}
 
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/10 pointer-events-none" />
 

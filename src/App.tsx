@@ -11,23 +11,22 @@ import EditableText from './ui/EditableText';
 
 const AdminSettingsModal = lazy(() => import('./modals/AdminSettingsModal'));
 
-const INTRO_SPREAD_MS = 2350;
-const INTRO_ZOOM_MS = 3150;
-const INTRO_TOTAL_MS = INTRO_SPREAD_MS + INTRO_ZOOM_MS; // 5500ms
-const HERO_REVEAL_MS = 5100; // Cleanly unlocks once `'S'` dilates & curtain releases!
+const INTRO_SPREAD_MS = 2250;
+const INTRO_ZOOM_MS = 1950;
+const INTRO_TOTAL_MS = INTRO_SPREAD_MS + INTRO_ZOOM_MS; // 4200ms
+const HERO_REVEAL_MS = 3800; // Cleanly unlocks once `'T'` clears viewport & curtain releases!
 
 /**
- * Zero-Hitch Persistent Single-SVG Vector Mask Portal (`0 -> 5.50s`)
- * - Measures exact SVG glyph extent (`getExtentOfChar(7)`) for `'S'` so the optical zoom spine center has 0.00px vertical sink.
- * - Uses alphabetic baseline + `dy="0.356em"` cap-height alignment so `'S'` spine stays pinned at viewport center.
- * - Applies progressive mask stroke dilation (`u = 0.30 -> 0.76`) + smooth curtain release (`u = 0.68 -> 0.92`) so `'S'` clears cleanly into playing Hero video with ZERO black flash!
+ * Zero-Hitch Persistent Single-SVG Vector Mask Portal (`0 -> 4.20s`)
+ * - Targets `'T'` (index 8 of `"TWOONG STUDIO"`) using a zero-letter-spacing `'T'` gauge + `<tspan>` measurement
+ *   so the vertical stem center `(px, py)` locks accurately without glyph bloat or distortion.
+ * - Keeps `strokeWidth: 0` permanently (0% letter deformation) and accelerates exponentially through `'T'`'s stem.
  */
 const IntroPortalOverlay: React.FC = React.memo(() => {
   const gaugeTextRef = useRef<SVGTextElement>(null);
-  const sMeasureRef = useRef<SVGTSpanElement>(null);
+  const singleTGaugeRef = useRef<SVGTextElement>(null);
   const tMeasureRef = useRef<SVGTSpanElement>(null);
   const maskZoomGroupRef = useRef<SVGGElement>(null);
-  const maskTextRef = useRef<SVGTextElement>(null);
   const whiteZoomGroupRef = useRef<SVGGElement>(null);
   const curtainRectRef = useRef<SVGRectElement>(null);
 
@@ -39,14 +38,13 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
     let py = 0;
     let vw = 1440;
     let vh = 900;
-    let maxScale = 420;
+    let maxScale = 950;
     let computedSize = 60;
 
     const tick = (now: number) => {
       const elapsed = now - mountTime;
       const maskGroup = maskZoomGroupRef.current;
       const whiteGroup = whiteZoomGroupRef.current;
-      const maskText = maskTextRef.current;
       const curtainRect = curtainRectRef.current;
 
       if (elapsed >= INTRO_SPREAD_MS && maskGroup && whiteGroup) {
@@ -54,51 +52,50 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
           measured = true;
           vw = window.innerWidth || 1440;
           vh = window.innerHeight || 900;
-          const gaugeEl = gaugeTextRef.current;
-          const sEl = sMeasureRef.current;
-          const tEl = tMeasureRef.current;
-          computedSize = sEl
-            ? parseFloat(window.getComputedStyle(sEl).fontSize || '60') || 60
+          const tSpanEl = tMeasureRef.current;
+          const singleTEl = singleTGaugeRef.current;
+          computedSize = tSpanEl
+            ? parseFloat(window.getComputedStyle(tSpanEl).fontSize || '60') || 60
             : 60;
 
-          let foundExactGlyph = false;
-          if (gaugeEl && typeof gaugeEl.getExtentOfChar === 'function') {
-            try {
-              const ext = gaugeEl.getExtentOfChar(7); // Index 7 of "TWOONG STUDIO" === 'S'
-              if (ext && ext.width > 0 && ext.height > 0) {
-                px = ext.x + ext.width * 0.5;
-                py = ext.y + ext.height * 0.5;
-                foundExactGlyph = true;
+          const tSpanRect = tSpanEl?.getBoundingClientRect();
+          const singleTRect = singleTEl?.getBoundingClientRect();
+
+          if (tSpanRect && singleTRect && singleTRect.width > 0 && singleTRect.height > 0) {
+            px = tSpanRect.left + singleTRect.width * 0.5;
+            py = singleTRect.top + singleTRect.height * 0.45;
+          } else {
+            const gaugeEl = gaugeTextRef.current;
+            let foundExtent = false;
+            if (gaugeEl && typeof gaugeEl.getExtentOfChar === 'function') {
+              try {
+                const ext = gaugeEl.getExtentOfChar(8); // Index 8 of "TWOONG STUDIO" === 'T'
+                if (ext && ext.width > 0 && ext.height > 0) {
+                  px = ext.x + ext.width * 0.5;
+                  py = ext.y + ext.height * 0.45;
+                  foundExtent = true;
+                }
+              } catch {
+                // fallback below
               }
-            } catch {
-              // fallback below
+            }
+            if (!foundExtent) {
+              px = vw * 0.55;
+              py = vh * 0.5;
             }
           }
 
-          if (!foundExactGlyph) {
-            const sRect = sEl?.getBoundingClientRect();
-            const tRect = tEl?.getBoundingClientRect();
-            const stepST = sRect && tRect ? tRect.left - sRect.left : 0;
-            const sAdvance =
-              stepST > 0
-                ? Math.max(computedSize * 0.36, stepST - 0.6 * computedSize)
-                : computedSize * 0.56;
-
-            px = sRect && sRect.width > 0 ? sRect.left + sAdvance * 0.5 : vw * 0.525;
-            py = vh * 0.5;
-          }
-
           maxScale = Math.max(
-            420,
-            Math.ceil(Math.max((vh * 16) / computedSize, (vw * 7) / computedSize))
+            950,
+            Math.ceil((Math.max(vw, vh) * 1.6) / (computedSize * 0.08))
           );
         }
 
         const u = Math.min(1, (elapsed - INTRO_SPREAD_MS) / INTRO_ZOOM_MS);
-        const ease = u * u * (3 - 2 * u);
+        const ease = Math.pow(u, 2.2);
         const scale = Math.pow(maxScale, ease);
 
-        const tPan = Math.min(1, u / 0.34);
+        const tPan = Math.min(1, u / 0.38);
         const panAlpha = tPan * tPan * (3 - 2 * tPan);
         const targetX = px + (vw * 0.5 - px) * panAlpha;
         const targetY = py + (vh * 0.5 - py) * panAlpha;
@@ -110,21 +107,10 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
         maskGroup.setAttribute('transform', tf);
         whiteGroup.setAttribute('transform', tf);
 
-        // Dilate `#000000` knockout stroke of `'S'` inside mask after white fill fades (`u = 0.30 -> 0.76`)
-        if (maskText) {
-          if (u > 0.3) {
-            const uStroke = Math.min(1, (u - 0.3) / 0.46);
-            const easeStroke = uStroke * uStroke * (3 - 2 * uStroke);
-            maskText.style.strokeWidth = `${(easeStroke * computedSize * 0.48).toFixed(2)}px`;
-          } else {
-            maskText.style.strokeWidth = '0px';
-          }
-        }
-
-        // Smooth curtain fade (`u = 0.68 -> 0.92`) guarantees ZERO black screen drop at end of zoom
+        // Smooth curtain fade only after `'T'` vertical stem covers 100% of viewport width & height
         if (curtainRect) {
-          if (u >= 0.68) {
-            const uFade = Math.min(1, (u - 0.68) / 0.24);
+          if (u >= 0.92) {
+            const uFade = Math.min(1, (u - 0.92) / 0.07);
             const easeFade = uFade * uFade * (3 - 2 * uFade);
             curtainRect.style.opacity = (1 - easeFade).toFixed(3);
           } else {
@@ -154,6 +140,21 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
       className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden select-none animate-portal-finish"
     >
       <svg className="w-full h-full block" preserveAspectRatio="none">
+        {/* Zero-letter-spacing `'T'` gauge for true intrinsic glyph width/height */}
+        <text
+          ref={singleTGaugeRef}
+          x="50%"
+          y="50%"
+          dy="0.356em"
+          textAnchor="middle"
+          dominantBaseline="alphabetic"
+          opacity="0"
+          className="portal-svg-title"
+          style={{ letterSpacing: '0px', pointerEvents: 'none' }}
+        >
+          T
+        </text>
+
         {/* Stationary invisible coordinate gauge placed in the live SVG tree */}
         <text
           ref={gaugeTextRef}
@@ -166,8 +167,7 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
           className="portal-svg-title"
           style={{ letterSpacing: '0.6em', pointerEvents: 'none' }}
         >
-          TWOONG <tspan ref={sMeasureRef}>S</tspan>
-          <tspan ref={tMeasureRef}>T</tspan>UDIO
+          TWOONG S<tspan ref={tMeasureRef}>T</tspan>UDIO
         </text>
 
         <defs>
@@ -175,18 +175,12 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
             <rect x="0" y="0" width="100%" height="100%" fill="white" />
             <g ref={maskZoomGroupRef}>
               <text
-                ref={maskTextRef}
                 x="50%"
                 y="50%"
                 dy="0.356em"
                 textAnchor="middle"
                 dominantBaseline="alphabetic"
                 fill="black"
-                stroke="#000000"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                paintOrder="stroke fill"
-                style={{ strokeWidth: '0px' }}
                 className="portal-svg-title animate-portal-spread"
               >
                 TWOONG STUDIO
@@ -195,7 +189,7 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
           </mask>
         </defs>
 
-        {/* Solid Black Cinema Curtain Punched Cleanly by `'S'` */}
+        {/* Solid Black Cinema Curtain Punched Cleanly by Undistorted `'T'` */}
         <rect
           ref={curtainRectRef}
           x="0"
@@ -206,7 +200,7 @@ const IntroPortalOverlay: React.FC = React.memo(() => {
           mask="url(#tw-studio-portal-mask)"
         />
 
-        {/* Pure Black Veil behind text during initial spread -> softly reveals playing Showreel right before `'S'` push-in */}
+        {/* Pure Black Veil behind text during initial spread -> softly reveals playing Showreel right before `'T'` push-in */}
         <rect
           x="0"
           y="0"

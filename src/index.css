@@ -78,7 +78,7 @@ p {
 }
 
 /* ════════════════════════════════════════════════════════════════════════
-   1. Zero-Hitch Persistent GPU Vector Mask Portal (`0 -> 5.35s` Full `'S'` Pass-Through)
+   1. Zero-Hitch Persistent GPU Vector Mask Portal (`0 -> 4.20s` Undistorted `'T'` Pass-Through)
    ════════════════════════════════════════════════════════════════════════ */
 @keyframes portalSpread {
   0% {
@@ -95,7 +95,7 @@ p {
 }
 
 .animate-portal-spread {
-  animation: portalSpread 2.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: portalSpread 2.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Exact Matching Typography Metrics Inside SVG (`font-medium` 500, `24px -> 36px -> 48px -> 60px`) */
@@ -132,11 +132,11 @@ p {
 }
 
 .animate-portal-video-veil {
-  animation: portalVideoVeil 2.75s ease-in-out forwards;
+  animation: portalVideoVeil 2.65s ease-in-out forwards;
   will-change: opacity;
 }
 
-/* Crisp white letter fill stays solid through Phase 1 spread, then melts gently into the live Showreel video inside `'S'` */
+/* Crisp white letter fill stays solid through Phase 1 spread, then melts gently into the live Showreel video inside `'T'` */
 @keyframes portalWhiteGlyphsFade {
   0%, 66% {
     opacity: 1;
@@ -147,10 +147,10 @@ p {
 }
 
 .animate-portal-white-glyphs {
-  animation: portalWhiteGlyphsFade 2.95s ease-in-out forwards;
+  animation: portalWhiteGlyphsFade 2.85s ease-in-out forwards;
 }
 
-/* Safety fade in final 120ms (after curtain opacity has already smoothly eased to 0) */
+/* Safety fade in final 100ms (after curtain opacity has already smoothly eased to 0) */
 @keyframes portalFinishFade {
   0%, 97.5% {
     opacity: 1;
@@ -161,7 +161,7 @@ p {
 }
 
 .animate-portal-finish {
-  animation: portalFinishFade 5.5s linear forwards;
+  animation: portalFinishFade 4.2s linear forwards;
   will-change: opacity;
 }
 

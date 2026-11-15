@@ -342,7 +342,7 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                                     if (formattedTools.length > 0) {
                                         credits.push({ role: 'Post & Color Suite', name: formattedTools.join(', ') });
                                     }
-                                } else {
+                                } else if (cleanFieldValue(rawCredits, true)) {
                                     credits = resolveProjectCredits({
                                         explicitCredits: rawCredits,
                                         client: rawClient,
@@ -355,6 +355,8 @@ export const fetchWorkItems = async (): Promise<WorkItem[]> => {
                                         releaseDate: date,
                                         participationType: workType,
                                     });
+                                } else {
+                                    credits = [];
                                 }
 
                                 const explicitYear = cleanFieldValue(pickCol(row, ['year']));
