@@ -1551,24 +1551,24 @@ const WorkSection: React.FC = () => {
       id: 'All',
       step: 'ALL',
       title: 'ALL WORKS',
-      koreanLabel: '전체 필모그래피 통합 보기',
-      subtext: '개인 연출작과 프로덕션 참여작 전체',
+      koreanLabel: '전체 필모그래피',
+      subtext: '개인 연출 · 참여작 통합',
       count: workItems.length,
     },
     {
       id: 'Created',
-      step: 'TRACK 01',
+      step: '01',
       title: 'PERSONAL',
       koreanLabel: '연출 · 주도 프로젝트',
-      subtext: '기획·연출·촬영·편집 메인 디렉팅 작업',
+      subtext: '메인 디렉팅',
       count: personalCount,
     },
     {
       id: 'Participated',
-      step: 'TRACK 02',
+      step: '02',
       title: 'PARTICIPATION',
-      koreanLabel: '외부 · 프로덕션 스태프 참여작',
-      subtext: '상업 MV·드라마·단편 촬영/조명/후반 크루 참여',
+      koreanLabel: '프로덕션 참여작',
+      subtext: '촬영 · 조명 · 후반 크루',
       count: participationCount,
     },
   ];
@@ -1579,10 +1579,10 @@ const WorkSection: React.FC = () => {
         {/* ════════════════════════════════════════════════════════════════
            1. UNIFIED WORKS HEADER (Bidirectional Scroll-Down & Scroll-Up Choreography)
            ════════════════════════════════════════════════════════════════ */}
-        <header className="mb-8 md:mb-12 px-1">
+        <header className="mb-5 sm:mb-6 md:mb-8 px-1">
           <div
             ref={headerRef}
-            className={`section-choreo ${isHeaderVisible ? 'is-inview' : ''} flex flex-col md:flex-row md:items-end justify-between gap-5 mb-7 md:mb-9`}
+            className={`section-choreo ${isHeaderVisible ? 'is-inview' : ''} flex flex-col md:flex-row md:items-end justify-between gap-4 sm:gap-5 mb-4 sm:mb-5 md:mb-6`}
           >
             <div>
               <p className="font-mono-tech text-[11px] uppercase tracking-[0.16em] text-neutral-400 mb-2 choreo-fade">
@@ -1690,12 +1690,12 @@ const WorkSection: React.FC = () => {
             </div>
           </div>
 
-          {/* HIGH-VISIBILITY TRACK SWITCHER (Independent Bidirectional Scroll Cascade!) */}
+          {/* HIGH-VISIBILITY FLUID TRACK SWITCHER (Option A: Mobile 1×3 Compact Tabs <-> Desktop Clamp Cards) */}
           <div
             ref={tracksRef}
             role="tablist"
             aria-label="Filmography Track Filter"
-            className={`section-choreo ${isTracksVisible ? 'is-inview' : ''} grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4`}
+            className={`section-choreo ${isTracksVisible ? 'is-inview' : ''} tw-track-grid`}
           >
             {trackCards.map((tab, idx) => {
               const isSelected = activeTrack === tab.id;
@@ -1707,49 +1707,46 @@ const WorkSection: React.FC = () => {
                   aria-selected={isSelected}
                   onClick={() => setActiveTrack(tab.id)}
                   style={{ transitionDelay: `${idx * 120}ms` }}
-                  className={`choreo-fade group relative text-left rounded-[10px] p-4 sm:p-5 md:p-6 border transition-[background-color,border-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer flex flex-col justify-between min-h-[96px] sm:min-h-[124px] md:min-h-[138px] ${
+                  className={`choreo-fade tw-track-card group relative text-left border transition-[background-color,border-color,color,box-shadow] duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] cursor-pointer ${
                     isSelected
-                      ? 'bg-[#0A0A0B] text-white border-[#0A0A0B] shadow-[0_14px_34px_rgba(10,10,11,0.16)]'
+                      ? 'bg-[#0A0A0B] text-white border-[#0A0A0B] shadow-[0_10px_24px_rgba(10,10,11,0.14)]'
                       : 'bg-[#F4F4F2] hover:bg-[#EAEAE6] text-neutral-950 border-black/8 hover:border-neutral-950/35'
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-3 w-full">
-                    <div>
-                      <span
-                        className={`block font-mono-tech text-[10px] tracking-[0.16em] uppercase mb-1.5 ${
-                          isSelected ? 'text-white/55' : 'text-neutral-400'
-                        }`}
-                      >
-                        {tab.step}
-                      </span>
-                      <span className="block font-display text-2xl sm:text-3xl md:text-[34px] leading-none tracking-tight uppercase">
-                        {tab.title}
-                      </span>
-                    </div>
-
+                  <div className="tw-track-top">
                     <span
-                      className={`inline-flex items-center justify-center px-3 py-1 rounded-full font-mono-tech text-xs font-semibold tabular-nums shrink-0 transition-colors ${
+                      className={`tw-track-step font-mono-tech uppercase ${
+                        isSelected ? 'text-white/55' : 'text-neutral-400'
+                      }`}
+                    >
+                      {tab.step}
+                    </span>
+                    <span className="tw-track-title font-display tracking-tight uppercase">
+                      {tab.title}
+                    </span>
+                    <span
+                      className={`tw-track-pill inline-flex items-center justify-center rounded-full font-mono-tech font-semibold tabular-nums shrink-0 transition-colors ${
                         isSelected
                           ? 'bg-white text-[#0A0A0B]'
-                          : 'bg-white/85 text-neutral-900 border border-black/8 group-hover:bg-neutral-950 group-hover:text-white'
+                          : 'bg-white/88 text-neutral-900 border border-black/8 group-hover:bg-neutral-950 group-hover:text-white'
                       }`}
                     >
                       {loading ? '…' : `${tab.count}편`}
                     </span>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-current/10 flex items-end justify-between gap-2">
-                    <div>
+                  <div className="tw-track-details border-t border-current/10">
+                    <div className="min-w-0 truncate">
                       <span
-                        className={`block text-xs sm:text-[13.5px] font-semibold tracking-tight ${
+                        className={`text-xs font-semibold tracking-tight ${
                           isSelected ? 'text-white' : 'text-neutral-900'
                         }`}
                       >
                         {tab.koreanLabel}
                       </span>
                       <span
-                        className={`block text-[11px] mt-0.5 leading-snug ${
-                          isSelected ? 'text-white/65' : 'text-neutral-500'
+                        className={`tw-track-subtext text-[11px] ml-1.5 ${
+                          isSelected ? 'text-white/62' : 'text-neutral-500'
                         }`}
                       >
                         {tab.subtext}
@@ -1758,7 +1755,7 @@ const WorkSection: React.FC = () => {
 
                     <span
                       aria-hidden="true"
-                      className={`font-mono-tech text-xs shrink-0 transition-transform duration-300 ${
+                      className={`font-mono-tech text-[11px] shrink-0 transition-transform duration-300 ${
                         isSelected
                           ? 'text-white'
                           : 'text-neutral-400 group-hover:translate-x-0.5 group-hover:text-neutral-950'
