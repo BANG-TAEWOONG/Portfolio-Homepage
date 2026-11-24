@@ -3,6 +3,46 @@
  * Eliminates YouTube's auto-selected blurry dance mid-frames and end-credit slates.
  */
 export const CURATED_PROJECT_STILLS: Record<string, string[]> = {
+  "pj_26_018": [
+    "/stills/pj_26_018_1.jpg",
+    "/stills/pj_26_018_2.jpg",
+    "/stills/pj_26_018_3.jpg"
+  ],
+  "pj_26_017": [
+    "/stills/pj_26_017_1.jpg",
+    "/stills/pj_26_017_2.jpg",
+    "/stills/pj_26_017_3.jpg"
+  ],
+  "pj_26_016": [
+    "/stills/pj_26_016_1.jpg",
+    "/stills/pj_26_016_2.jpg",
+    "/stills/pj_26_016_3.jpg"
+  ],
+  "pj_26_015": [
+    "/stills/pj_26_015_1.jpg",
+    "/stills/pj_26_015_2.jpg",
+    "/stills/pj_26_015_3.jpg"
+  ],
+  "pj_26_014": [
+    "/stills/pj_26_014_1.jpg",
+    "/stills/pj_26_014_2.jpg",
+    "/stills/pj_26_014_3.jpg"
+  ],
+  "pj_26_012": [
+    "/stills/pj_26_012_s_1.jpg",
+    "/stills/pj_26_012_s_2.jpg",
+    "/stills/pj_26_012_s_3.jpg"
+  ],
+  "pj_26_009": [
+    "/stills/pj_26_009_1.jpg",
+    "/stills/pj_26_009_2.jpg",
+    "/stills/pj_26_009_3.jpg"
+  ],
+  "pj_26_007": [
+    "/stills/pj_26_007_1.jpg",
+    "/stills/pj_26_007_2.jpg",
+    "/stills/pj_26_007_3.jpg"
+  ],
   "pj_26_013": [
     "/stills/pj_26_012_1.jpg",
     "/stills/pj_26_012_2.jpg",

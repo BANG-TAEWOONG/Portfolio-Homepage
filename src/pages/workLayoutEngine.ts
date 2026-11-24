@@ -1,4 +1,5 @@
 import { WorkItem } from '../data/types';
+import { CURATED_PROJECT_STILLS } from '../data/curatedStills';
 import {
   LOCAL_FULL_VIDEO_WORK_IDS,
   LOCAL_PREVIEW_WORK_IDS,
@@ -79,7 +80,7 @@ export const isYouTubePlaceholderDimension = (
  * 4. Google Drive `lh3.googleusercontent.com` CDN mirror fallback
  */
 export const buildThumbnailCandidates = (
-  item: Pick<WorkItem, 'thumbnail' | 'videoUrl'>
+  item: Pick<WorkItem, 'thumbnail' | 'videoUrl'> & { id?: string }
 ): string[] => {
   const candidates: string[] = [];
   const pushCandidate = (url?: string | null) => {
@@ -94,6 +95,9 @@ export const buildThumbnailCandidates = (
   const isInstagramRedirectThumb = /https?:\/\/(?:www\.)?instagram\.com\/p\/[^/]+\/media/i.test(rawThumb);
   const instaId =
     getInstagramId(item.videoUrl || '') || getInstagramId(rawThumb);
+  const isFilePreview =
+    typeof window !== 'undefined' &&
+    window.location.pathname.endsWith('local_preview.html');
 
   // If explicit thumbnail is NOT Instagram's blocked `/media` endpoint, try it first
   if (!isInstagramRedirectThumb) {
@@ -102,15 +106,26 @@ export const buildThumbnailCandidates = (
 
   // Prefer local static thumbnail caches before external Instagram redirect URL
   if (instaId) {
-    const isFilePreview =
-      typeof window !== 'undefined' &&
-      window.location.pathname.endsWith('local_preview.html');
     if (isFilePreview) {
       pushCandidate(`/public/thumbnails/ig_${instaId}.jpg`);
       pushCandidate(`/thumbnails/ig_${instaId}.jpg`);
     } else {
       pushCandidate(`/thumbnails/ig_${instaId}.jpg`);
       pushCandidate(`/public/thumbnails/ig_${instaId}.jpg`);
+    }
+  }
+
+  // Fallback to curated sharp still frame when thumbnail cache isn't built yet
+  const curatedFirstStill = item.id ? CURATED_PROJECT_STILLS[item.id]?.[0] : undefined;
+  if (curatedFirstStill) {
+    if (isFilePreview && curatedFirstStill.startsWith('/stills/')) {
+      pushCandidate(`/public${curatedFirstStill}`);
+      pushCandidate(curatedFirstStill);
+    } else {
+      pushCandidate(curatedFirstStill);
+      if (curatedFirstStill.startsWith('/stills/')) {
+        pushCandidate(`/public${curatedFirstStill}`);
+      }
     }
   }
 

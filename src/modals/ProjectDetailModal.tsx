@@ -74,7 +74,7 @@ const ModalThumbnail: React.FC<ModalThumbnailProps> = ({
 }) => {
   const candidates = useMemo(
     () => buildThumbnailCandidates(item),
-    [item.thumbnail, item.videoUrl]
+    [item.id, item.thumbnail, item.videoUrl]
   );
 
   const [candidateIdx, setCandidateIdx] = useState(0);

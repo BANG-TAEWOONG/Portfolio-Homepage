@@ -151,7 +151,7 @@ const WorkThumbnail: React.FC<WorkThumbnailProps> = ({
 }) => {
   const candidates = useMemo(
     () => buildThumbnailCandidates(item),
-    [item.thumbnail, item.videoUrl]
+    [item.id, item.thumbnail, item.videoUrl]
   );
 
   const [candidateIdx, setCandidateIdx] = useState(0);
@@ -711,7 +711,7 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
 
   const handleMouseEnter = () => {
     if (typeof window !== 'undefined' && window.matchMedia?.('(hover: none)').matches) return;
-    if (isFramingActive || previewMedia.kind !== 'mp4' || previewFailed) return;
+    if (isFramingActive || previewMedia.kind === 'none' || previewFailed) return;
     if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
     hoverTimerRef.current = window.setTimeout(() => {
       setIsHovered(true);
@@ -777,6 +777,14 @@ const VerticalReelCard: React.FC<VerticalReelCardProps> = ({
           className={`absolute inset-0 w-full h-full object-cover pointer-events-none transition-opacity duration-200 ${
             isPreviewPlaying ? 'opacity-100' : 'opacity-0'
           }`}
+        />
+      )}
+
+      {previewMedia.kind === 'youtube' && isHovered && !isFramingActive && (
+        <MutedYouTubeTeaser
+          videoUrl={item.videoUrl}
+          cropClassName="absolute top-1/2 left-1/2 w-[310%] h-[116%] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+          className="hidden md:block"
         />
       )}
 
