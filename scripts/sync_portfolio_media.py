@@ -14,6 +14,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import base64
 import csv
 import io
 import json
@@ -26,6 +27,7 @@ import sys
 import tempfile
 import time
 import urllib.request
+from contextlib import nullcontext
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from PIL import Image, ImageFilter, ImageStat
@@ -100,14 +102,15 @@ def find_binary(name: str, winget_patterns: list[str], extra_paths: list[str]) -
     if found and Path(found).is_file():
         return str(Path(found))
 
-    local_app = Path(os.environ.get("LOCALAPPDATA", r"C:\Users\BANG\AppData\Local"))
-    winget_root = local_app / "Microsoft" / "WinGet" / "Packages"
-    if winget_root.is_dir():
-        for pat in winget_patterns:
-            matches = sorted(winget_root.glob(pat), reverse=True)
-            for m in matches:
-                if m.is_file():
-                    return str(m)
+    if os.name == "nt":
+        local_app = Path(os.environ.get("LOCALAPPDATA", r"C:\Users\BANG\AppData\Local"))
+        winget_root = local_app / "Microsoft" / "WinGet" / "Packages"
+        if winget_root.is_dir():
+            for pat in winget_patterns:
+                matches = sorted(winget_root.glob(pat), reverse=True)
+                for m in matches:
+                    if m.is_file():
+                        return str(m)
 
     for cand in extra_paths:
         p = Path(cand)
@@ -121,13 +124,53 @@ def discover_binaries() -> dict[str, str]:
         "ytdlp": find_binary("yt-dlp", ["yt-dlp*/yt-dlp.EXE", "yt-dlp*/yt-dlp.exe"], []),
         "ffmpeg": find_binary("ffmpeg", ["Gyan.FFmpeg*/**/bin/ffmpeg.EXE", "Gyan.FFmpeg*/**/bin/ffmpeg.exe"], []),
         "ffprobe": find_binary("ffprobe", ["Gyan.FFmpeg*/**/bin/ffprobe.EXE", "Gyan.FFmpeg*/**/bin/ffprobe.exe"], []),
-        "node": find_binary("node", ["OpenJS.NodeJS*/node.exe"], [r"C:\Program Files\nodejs\node.exe"]),
-        "git": find_binary("git", ["Git.Git*/cmd/git.exe"], [r"C:\Program Files\Git\cmd\git.exe", r"C:\Program Files\Git\bin\git.exe"]),
+        "node": find_binary("node", ["OpenJS.NodeJS*/node.exe"], [r"C:\Program Files\nodejs\node.exe"] if os.name == "nt" else ["/usr/local/bin/node", "/usr/bin/node"]),
+        "git": find_binary("git", ["Git.Git*/cmd/git.exe"], [r"C:\Program Files\Git\cmd\git.exe", r"C:\Program Files\Git\bin\git.exe"] if os.name == "nt" else ["/usr/bin/git"]),
     }
     missing = [k for k in ("ytdlp", "ffmpeg", "ffprobe", "git") if not bins.get(k)]
     if missing:
         raise FileNotFoundError(f"Required binaries missing: {missing} (discovered={bins})")
     return {k: v for k, v in bins.items() if v}
+
+
+def ytdlp_base_cmd(bins: dict[str, str]) -> list[str]:
+    cmd = [
+        bins["ytdlp"],
+        "--ffmpeg-location", str(Path(bins["ffmpeg"]).parent),
+        "--no-playlist",
+        "--no-warnings",
+    ]
+    cookie_path = bins.get("cookies")
+    if cookie_path and Path(cookie_path).is_file():
+        cmd.extend(["--cookies", cookie_path])
+    return cmd
+
+
+class TempCookieFile:
+    """Decode YTDLP_COOKIES_B64 into a transient 0600 Netscape cookie file (deleted on exit)."""
+
+    def __init__(self) -> None:
+        self.temp_path: Path | None = None
+
+    def __enter__(self) -> str | None:
+        raw_b64 = (os.environ.get("YTDLP_COOKIES_B64") or "").strip()
+        if not raw_b64:
+            return None
+        decoded = base64.b64decode(raw_b64)
+        fd, path_str = tempfile.mkstemp(prefix="ytdlp_ck_", suffix=".txt")
+        os.close(fd)
+        p = Path(path_str)
+        p.write_bytes(decoded)
+        try:
+            os.chmod(p, 0o600)
+        except Exception:
+            pass
+        self.temp_path = p
+        return str(p)
+
+    def __exit__(self, exc_type, exc, tb) -> None:
+        if self.temp_path:
+            self.temp_path.unlink(missing_ok=True)
 
 
 class SyncLock:
@@ -260,10 +303,7 @@ def probe_remote_duration(url: str, bins: dict[str, str]) -> float:
     try:
         proc = subprocess.run(
             [
-                bins["ytdlp"],
-                "--ffmpeg-location", str(Path(bins["ffmpeg"]).parent),
-                "--no-playlist",
-                "--no-warnings",
+                *ytdlp_base_cmd(bins),
                 "--simulate",
                 "--print", "%(duration)s",
                 url,
@@ -382,10 +422,7 @@ def ensure_instagram_full(item: dict[str, str], bins: dict[str, str]) -> tuple[s
         raw_tpl = str(Path(td) / "raw.%(ext)s")
         proc = subprocess.run(
             [
-                bins["ytdlp"],
-                "--ffmpeg-location", ffmpeg_dir,
-                "--no-playlist",
-                "--no-warnings",
+                *ytdlp_base_cmd(bins),
                 "-f", "bv*+ba/b",
                 "--merge-output-format", "mp4",
                 "-o", raw_tpl,
@@ -478,10 +515,7 @@ def ensure_instagram_thumbnail(item: dict[str, str], bins: dict[str, str]) -> tu
     try:
         proc = subprocess.run(
             [
-                bins["ytdlp"],
-                "--ffmpeg-location", str(Path(bins["ffmpeg"]).parent),
-                "--no-playlist",
-                "--no-warnings",
+                *ytdlp_base_cmd(bins),
                 "--simulate",
                 "--print", "%(thumbnail)s",
                 url,
@@ -608,10 +642,7 @@ def ensure_preview_clip(item: dict[str, str], bins: dict[str, str]) -> tuple[str
             seg_tpl = str(Path(td) / f"seg_{attempt}.%(ext)s")
             proc = subprocess.run(
                 [
-                    bins["ytdlp"],
-                    "--ffmpeg-location", ffmpeg_dir,
-                    "--no-playlist",
-                    "--no-warnings",
+                    *ytdlp_base_cmd(bins),
                     "--download-sections", f"*{st}-{ed}",
                     "-f", "bestvideo[height<=720][ext=mp4]/bestvideo[height<=720]/best[height<=720]",
                     "-o", seg_tpl,
@@ -732,10 +763,7 @@ def ensure_curated_stills(
                 seg_tpl = str(slot_dir / "seg.%(ext)s")
                 dl = subprocess.run(
                     [
-                        bins["ytdlp"],
-                        "--ffmpeg-location", ffmpeg_dir,
-                        "--no-playlist",
-                        "--no-warnings",
+                        *ytdlp_base_cmd(bins),
                         "--download-sections", f"*{st_int}-{ed_int}",
                         "-f", "bestvideo[height<=1080][ext=mp4]/bestvideo[height<=1080]/best[height<=1080]",
                         "-o", seg_tpl,
@@ -871,6 +899,14 @@ def run_deploy(bins: dict[str, str], summary_ids: list[str], logger: logging.Log
 
     tag = ", ".join(summary_ids[:5]) + ("..." if len(summary_ids) > 5 else "")
     msg = f"chore(media): sync portfolio assets ({tag or f'{len(staged_files)} files'})"
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        subprocess.run([git_exe, "config", "user.name", "github-actions[bot]"], cwd=str(ROOT), check=True)
+        subprocess.run(
+            [git_exe, "config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"],
+            cwd=str(ROOT),
+            check=True,
+        )
+
     cm = subprocess.run(
         [git_exe, "commit", "-m", msg],
         cwd=str(ROOT),
@@ -882,7 +918,7 @@ def run_deploy(bins: dict[str, str], summary_ids: list[str], logger: logging.Log
         return 1
 
     ps = subprocess.run(
-        [git_exe, "push", "origin", "main"],
+        [git_exe, "push", "origin", "HEAD:main"],
         cwd=str(ROOT),
         capture_output=True,
         text=True,
@@ -898,6 +934,7 @@ def run_deploy(bins: dict[str, str], summary_ids: list[str], logger: logging.Log
 def main() -> int:
     parser = argparse.ArgumentParser(description="TWOONG STUDIO static portfolio media sync")
     parser.add_argument("--ids", help="Comma-separated work IDs (e.g. pj_26_016,pj_26_018)", default="")
+    parser.add_argument("--cookies", help="Optional Netscape cookies.txt path for yt-dlp", default="")
     parser.add_argument("--skip-stills", action="store_true", help="Skip Stage D scene stills extraction")
     parser.add_argument("--dry-run", action="store_true", help="Report missing assets without modifying disk")
     parser.add_argument("--deploy", action="store_true", help="Build, commit & push media assets if changed")
@@ -935,8 +972,13 @@ def main() -> int:
     changed_ids: list[str] = []
     failures: list[str] = []
 
+    explicit_cookie = args.cookies.strip()
+    cookie_ctx = nullcontext(explicit_cookie) if explicit_cookie else TempCookieFile()
+
     try:
-        with SyncLock(LOCK_FILE):
+        with cookie_ctx as resolved_cookie, SyncLock(LOCK_FILE):
+            if resolved_cookie:
+                bins["cookies"] = resolved_cookie
             ig_items = [it for it in playable_items if extract_instagram_id(it.get("video_url", ""))]
             logger.info("Sync started: %d playable public items (%d Instagram).", len(playable_items), len(ig_items))
 

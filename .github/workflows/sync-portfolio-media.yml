@@ -1,0 +1,79 @@
+name: Sync Portfolio Media (Sheet Event)
+
+on:
+  repository_dispatch:
+    types:
+      - sheet-row-added
+      - manual-sync
+  workflow_dispatch:
+    inputs:
+      work_ids:
+        description: "Optional comma-separated work IDs (e.g. pj_26_019)"
+        required: false
+        default: ""
+
+concurrency:
+  group: portfolio-media-sync
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  sync-media:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install ffmpeg, yt-dlp, Pillow & Node dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+          python3 -m pip install --upgrade yt-dlp pillow
+          npm ci
+
+      - name: Sync new Google Sheet portfolio media
+        env:
+          YTDLP_COOKIES_B64: ${{ secrets.YTDLP_COOKIES_B64 }}
+        run: |
+          TARGET_IDS="${{ github.event.inputs.work_ids || github.event.client_payload.work_id || '' }}"
+          if [ -n "$TARGET_IDS" ]; then
+            python3 -X utf8 scripts/sync_portfolio_media.py --ids "$TARGET_IDS"
+          else
+            python3 -X utf8 scripts/sync_portfolio_media.py
+          fi
+
+      - name: Verify production build & push changes if updated
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [ -z "$(git status --porcelain -- public/thumbnails public/previews public/videos public/stills src/data/localMediaManifest.ts src/data/curatedStills.ts)" ]; then
+            echo "No new media changes detected; skipping build & push."
+            exit 0
+          fi
+
+          npm run build
+
+          git add -- public/thumbnails public/previews public/videos public/stills src/data/localMediaManifest.ts src/data/curatedStills.ts
+          if [ -z "$(git diff --cached --name-only)" ]; then
+            echo "Nothing staged after selective add; exiting cleanly."
+            exit 0
+          fi
+
+          git commit -m "chore(media): sync sheet portfolio assets [event]"
+          git push origin HEAD:main

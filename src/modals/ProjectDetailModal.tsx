@@ -8,6 +8,7 @@ import {
   getStillFallbackUrl,
   isMeaningfulValue,
   parseProjectStills,
+  splitCleanList,
 } from '../integrations/mediaParser';
 import {
   buildThumbnailCandidates,
@@ -351,6 +352,9 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
   const platform = getVideoPlatform(selectedWork.videoUrl);
   const editorialDescription = resolveEditorialDescription(selectedWork);
   const resolvedFocal = focalPoint || selectedWork.focalPoint || '50% 50%';
+  const isParticipation = selectedWork.type === 'Participated';
+  const participationRoles = isParticipation ? splitCleanList(selectedWork.role, true) : [];
+  const showParticipationMainPart = isParticipation && participationRoles.length > 0;
 
   const clientDisplay =
     getClientArtistDisplay(selectedWork) || 'Original Project';
@@ -634,9 +638,40 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
           {/* 3. 2-Column Split: Giant Condensed Title (Left) + Narrative Summary (Right) */}
           <section className="py-12 md:py-20 grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-10 items-start px-1">
             <div className="md:col-span-6">
+              {showParticipationMainPart && (
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded bg-neutral-950 text-white font-mono-tech text-[10px] font-semibold uppercase tracking-[0.14em]">
+                    PARTICIPATION
+                  </span>
+                  <span className="font-mono-tech text-[10px] uppercase tracking-[0.16em] text-neutral-400">
+                    MY MAIN PART
+                  </span>
+                </div>
+              )}
+
               <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-[72px] leading-[0.94] tracking-tight text-neutral-950 uppercase break-keep">
                 {selectedWork.title}
               </h1>
+
+              {showParticipationMainPart && (
+                <div
+                  data-participation-main-roles="true"
+                  className="mt-4 md:mt-5 flex flex-wrap items-center gap-1.5 sm:gap-2"
+                >
+                  {participationRoles.map((roleLabel, idx) => (
+                    <span
+                      key={`${selectedWork.id}-main-role-${roleLabel}`}
+                      className={`inline-flex items-center px-3 py-1 rounded-full font-mono-tech text-[11px] sm:text-xs font-medium tracking-wide leading-tight ${
+                        idx === 0
+                          ? 'bg-neutral-950 text-white border border-neutral-950'
+                          : 'bg-[#F4F4F2] text-neutral-900 border border-black/10'
+                      }`}
+                    >
+                      {roleLabel}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="md:col-span-5 md:col-start-8 md:pt-1">
@@ -646,9 +681,24 @@ const ProjectDetailModal: React.FC<ProjectModalProps> = ({
             </div>
           </section>
 
-          {/* 4. Top Metadata Hairline Grid (`Client` | `Category` | `Format` | `Release Date`) */}
+          {/* 4. Top Metadata Hairline Grid (`My Role`[Participation only] | `Client` | `Category` | `Format` | `Release Date`) */}
           <section aria-label="Project Metadata">
-            <dl className="m-0 border-t border-neutral-200 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 py-8 px-1">
+            <dl
+              className={`m-0 border-t border-neutral-200 grid grid-cols-2 ${
+                showParticipationMainPart ? 'md:grid-cols-5' : 'md:grid-cols-4'
+              } gap-6 md:gap-8 py-8 px-1`}
+            >
+              {showParticipationMainPart && (
+                <div className="col-span-2 md:col-span-1">
+                  <dt className="block font-mono-tech text-xs text-neutral-400 mb-2">
+                    My Role
+                  </dt>
+                  <dd className="m-0 text-[15px] md:text-base text-neutral-950 font-semibold leading-snug break-keep">
+                    {participationRoles.join(' · ')}
+                  </dd>
+                </div>
+              )}
+
               <div>
                 <dt className="block font-mono-tech text-xs text-neutral-400 mb-2">
                   Client / Artist
